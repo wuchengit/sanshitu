@@ -334,8 +334,9 @@ document.getElementById('genBtn').onclick=async function(){
   var origTxt=btn.textContent;btn.textContent='⏳';
   setTimeout(function(){btn.textContent=origTxt;},1200);
   // 插入loading历史
+  var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   var ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  ld.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:m,loading:true,t:Date.now()});
+  ld.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now()});
   if(ld.length>30)ld.shift();
   localStorage.setItem('ds_h',JSON.stringify(ld));
   renderHistory();
@@ -352,7 +353,7 @@ document.getElementById('genBtn').onclick=async function(){
       }).catch(function(){});
       // 更新loading记录
       var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].loading){_h[_i]={u:url,id:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
+      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
       if(_h.length>30)_h.shift();
       localStorage.setItem('ds_h',JSON.stringify(_h));
       renderHistory();
