@@ -161,6 +161,7 @@ const LAYOUTS = [
 ];
 
 const STYLES = [
+{id:'none',icon:'🚫',name:'无',desc:'不使用风格模板',prompt:''},
   {id:'film',icon:'🎬',name:'电影女主',desc:'暖灰·柔光',prompt:'Film character casting sheet, warm neutral gray seamless background. Cinematic color palette, soft key lighting, professional movie reference sheet style, high-end fashion editorial quality, 8K.'},
   {id:'male',icon:'🧑',name:'男性角色',desc:'深灰·冷调',prompt:'Film character casting sheet, dark charcoal gray seamless background. Male studio lighting, hard contrast, cinematic masculine aesthetic, professional portfolio quality, 8K.'},
   {id:'fantasy',icon:'🧝',name:'奇幻精灵',desc:'深蓝·魔幻',prompt:'Fantasy character casting sheet, ethereal deep blue gradient background. Magical atmosphere lighting, luminous skin glow, fantasy cinematic art style, 8K.'},
@@ -185,7 +186,7 @@ const RES_MAP = {
   '2:3':{'1k':'1024x1536','2k':'1360x2048','4k':'2336x3504'}
 };
 
-let selLayout='classic', selStyle='film', uploadedFiles=[];
+let selLayout='classic', selStyle='none', uploadedFiles=[];
 
 function onModelChange(){
   const vip=document.getElementById('modelType').value==='gpt-image-2-vip';
