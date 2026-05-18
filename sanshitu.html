@@ -305,7 +305,7 @@ document.getElementById('genBtn').onclick=async function(){
       area.innerHTML=`<div><img src="${url}" style="width:100%;border-radius:6px;display:block"><div style="margin-top:6px;font-size:10px;color:#666;display:flex;gap:10px"><span>${model}</span><span>${aspectVal}</span></div><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${url}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
       const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
-    } else area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,200)}</div>`;
+    } else area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,500)}</div><button class="preview-btn" style="margin-top:8px" onclick="document.getElementById('genBtn').click()">🔄 重试</button></div>`;
   }catch(e){area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
   finally{this.disabled=false;this.textContent='🎨 生成图片'}
 };
