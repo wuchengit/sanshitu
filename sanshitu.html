@@ -387,18 +387,9 @@ function renderHistory(){
   var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
   for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
 }
-function _ren
-  const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var html=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
-  document.getElementById('historyMasonry').innerHTML=html;
-  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
-  for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
-}
 
-function _viewH(idx){
-  const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
-  document.getElementById('resultArea').innerHTML=`<div><img src="${x.u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${x.u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
-}
+
+
 
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
 
