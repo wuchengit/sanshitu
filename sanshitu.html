@@ -290,7 +290,16 @@ document.addEventListener('mouseup',function(){if(isD){isD=false;document.getEle
 async function downloadViewer(){var url=document.getElementById('viewerImg').src;try{var r=await fetch(url);var b=await r.blob();var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click()}catch(e){window.open(url,'_blank')}}
 function viewH(idx){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
-  if(x) openViewer(x.u, x.info||'');
+  if(!x) return;
+  openViewer(x.u, x.info||'');
+  // 图片加载后读取真实分辨率并更新信息
+  var tmp = new Image();
+  tmp.onload = function(){
+    var real = tmp.naturalWidth+'x'+tmp.naturalHeight;
+    var old = document.getElementById('viewerInfo').textContent;
+    document.getElementById('viewerInfo').textContent = old + ' | ' + real;
+  };
+  tmp.src = x.u;
 }
 
 </script>
