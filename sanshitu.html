@@ -316,9 +316,9 @@ function viewH(idx){
 </script>
 <!-- 浮层查看器 -->
 <div id="viewerOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center;cursor:grab" onclick="closeViewer(event)">
-<div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center">
-<span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px"></span>
-<button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️</button>
+<div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center;max-width:90vw">
+<span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
+<button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
 <button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer">✕</button></div>
 <div id="viewerContainer" style="position:relative;max-width:90vw;max-height:85vh;overflow:hidden;border-radius:8px" onclick="event.stopPropagation()">
 <img id="viewerImg" src="" style="display:block;max-width:90vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
