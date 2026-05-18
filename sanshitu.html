@@ -326,7 +326,7 @@ document.getElementById('genBtn').onclick=async function(){
     <span style="font-size:10px;color:#666"><span>${model}</span> | <span>${aspectVal}</span>${window._fs?' | <span>'+window._fs+'</span>':''}</span>
     <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="dlImg('${url}',this)">⬇️ 下载</button>
   </div>
-  <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var r=this.naturalWidth+'x'+this.naturalHeight,d=this.parentElement;d.querySelector('span').textContent+=' | '+r;fetch(this.src).then(function(b2){return b2.blob()}).then(function(b3){var fs=b3.size>1048576?(b3.size/1048576).toFixed(1)+'MB':(b3.size/1024).toFixed(0)+'KB';d.querySelector('span').textContent+=' | '+fs;}).catch(function(){})" onclick="openViewer('${url}','${model} ${aspectVal}${window._fs?' '+window._fs:''}')">
+  <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var r=this.naturalWidth+'x'+this.naturalHeight;this.parentElement.querySelector('span').textContent+=' | '+r" onclick="openViewer('${url}','${model} ${aspectVal}${window._fs?' '+window._fs:''}')">
 </div>`;
       const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
