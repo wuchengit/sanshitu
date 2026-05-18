@@ -365,6 +365,19 @@ function openViewer(url,info){
   document.getElementById('viewerImg').style.transform='translate(0,0) scale(1)';
   document.getElementById('viewerZoom').textContent='🔄 滚轮缩放·拖动查看';
   document.body.style.overflow='hidden';
+  // 图片加载后自动获取完整信息
+  document.getElementById('viewerImg').onload=function(){
+    var w=this.naturalWidth,h=this.naturalHeight,label='';
+    var known={'0.56':'9:16','0.75':'3:4','0.80':'4:5','0.89':'8:9','1.00':'1:1','1.25':'5:4','1.33':'4:3','1.50':'3:2','1.60':'16:10','1.78':'16:9','1.85':'16:9','2.00':'2:1','2.33':'21:9','2.37':'21:9','2.40':'12:5'};
+    label=known[(w/h).toFixed(2)]||(w+'x'+h);
+    var base=info||'';
+    fetch(url).then(function(r){return r.blob()}).then(function(b){
+      var fs=b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+label+' | 分辨率 '+w+'x'+h+' | '+fs;
+    }).catch(function(){
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+label+' | 分辨率 '+w+'x'+h;
+    });
+  };
 }
 function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';}
 document.getElementById('viewerOverlay').addEventListener('wheel',function(e){if(e.target.closest('#viewerContainer')){e.preventDefault();var d=e.deltaY>0?-0.1:0.1;vs=Math.max(.5,Math.min(10,vs+d));document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}},{passive:false});
