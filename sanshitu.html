@@ -54,7 +54,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .style-card .desc{font-size:7px;color:#777;line-height:1.1}
 
 /* 预览 */
-.preview-box{background:#0a0a0e;border-radius:5px;padding:8px;font-size:10px;color:#999;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:80px;overflow-y:auto}
+.preview-box{background:#0a0a0e;border-radius:5px;padding:8px;font-size:10px;color:#999;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto}
 .preview-tools{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
 .preview-btn{padding:3px 8px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;cursor:pointer;font-size:9px;transition:all .2s}
 .preview-btn:hover{background:#333;color:#fff}
@@ -91,7 +91,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
       <div class="card">
         <div class="card-t">📝 提示词</div>
-        <textarea id="promptInput" rows="5" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+        <textarea id="promptInput" rows="8" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:vertical"></textarea>
       </div>
       <div class="card">
         <div class="card-t">⚙️ 模型</div>
@@ -109,7 +109,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <button class="preview-btn" onclick="translatePrompt(this)">🌐 翻译</button>
-          <span style="flex:1"></span><span style="font-size:9px;color:#555" id="promptLen">0</span>
+          <span style="flex:1"></span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
         <button class="btn btn-gen" id="genBtn" style="margin-top:6px">🎨 生成图片</button>
       </div>
@@ -217,6 +217,13 @@ function up(){
 }
 
 
+
+
+function changeFontSize(size){
+  document.getElementById('promptInput').style.fontSize=size+'px';
+  document.getElementById('promptPreview').style.fontSize=size+'px';
+  localStorage.setItem('ds_fontSize', size);
+}
 
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
@@ -330,6 +337,7 @@ function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent
 // Init
 document.getElementById('apiKey').value=localStorage.getItem('ds_key')||'sk-848e99d4f23f4599b2690249164c70d7';
 renderLayouts();renderStyles();renderUploads();renderHistory();up();
+var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
 // 浮层查看器
