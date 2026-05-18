@@ -325,7 +325,13 @@ document.getElementById('genBtn').onclick=async function(){
   if(model==='gpt-image-2-vip'&&RES_MAP[ar]?.[res]) aspectVal=RES_MAP[ar][res];
   const area=document.getElementById('resultArea');
   area.innerHTML='<div style="text-align:center;padding:30px"><div style="width:28px;height:28px;border:3px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 10px"></div><p style="color:#888;font-size:12px">⏳ 生成中...</p></div>';
-  this.disabled=true;this.textContent='⏳';
+  this.textContent='⏳';(function(btn){setTimeout(function(){btn.textContent='🎨 生成';},1200);})(this);
+  // 插入loading历史
+  var _ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  _ld.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:model,loading:true,t:Date.now()});
+  if(_ld.length>30)_ld.shift();
+  localStorage.setItem('ds_h',JSON.stringify(_ld));
+  renderHistory();
   const body={model,prompt,aspectRatio:aspectVal,replyType:'json'};
   if(uploadedFiles.length) body.images=uploadedFiles.map(f=>f.data);
   try{
@@ -354,7 +360,11 @@ document.getElementById('genBtn').onclick=async function(){
       }
     }
   }).catch(function(){});
-      const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
+      var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var _found=false;
+  for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].loading){_h[_i]={u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()};_found=true;break;}}
+  if(!_found)_h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});
+  var h=_h;if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
   // 记录日志
   fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
@@ -364,6 +374,20 @@ document.getElementById('genBtn').onclick=async function(){
 };
 
 function renderHistory(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var out='';
+  if(h.length){
+    out=h.slice().reverse().map(function(x,i){
+      var idx=h.length-1-i;
+      if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite"></div></div></div>';
+      return '<div class="history-item" onclick="viewH('+idx+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';
+    }).join('');
+  }else{out='<span style="color:#555;font-size:11px">暂无</span>';}
+  document.getElementById('historyMasonry').innerHTML=out;
+  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
+  for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
+}
+function _ren
   const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
   var html=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
   document.getElementById('historyMasonry').innerHTML=html;
