@@ -223,7 +223,7 @@ function translatePrompt(btn){
   if(!window._origPrompt) window._origPrompt=text;
   btn.innerHTML='⏳';
   var lang=document.getElementById('targetLang').value;
-  fetch('/translate.php',{
+  fetch('/translate.php?_t='+Date.now(),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({prompt:text,lang:lang})
