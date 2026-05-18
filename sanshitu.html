@@ -227,8 +227,11 @@ function translatePrompt(){
     body:JSON.stringify({prompt:text,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
+      // 翻译结果填入输入框
       document.getElementById('promptInput').value=d.translation;
-      document.getElementById('promptInput').oninput();
+      // 预览区直接显示翻译结果（不组合模板）
+      document.getElementById('promptPreview').textContent=d.translation;
+      document.getElementById('promptLen').textContent=d.translation.length;
       var name=document.getElementById('targetLang').value;
       t('🌐 已译→'+name,'ok');
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
