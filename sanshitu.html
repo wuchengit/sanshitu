@@ -350,7 +350,7 @@ document.getElementById('genBtn').onclick=async function(){
 
 function renderHistory(){
   const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"356\" viewBox=\"0 0 200 356\"><rect fill=\"#25252d\" width=\"200\" height=\"356\"/><text x=\"100\" y=\"178\" text-anchor=\"middle\" fill=\"#555\" font-size=\"14\">\u26A0\uFE0F<br/>\u56FE\u7247\u5DF2\u5931\u6548</text></svg>')"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
 }
 
 function _viewH(idx){
