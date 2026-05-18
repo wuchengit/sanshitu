@@ -107,6 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="preview-tools">
           <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
           <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
+          <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <button class="preview-btn" onclick="translatePrompt()">🌐 翻译</button>
           <span style="flex:1"></span><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
@@ -218,19 +219,21 @@ function up(){
 function translatePrompt(){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
-  var btn=event.target;btn.textContent='⏳';
+  var btn=event.target;btn.innerHTML='⏳';
+  var lang=document.getElementById('targetLang').value;
   fetch('/translate.php',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:text})
+    body:JSON.stringify({prompt:text,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
       document.getElementById('promptInput').value=d.translation;
       document.getElementById('promptInput').oninput();
-      t('🌐 翻译完成','ok');
+      var name=document.getElementById('targetLang').value;
+      t('🌐 已译→'+name,'ok');
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
   }).catch(function(){t('⚠️ 网络错误','err');})
-  .finally(function(){btn.textContent='🌐 翻译';});
+  .finally(function(){btn.innerHTML='🌐 翻译';});
 }
 function copyPrompt(){
   var p=document.getElementById('promptPreview'),r=document.createRange();
