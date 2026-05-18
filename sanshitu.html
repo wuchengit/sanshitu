@@ -380,9 +380,9 @@ function viewH(idx){
     // 获取文件大小
     fetch(x.u).then(function(r){return r.blob()}).then(function(b){
       var fs = b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';
-      document.getElementById('viewerInfo').textContent = x.model+' | 比例 '+label+' | 分辨率 '+res+' | '+fs;
+      document.getElementById('viewerInfo').textContent = (x.info||'')+' | 比例 '+label+' | 分辨率 '+res+' | '+fs;
     }).catch(function(){
-      document.getElementById('viewerInfo').textContent = x.model+' | 比例 '+label+' | 分辨率 '+res;
+      document.getElementById('viewerInfo').textContent = (x.info||'')+' | 比例 '+label+' | 分辨率 '+res;
     });
   };
   tmp.src = x.u;
