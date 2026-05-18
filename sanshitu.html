@@ -107,6 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="preview-tools">
           <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
           <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
+          <button class="preview-btn" onclick="translatePrompt()">🌐 翻译</button>
           <span style="flex:1"></span><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
         <button class="btn btn-gen" id="genBtn" style="margin-top:6px">🎨 生成图片</button>
@@ -213,8 +214,38 @@ function up(){
   document.getElementById('promptLen').textContent=p.length;
 }
 
-function copyPrompt(){navigator.clipboard.writeText(document.getElementById('promptPreview').textContent).then(()=>t('✅ 已复制','ok'))}
-function downloadPrompt(){const p=document.getElementById('promptPreview').textContent;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([p],{type:'text/plain;charset=utf-8'}));a.download='prompt_'+Date.now()+'.txt';a.click();t('⬇️ 已下载','ok')}
+
+function translatePrompt(){
+  var text=document.getElementById('promptPreview').textContent;
+  if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
+  var btn=event.target;btn.textContent='⏳';
+  var key=document.getElementById('apiKey').value.trim()||'sk-c583e696cd0e4caa9055a7e6f62b4390';
+  fetch('https://api.deepseek.com/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+    body:JSON.stringify({model:'deepseek-v4-flash',messages:[{role:'system',content:'Translate the following English prompt to Chinese. Output only the translation, no explanation.'},{role:'user',content:text}],max_tokens:2000})
+  }).then(function(r){return r.json()}).then(function(d){
+    var t=d.choices?.[0]?.message?.content||'';
+    if(t){
+      document.getElementById('promptInput').value=t;
+      document.getElementById('promptInput').oninput();
+      t('🌐 翻译已完成','ok');
+    }else{t('⚠️ 翻译失败','err');}
+  }).catch(function(){t('⚠️ 翻译请求失败','err');})
+  .finally(function(){btn.textContent='🌐 翻译';});
+}
+function copyPrompt(){
+  var p=document.getElementById('promptPreview'),r=document.createRange();
+  r.selectNodeContents(p);
+  var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+  document.execCommand('copy');s.removeAllRanges();
+  t('✅ 已复制','ok');
+}
+function downloadPrompt(){
+  var p=document.getElementById('promptPreview').textContent;
+  var a=document.createElement('a');
+  try{a.href=URL.createObjectURL(new Blob([p],{type:'text/plain;charset=utf-8'}));a.download='prompt_'+Date.now()+'.txt';a.click();t('⬇️ 已下载','ok');}catch(e){t('⚠️ 下载失败','err');}
+}
 
 function renderUploads(){
   let h='';
