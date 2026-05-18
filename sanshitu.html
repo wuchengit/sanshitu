@@ -216,6 +216,21 @@ function up(){
 }
 
 
+
+function toggleLog(){
+  var p=document.getElementById('logPanel');
+  if(p.style.display!='none'){p.style.display='none';return;}
+  p.style.display='block';
+  document.getElementById('logContent').textContent='加载中...';
+  fetch('/logs/generate.log').then(function(r){return r.text()}).then(function(t){
+    // 倒序显示最近20条
+    var lines=t.trim().split('\n').reverse().slice(0,20).join('\n---\n');
+    document.getElementById('logContent').textContent=lines||'暂无日志';
+  }).catch(function(){
+    document.getElementById('logContent').textContent='暂无日志';
+  });
+}
+
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
@@ -286,6 +301,7 @@ document.getElementById('fileInput').onchange=function(e){
 };
 
 document.getElementById('genBtn').onclick=async function(){
+  var _start=Date.now();
   const apiKey=document.getElementById('apiKey').value.trim(), prompt=buildPrompt();
   const model=document.getElementById('modelType').value, ar=document.getElementById('aspectRatio').value, res=document.getElementById('resolution').value;
   if(!apiKey||!prompt){t('请填写必要信息','err');return}
@@ -305,8 +321,10 @@ document.getElementById('genBtn').onclick=async function(){
       area.innerHTML=`<div><img src="${url}" style="width:100%;border-radius:6px;display:block"><div style="margin-top:6px;font-size:10px;color:#666;display:flex;gap:10px"><span>${model}</span><span>${aspectVal}</span></div><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${url}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
       const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
+  // 记录日志
+  fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     } else area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,500)}</div><button class="preview-btn" style="margin-top:8px" onclick="document.getElementById('genBtn').click()">🔄 重试</button></div>`;
-  }catch(e){area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
+  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
   finally{this.disabled=false;this.textContent='🎨 生成图片'}
 };
 
