@@ -95,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="model-row">
           <div class="form-group"><label>类型</label><select id="modelType" onchange="onModelChange()"><option value="gpt-image-2">gpt-image-2</option><option value="gpt-image-2-vip">gpt-image-2-vip</option></select></div>
           <div class="form-group"><label>比例</label><select id="aspectRatio"><option value="9:16">9:16</option><option value="16:9">16:9</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="3:4">3:4</option><option value="3:2">3:2</option><option value="2:3">2:3</option></select></div>
-          <div class="form-group"><label>分辨率</label><select id="resolution"><option value="1k">1K</option><option value="2k">2K (VIP)</option><option value="4k">4K (VIP)</option></select></div>
+          <div class="form-group"><label>分辨率</label><select id="resolution" onchange="up()"><option value="1k">1K (默认)</option><option value="2k">2K</option><option value="4k">4K</option></select></div>
         </div>
       </div>
       <div class="card">
