@@ -351,7 +351,7 @@ document.getElementById('genBtn').onclick=async function(){
 
 function renderHistory(){
   const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+x.u+'" loading="lazy"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
 }
 
 function _viewH(idx){
