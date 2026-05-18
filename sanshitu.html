@@ -323,22 +323,16 @@ document.getElementById('genBtn').onclick=async function(){
       const url=d.results[0].url;
       area.innerHTML=`<div style="position:relative">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px 0">
-    <span style="font-size:10px;color:#666"><span>${model}</span> | <span>${aspectVal}</span>${window._fs?' | <span>'+window._fs+'</span>':''}</span>
+    <span id="rInfo" style="font-size:10px;color:#666">${model} | ${aspectVal}</span>
     <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="dlImg('${url}',this)">⬇️ 下载</button>
   </div>
-  <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var r=this.naturalWidth+'x'+this.naturalHeight;this.parentElement.querySelector('span').textContent+=' | '+r" onclick="openViewer('${url}','${model} ${aspectVal}${window._fs?' '+window._fs:''}')">
+  <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var w=this.naturalWidth,h=this.naturalHeight;var lb={'0.56':'9:16','0.75':'3:4','1.33':'4:3','1.50':'3:2','1.78':'16:9'}[(w/h).toFixed(2)]||w+':'+h;function gcd(a,b){return b?gcd(b,a%b):a;}fetch(this.src).then(function(r){return r.blob()}).then(function(b){var fs=b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';document.getElementById('rInfo').textContent=model+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+' | '+fs;}).catch(function(){document.getElementById('rInfo').textContent=model+' | 比例 '+lb+' | 分辨率 '+w+'x'+h;})" onclick="openViewer('${url}',model)">
 </div>`;
       const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
   // 记录日志
   fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
-    } else area.innerHTML=`<div style="position:relative">
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px 0">
-    <span id="rInfo" style="font-size:10px;color:#666">${model} | ${aspectVal}</span>
-    <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="dlImg('${url}',this)">⬇️ 下载</button>
-  </div>
-  <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var w=this.naturalWidth,h=this.naturalHeight;var lb={'0.56':'9:16','0.75':'3:4','1.33':'4:3','1.50':'3:2','1.78':'16:9'}[(w/h).toFixed(2)]||w+':'+h;function gcd(a,b){return b?gcd(b,a%b):a;}fetch(this.src).then(function(r){return r.blob()}).then(function(b){var fs=b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';document.getElementById('rInfo').textContent=model+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+' | '+fs;}).catch(function(){document.getElementById('rInfo').textContent=model+' | 比例 '+lb+' | 分辨率 '+w+'x'+h;})" onclick="openViewer('${url}',model)">
-</div>`;;
+    ;
   }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
   finally{this.disabled=false;this.textContent='🎨 生成图片'}
 };
