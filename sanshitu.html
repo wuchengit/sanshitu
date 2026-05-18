@@ -108,7 +108,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
           <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
-          <button class="preview-btn" onclick="translatePrompt()">🌐 翻译</button>
+          <button class="preview-btn" onclick="translatePrompt(this)">🌐 翻译</button>
           <span style="flex:1"></span><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
         <button class="btn btn-gen" id="genBtn" style="margin-top:6px">🎨 生成图片</button>
@@ -216,10 +216,10 @@ function up(){
 }
 
 
-function translatePrompt(){
+function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
-  var btn=event.target;btn.innerHTML='⏳';
+  btn.innerHTML='⏳';
   var lang=document.getElementById('targetLang').value;
   fetch('/translate.php',{
     method:'POST',
@@ -227,15 +227,13 @@ function translatePrompt(){
     body:JSON.stringify({prompt:text,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
-      // 翻译结果填入输入框
       document.getElementById('promptInput').value=d.translation;
-      // 预览区直接显示翻译结果（不组合模板）
       document.getElementById('promptPreview').textContent=d.translation;
       document.getElementById('promptLen').textContent=d.translation.length;
       var name=document.getElementById('targetLang').value;
       t('🌐 已译→'+name,'ok');
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
-  }).catch(function(){t('⚠️ 网络错误','err');})
+  }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
   .finally(function(){btn.innerHTML='🌐 翻译';});
 }
 function copyPrompt(){
