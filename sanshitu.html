@@ -225,6 +225,15 @@ function changeFontSize(size){
   localStorage.setItem('ds_fontSize', size);
 }
 
+
+function dlImg(url,btn){
+  btn.innerHTML='⏳';
+  fetch(url).then(function(r){return r.blob()}).then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click();
+    btn.innerHTML='⬇️ 下载';
+  }).catch(function(){btn.innerHTML='⬇️ 下载';});
+}
+
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
@@ -315,7 +324,7 @@ document.getElementById('genBtn').onclick=async function(){
       area.innerHTML=`<div style="position:relative">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px 0">
     <span style="font-size:10px;color:#666"><span>${model}</span> | <span>${aspectVal}</span>${window._fs?' | <span>'+window._fs+'</span>':''}</span>
-    <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="var b=document.getElementById('dlBtn');b.innerHTML='⏳';fetch('${url}').then(function(r){return r.blob()}).then(function(b2){var a=document.createElement('a');a.href=URL.createObjectURL(b2);a.download='sanshitu_'+Date.now()+'.png';a.click();b.innerHTML='⬇️ 下载';}).catch(function(){b.innerHTML='⬇️ 下载';})">⬇️ 下载</button>
+    <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="dlImg('${url}',this)">⬇️ 下载</button>
   </div>
   <img src="${url}" style="width:100%;border-radius:6px;cursor:pointer;display:block" onload="var r=this.naturalWidth+'x'+this.naturalHeight,d=this.parentElement;d.querySelector('span').textContent+=' | '+r;fetch(this.src).then(function(b2){return b2.blob()}).then(function(b3){var fs=b3.size>1048576?(b3.size/1048576).toFixed(1)+'MB':(b3.size/1024).toFixed(0)+'KB';d.querySelector('span').textContent+=' | '+fs;}).catch(function(){})" onclick="openViewer('${url}','${model} ${aspectVal}${window._fs?' '+window._fs:''}')">
 </div>`;
