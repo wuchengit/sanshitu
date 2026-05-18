@@ -71,7 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast.show{transform:translateX(0)}
 .toast.err{border-color:#ef4444;color:#ef4444}
 .toast.ok{border-color:#22c55e;color:#22c55e}
-</style>
+@keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}</style>
 </head>
 <body>
 <div class="container">
@@ -331,8 +331,8 @@ document.getElementById('genBtn').onclick=async function(){
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
   // 按钮不disabled
   var btn=document.getElementById('genBtn');
-  var origTxt=btn.textContent;btn.textContent='⏳';
-  setTimeout(function(){btn.textContent=origTxt;},1200);
+  btn.textContent='⏳';
+  setTimeout(function(){btn.textContent='🎨 生成';},1200);
   // 插入loading历史
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   var ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
@@ -382,7 +382,7 @@ function renderHistory(){
   if(h.length){
     out=h.slice().reverse().map(function(x,i){
       var idx=h.length-1-i;
-      if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite"></div></div></div>';
+      if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
       return '<div class="history-item" onclick="viewH('+idx+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';
     }).join('');
   }else{out='<span style="color:#555;font-size:11px">暂无</span>';}
