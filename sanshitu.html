@@ -217,20 +217,6 @@ function up(){
 
 
 
-function toggleLog(){
-  var p=document.getElementById('logPanel');
-  if(p.style.display!='none'){p.style.display='none';return;}
-  p.style.display='block';
-  document.getElementById('logContent').textContent='加载中...';
-  fetch('/logs/generate.log').then(function(r){return r.text()}).then(function(t){
-    // 倒序显示最近20条
-    var lines=t.trim().split('\n').reverse().slice(0,20).join('\n---\n');
-    document.getElementById('logContent').textContent=lines||'暂无日志';
-  }).catch(function(){
-    document.getElementById('logContent').textContent='暂无日志';
-  });
-}
-
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
