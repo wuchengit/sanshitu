@@ -330,14 +330,13 @@ document.getElementById('genBtn').onclick=async function(){
     if(d.original && d.thumb){
       // 更新历史记录中的 URL 为本地地址
       var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var i=h.length-1;i>=0;i--){
-        if(h[i].id===d.id){
-          h[i].u=d.original;
-          h[i].thumb=d.thumb;
-          break;
-        }
+      if(h.length>0){
+        var last=h[h.length-1];
+        last.u=d.original;
+        last.thumb=d.thumb;
+        localStorage.setItem('ds_h',JSON.stringify(h));
+        renderHistory();
       }
-      localStorage.setItem('ds_h',JSON.stringify(h));
     }
   }).catch(function(){});
       const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
