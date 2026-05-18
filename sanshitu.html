@@ -244,7 +244,6 @@ function changeFontSize(size){
   localStorage.setItem('ds_fontSize', size);
 }
 
-
 function dlImg(url,btn){
   btn.innerHTML='⏳';
   fetch(url).then(function(r){return r.blob()}).then(function(b){
@@ -324,7 +323,7 @@ document.getElementById('fileInput').onchange=function(e){
 
 document.getElementById('genBtn').onclick=async function(){
   var _start=Date.now();
-  var apiKey=docume…m(),prompt=buildPrompt();
+  var apiKey=document.getElementById('apiKey').value.trim(),prompt=buildPrompt();
   var m=document.getElementById('modelType').value,ar=document.getElementById('aspectRatio').value,res=document.getElementById('resolution').value;
   if(!apiKey||!prompt){t('请填写必要信息','err');return}
   localStorage.setItem('ds_key',apiKey);
@@ -389,7 +388,7 @@ function renderHistory(){
   document.getElementById('historyMasonry').innerHTML=out;
   var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
   for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
-}}
+}
 
 function _viewH(idx){
   const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
