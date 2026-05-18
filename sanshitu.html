@@ -199,10 +199,13 @@ const RES_MAP = {
 let selLayout='classic', selStyle='none', uploadedFiles=[];
 
 function onModelChange(){
-  const vip=document.getElementById('modelType').value==='gpt-image-2-vip';
-  const sel=document.getElementById('resolution');
-  sel.options[1].disabled=!vip; sel.options[2].disabled=!vip;
-  if(!vip&&sel.value!=='1k') sel.value='1k';
+  var vip=document.getElementById('modelType').value==='gpt-image-2-vip';
+  var sel=document.getElementById('resolution');
+  if(vip){
+    sel.innerHTML='<option value="1k">1K (1024+px)</option><option value="2k">2K (2048+px)</option><option value="4k">4K (2880+px)</option>';
+  }else{
+    sel.innerHTML='<option value="1k">1K 像素</option><option value="ratio">仅传比例</option>';
+  }
   up();
 }
 
