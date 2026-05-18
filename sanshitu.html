@@ -328,12 +328,13 @@ document.getElementById('genBtn').onclick=async function(){
   // 保存图片到本地
   fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r){return r.json()}).then(function(d){
     if(d.original && d.thumb){
-      var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      if(_h.length>0){
-        var last=_h[_h.length-1];
+      // 更新历史记录中的 URL 为本地地址
+      var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+      if(h.length>0){
+        var last=h[h.length-1];
         last.u=d.original;
         last.thumb=d.thumb;
-        localStorage.setItem('ds_h',JSON.stringify(_h));
+        localStorage.setItem('ds_h',JSON.stringify(h));
         renderHistory();
       }
     }
@@ -348,8 +349,8 @@ document.getElementById('genBtn').onclick=async function(){
 };
 
 function renderHistory(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" id="hi_'+(h.length-1-i)+'" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy" onerror="this.src='/images/placeholder.svg';this.onerror=null;document.getElementById('hi_'+this.parentElement.id.replace('hi_','')).onclick='';this.style.cursor='default'"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
 }
 
 function _viewH(idx){
