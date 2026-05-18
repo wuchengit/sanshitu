@@ -292,12 +292,23 @@ function viewH(idx){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
   if(!x) return;
   openViewer(x.u, x.info||'');
-  // 图片加载后读取真实分辨率并更新信息
+  // 图片加载后读取真实比例、分辨率、文件大小
   var tmp = new Image();
   tmp.onload = function(){
-    var real = tmp.naturalWidth+'x'+tmp.naturalHeight;
-    var old = document.getElementById('viewerInfo').textContent;
-    document.getElementById('viewerInfo').textContent = old + ' | ' + real;
+    var w = tmp.naturalWidth, h = tmp.naturalHeight;
+    var ratio = (w/h).toFixed(2);
+    // 匹配常见比例
+    var known = {'0.56':'9:16','0.75':'3:4','0.80':'4:5','0.89':'8:9','1.00':'1:1','1.25':'5:4','1.33':'4:3','1.50':'3:2','1.60':'16:10','1.78':'16:9','1.85':'16:9','2.00':'2:1','2.33':'21:9','2.37':'21:9','2.40':'12:5'};
+    var label = known[ratio] || (w/gcd(w,h)+':'+h/gcd(w,h));
+    function gcd(a,b){return b?gcd(b,a%b):a;}
+    var res = w+'x'+h;
+    // 获取文件大小
+    fetch(x.u).then(function(r){return r.blob()}).then(function(b){
+      var fs = b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';
+      document.getElementById('viewerInfo').textContent = x.model+': 比 '+label+' 分 '+res+' 大 '+fs;
+    }).catch(function(){
+      document.getElementById('viewerInfo').textContent = x.model+': 比 '+label+' 分 '+res;
+    });
   };
   tmp.src = x.u;
 }
