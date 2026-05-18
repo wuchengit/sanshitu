@@ -229,7 +229,6 @@ function translatePrompt(btn){
     body:JSON.stringify({prompt:text,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
-      document.getElementById('promptInput').value=d.translation;
       document.getElementById('promptPreview').textContent=d.translation;
       document.getElementById('promptLen').textContent=d.translation.length;
       // 显示"恢复原文"按钮
@@ -241,7 +240,6 @@ function translatePrompt(btn){
         restoreBtn.className='preview-btn';
         restoreBtn.textContent='↩ 原文';
         restoreBtn.onclick=function(){
-          document.getElementById('promptInput').value=window._origPrompt;
           document.getElementById('promptPreview').textContent=window._origPrompt;
           document.getElementById('promptLen').textContent=window._origPrompt.length;
           this.remove();
