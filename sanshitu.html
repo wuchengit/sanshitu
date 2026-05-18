@@ -326,15 +326,9 @@ document.getElementById('genBtn').onclick=async function(){
   localStorage.setItem('ds_key',apiKey);
   let aspectVal=ar;
   if(model==='gpt-image-2-vip'&&RES_MAP[ar]?.[res]) aspectVal=RES_MAP[ar][res];
-  // resultArea removed
-  // area.innerHTML removed //'<div style="text-align:center;padding:30px"><div style="width:28px;height:28px;border:3px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 10px"></div><p style="color:#888;font-size:12px">⏳ 生成中...</p></div>';
-  this.textContent='⏳';(function(btn){setTimeout(function(){btn.textContent='🎨 生成';},1500);})(this);
-  // 插入loading历史记录
-  var loadH=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  loadH.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:model,loading:true,t:Date.now()});
-  if(loadH.length>30)loadH.shift();
-  localStorage.setItem('ds_h',JSON.stringify(loadH));
-  renderHistory();
+  const area=document.getElementById('resultArea');
+  area.innerHTML='<div style="text-align:center;padding:30px"><div style="width:28px;height:28px;border:3px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 10px"></div><p style="color:#888;font-size:12px">⏳ 生成中...</p></div>';
+  this.disabled=true;this.textContent='⏳';
   const body={model,prompt,aspectRatio:aspectVal,replyType:'json'};
   if(uploadedFiles.length) body.images=uploadedFiles.map(f=>f.data);
   try{
@@ -342,7 +336,7 @@ document.getElementById('genBtn').onclick=async function(){
     const d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       const url=d.results[0].url;
-      // area.innerHTML removed //`<div style="position:relative">
+      area.innerHTML=`<div style="position:relative">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px 0">
     <span id="rInfo" style="font-size:10px;color:#666">${model} | ${aspectVal}</span>
     <button id="dlBtn" class="preview-btn" style="font-size:10px;padding:4px 12px" onclick="dlImg('${url}',this)">⬇️ 下载</button>
@@ -363,38 +357,33 @@ document.getElementById('genBtn').onclick=async function(){
       }
     }
   }).catch(function(){});
-      var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].loading){_h[_i]={u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()};break;}}if(!_h[_h.length-1]||!_h[_h.length-1].loading){_h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});}var h=_h;if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
+      const h=JSON.parse(localStorage.getItem('ds_h')||'[]');h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
       t('✅ 成功','ok');
   // 记录日志
   fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
-    } else // area.innerHTML removed //`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,500)}</div><button class="preview-btn" style="margin-top:8px" onclick="document.getElementById('genBtn').click()">🔄 重试</button></div>`;
-  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});// area.innerHTML removed //`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
+    } else area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,500)}</div><button class="preview-btn" style="margin-top:8px" onclick="document.getElementById('genBtn').click()">🔄 重试</button></div>`;
+  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
   finally{this.disabled=false;this.textContent='🎨 生成图片'}
 };
 
 function renderHistory(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var out='';
-  if(h.length){
-    out=h.slice().reverse().map(function(x,i){
-      var idx=h.length-1-i;
-      if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite"></div></div></div>';
-      return '<div class="history-item" onclick="viewH('+idx+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';
-    }).join('');
-  }else{out='<span style="color:#555;font-size:11px">暂无</span>';}
-  document.getElementById('historyMasonry').innerHTML=out;
-  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
+  const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var html=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  document.getElementById('historyMasonry').innerHTML=html;
+  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
+  for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
 }
 
+function _viewH(idx){
+  const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
+  document.getElementById('resultArea').innerHTML=`<div><img src="${x.u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${x.u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
 }
-
-
 
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
 
 // Init
 document.getElementById('apiKey').value=localStorage.getItem('ds_key')||'sk-848e99d4f23f4599b2690249164c70d7';
-renderLayouts();renderStyles();renderUploads();renderHistory();up();
+renderLayouts();renderStyles();renderUploads();renderHistory();onModelChange();up();
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
