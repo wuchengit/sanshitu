@@ -219,27 +219,32 @@ function translatePrompt(){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
   var btn=event.target;btn.textContent='⏳';
-  var key=document.getElementById('apiKey').value.trim()||'sk-c583e696cd0e4caa9055a7e6f62b4390';
-  fetch('https://api.deepseek.com/chat/completions',{
+  fetch('/translate.php',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
-    body:JSON.stringify({model:'deepseek-v4-flash',messages:[{role:'system',content:'Translate the following English prompt to Chinese. Output only the translation, no explanation.'},{role:'user',content:text}],max_tokens:2000})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:text})
   }).then(function(r){return r.json()}).then(function(d){
-    var t=d.choices?.[0]?.message?.content||'';
-    if(t){
-      document.getElementById('promptInput').value=t;
+    if(d.translation){
+      document.getElementById('promptInput').value=d.translation;
       document.getElementById('promptInput').oninput();
-      t('🌐 翻译已完成','ok');
-    }else{t('⚠️ 翻译失败','err');}
-  }).catch(function(){t('⚠️ 翻译请求失败','err');})
+      t('🌐 翻译完成','ok');
+    }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
+  }).catch(function(){t('⚠️ 网络错误','err');})
   .finally(function(){btn.textContent='🌐 翻译';});
 }
 function copyPrompt(){
   var p=document.getElementById('promptPreview'),r=document.createRange();
   r.selectNodeContents(p);
   var s=window.getSelection();s.removeAllRanges();s.addRange(r);
-  document.execCommand('copy');s.removeAllRanges();
-  t('✅ 已复制','ok');
+  try{
+    document.execCommand('copy');
+    var btn=event.target;var txt=btn.textContent;btn.textContent='✅ 已复制';
+    setTimeout(function(){btn.textContent=txt;},1500);
+  }catch(e){
+    // 降级：选中文本让用户手动复制
+    t('⚠️ 请按 Ctrl+C 复制','err');
+  }
+  s.removeAllRanges();
 }
 function downloadPrompt(){
   var p=document.getElementById('promptPreview').textContent;
