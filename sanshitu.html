@@ -327,9 +327,13 @@ document.getElementById('genBtn').onclick=async function(){
   localStorage.setItem('ds_key',apiKey);
   let aspectVal=ar;
   if(model==='gpt-image-2-vip'&&RES_MAP[ar]?.[res]) aspectVal=RES_MAP[ar][res];
-  const area=document.getElementById('resultArea');
-  area.innerHTML='<div style="text-align:center;padding:30px"><div style="width:28px;height:28px;border:3px solid #333;border-top-color:#667eea;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 10px"></div><p style="color:#888;font-size:12px">⏳ 生成中...</p></div>';
   this.textContent='⏳';(function(btn){setTimeout(function(){btn.textContent='🎨 生成';},1500);})(this);
+  // 插入loading历史记录
+  var loadH=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  loadH.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:model,loading:true,t:Date.now()});
+  if(loadH.length>30)loadH.shift();
+  localStorage.setItem('ds_h',JSON.stringify(loadH));
+  renderHistory();
   const body={model,prompt,aspectRatio:aspectVal,replyType:'json'};
   if(uploadedFiles.length) body.images=uploadedFiles.map(f=>f.data);
   try{
@@ -356,8 +360,21 @@ document.getElementById('genBtn').onclick=async function(){
       t('✅ 成功','ok');
   // 记录日志
   fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
-    } else area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${d.message||JSON.stringify(d).substring(0,500)}</div><button class="preview-btn" style="margin-top:8px" onclick="document.getElementById('genBtn').click()">🔄 重试</button></div>`;
-  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});area.innerHTML=`<div style="text-align:center;color:#ef4444;font-size:12px">❌ ${e.message}</div>`}
+    } else {
+  // 失败时清除 loading 记录
+  var failH=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  for(var fi=failH.length-1;fi>=0;fi--){if(failH[fi].loading){failH.splice(fi,1);break;}}
+  localStorage.setItem('ds_h',JSON.stringify(failH));
+  renderHistory();
+  t('❌ '+(d.message||'生成失败').substring(0,100),'err');
+}
+  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});
+  var errH=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  for(var ei=errH.length-1;ei>=0;ei--){if(errH[ei].loading){errH.splice(ei,1);break;}}
+  localStorage.setItem('ds_h',JSON.stringify(errH));
+  renderHistory();
+  t('❌ '+e.message,'err');
+}
   finally{this.textContent='🎨 生成图片'}
 };
 
