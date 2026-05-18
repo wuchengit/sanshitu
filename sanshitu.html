@@ -110,7 +110,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <button class="btn btn-gen" id="genBtn" style="margin-top:6px">🎨 生成图片</button>
       </div>
-      
+      <div class="card">
+        <div class="card-t">📜 历史</div>
+        <div class="history-masonry" id="historyMasonry"><span style="color:#555;font-size:11px">暂无</span></div>
+      </div>
     </div>
     <!-- ===== RIGHT ===== -->
     <div>
@@ -132,8 +135,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="upload-row" id="uploadRow"></div>
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
       </div>
-      <div class="card"><div class="card-t">📜 生成历史</div>
-      <div class="history-masonry" id="historyMasonry"><span style="color:#555;font-size:11px">暂无</span></div></div>
+      <div class="card">
+        <div class="card-t">🖼️ 生成结果</div>
+        <div id="resultArea" style="min-height:300px;display:flex;align-items:center;justify-content:center">
+          <div style="text-align:center;color:#555"><div style="font-size:30px;margin-bottom:6px">🎬</div><p style="font-size:11px">选择结构和风格，点击生成</p></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -317,53 +324,57 @@ document.getElementById('fileInput').onchange=function(e){
 
 document.getElementById('genBtn').onclick=async function(){
   var _start=Date.now();
-  const apiKey=document.getElementById('apiKey').value.trim(), prompt=buildPrompt();
-  const model=document.getElementById('modelType').value, ar=document.getElementById('aspectRatio').value, res=document.getElementById('resolution').value;
+  var apiKey=docume…m(),prompt=buildPrompt();
+  var m=document.getElementById('modelType').value,ar=document.getElementById('aspectRatio').value,res=document.getElementById('resolution').value;
   if(!apiKey||!prompt){t('请填写必要信息','err');return}
   localStorage.setItem('ds_key',apiKey);
-  let aspectVal=ar;
-  if(model==='gpt-image-2-vip'&&RES_MAP[ar]?.[res]) aspectVal=RES_MAP[ar][res];
-  
-  this.textContent='⏳';(function(btn){setTimeout(function(){btn.textContent='🎨 生成';},1200);})(this);
+  var av=ar;
+  if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
+  // 按钮不disabled
+  var btn=document.getElementById('genBtn');
+  var origTxt=btn.textContent;btn.textContent='⏳';
+  setTimeout(function(){btn.textContent=origTxt;},1200);
   // 插入loading历史
-  var _ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  _ld.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:model,loading:true,t:Date.now()});
-  if(_ld.length>30)_ld.shift();
-  localStorage.setItem('ds_h',JSON.stringify(_ld));
+  var ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  ld.push({u:'',id:'L'+Date.now(),info:'⏳ 生成中...',model:m,loading:true,t:Date.now()});
+  if(ld.length>30)ld.shift();
+  localStorage.setItem('ds_h',JSON.stringify(ld));
   renderHistory();
-  const body={model,prompt,aspectRatio:aspectVal,replyType:'json'};
-  if(uploadedFiles.length) body.images=uploadedFiles.map(f=>f.data);
+  var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
+  if(uploadedFiles.length)body.images=uploadedFiles.map(function(f){return f.data;});
   try{
-    const r=await fetch('https://grsai.dakka.com.cn/v1/api/generate',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const d=await r.json();
+    var r=await fetch('https://grsai.dakka.com.cn/v1/api/generate',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
-      const url=d.results[0].url;
+      var url=d.results[0].url;
       // 保存图片到本地
-  fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r){return r.json()}).then(function(d){
-    if(d.original && d.thumb){
-      // 更新历史记录中的 URL 为本地地址
-      var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      if(h.length>0){
-        var last=h[h.length-1];
-        last.u=d.original;
-        last.thumb=d.thumb;
-        localStorage.setItem('ds_h',JSON.stringify(h));
-        renderHistory();
-      }
-    }
-  }).catch(function(){});
+      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+        if(d2.original&&d2.thumb){var hh=JSON.parse(localStorage.getItem('ds_h')||'[]');if(hh.length>0){var l=hh[hh.length-1];l.u=d2.original;l.thumb=d2.thumb;localStorage.setItem('ds_h',JSON.stringify(hh));renderHistory();}}
+      }).catch(function(){});
+      // 更新loading记录
       var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var _found=false;
-  for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].loading){_h[_i]={u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()};_found=true;break;}}
-  if(!_found)_h.push({u:url,id:d.id,info:model+' '+aspectVal,model:model,t:Date.now()});
-  var h=_h;if(h.length>30) h.shift();localStorage.setItem('ds_h',JSON.stringify(h));renderHistory();
+      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].loading){_h[_i]={u:url,id:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
+      if(_h.length>30)_h.shift();
+      localStorage.setItem('ds_h',JSON.stringify(_h));
+      renderHistory();
       t('✅ 成功','ok');
-  // 记录日志
-  fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
-    } else {}
-  }catch(e){fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:p.substring(0,100),status:'error',error:e.message,cost:(Date.now()-_start)+'ms'})}).catch(function(){});var errH=JSON.parse(localStorage.getItem(\"ds_h\")||\"[]\");for(var ei=errH.length-1;ei>=0;ei--){if(errH[ei].loading){errH.splice(ei,1);break;}}localStorage.setItem(\"ds_h\",JSON.stringify(errH));renderHistory();t("❌ "+e.message,"err");
-  finally{this.textContent="🎨 生成";
-};
+      fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
+    }else{
+      // 失败：删除loading记录
+      var fh=JSON.parse(localStorage.getItem('ds_h')||'[]');
+      for(var fi=fh.length-1;fi>=0;fi--){if(fh[fi].loading){fh.splice(fi,1);break;}}
+      localStorage.setItem('ds_h',JSON.stringify(fh));
+      renderHistory();
+      t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
+    }
+  }catch(e){
+    var eh=JSON.parse(localStorage.getItem('ds_h')||'[]');
+    for(var ei=eh.length-1;ei>=0;ei--){if(eh[ei].loading){eh.splice(ei,1);break;}}
+    localStorage.setItem('ds_h',JSON.stringify(eh));
+    renderHistory();
+    t('❌ '+e.message,'err');
+  }
+};;
 
 function renderHistory(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
@@ -378,10 +389,12 @@ function renderHistory(){
   document.getElementById('historyMasonry').innerHTML=out;
   var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
   for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
+}}
+
+function _viewH(idx){
+  const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
+  document.getElementById('resultArea').innerHTML=`<div><img src="${x.u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${x.u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
 }
-
-
-
 
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
 
