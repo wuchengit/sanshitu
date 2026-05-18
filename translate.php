@@ -4,7 +4,8 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 $input = json_decode(file_get_contents('php://input'), true);
-$prompt = $input['prompt'] ?? '';
+$prompt = \$input['prompt'] ?? '';
+\$lang = \$input['lang'] ?? '中文';
 $key = $input['key'] ?? 'sk-c583e696cd0e4caa9055a7e6f62b4390';
 
 if (!$prompt || strlen($prompt) < 3) {
@@ -22,7 +23,7 @@ $ctx = stream_context_create([
         'content' => json_encode([
             'model' => 'deepseek-v4-flash',
             'messages' => [
-                ['role' => 'system', 'content' => 'Translate the following English prompt to Chinese. Output only the translation, no explanation, no extra text.'],
+                ['role' => 'system', 'content' => 'Translate the following text to ' . ($lang ?: 'Chinese') . '. Output only the translation, no explanation, no extra text.'],
                 ['role' => 'user', 'content' => $prompt]
             ],
             'max_tokens' => 2000
