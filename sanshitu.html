@@ -349,7 +349,7 @@ document.getElementById('genBtn').onclick=async function(){
 
 function renderHistory(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" id="hi_'+(h.length-1-i)+'" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy" onerror="this.src='/images/placeholder.svg';this.onerror=null;document.getElementById('hi_'+this.parentElement.id.replace('hi_','')).onclick='';this.style.cursor='default'"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
 }
 
 function _viewH(idx){
