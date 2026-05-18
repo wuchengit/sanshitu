@@ -350,7 +350,10 @@ document.getElementById('genBtn').onclick=async function(){
 
 function renderHistory(){
   const h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  document.getElementById('historyMasonry').innerHTML=h.length?h.slice().reverse().map((x,i)=>'<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img src="'+(x.thumb||x.u)+'" loading="lazy"></div>').join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  var html=h.length?h.slice().reverse().map(function(x,i){return '<div class="history-item" onclick="viewH('+(h.length-1-i)+')"><img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';}).join(''):'<span style="color:#555;font-size:11px">暂无</span>';
+  document.getElementById('historyMasonry').innerHTML=html;
+  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
+  for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){this.src='/images/placeholder.svg';this.onerror=null;var p=this.parentElement;if(p){p.onclick=null;p.style.cursor='default';}};}
 }
 
 function _viewH(idx){
