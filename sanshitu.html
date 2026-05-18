@@ -219,6 +219,8 @@ function up(){
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
+  // 缓存原文（首次翻译时保存）
+  if(!window._origPrompt) window._origPrompt=text;
   btn.innerHTML='⏳';
   var lang=document.getElementById('targetLang').value;
   fetch('/translate.php',{
@@ -230,6 +232,22 @@ function translatePrompt(btn){
       document.getElementById('promptInput').value=d.translation;
       document.getElementById('promptPreview').textContent=d.translation;
       document.getElementById('promptLen').textContent=d.translation.length;
+      // 显示"恢复原文"按钮
+      var btns=btn.parentElement;
+      var restoreBtn=document.getElementById('restoreBtn');
+      if(!restoreBtn){
+        restoreBtn=document.createElement('button');
+        restoreBtn.id='restoreBtn';
+        restoreBtn.className='preview-btn';
+        restoreBtn.textContent='↩ 原文';
+        restoreBtn.onclick=function(){
+          document.getElementById('promptInput').value=window._origPrompt;
+          document.getElementById('promptPreview').textContent=window._origPrompt;
+          document.getElementById('promptLen').textContent=window._origPrompt.length;
+          this.remove();
+        };
+        btns.insertBefore(restoreBtn, btn.nextSibling);
+      }
       var name=document.getElementById('targetLang').value;
       t('🌐 已译→'+name,'ok');
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
