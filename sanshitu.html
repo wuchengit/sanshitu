@@ -387,7 +387,7 @@ function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent
 
 // Init
 document.getElementById('apiKey').value=localStorage.getItem('ds_key')||'sk-848e99d4f23f4599b2690249164c70d7';
-renderLayouts();renderStyles();renderUploads();renderHistory();up();
+renderLayouts();renderStyles();renderUploads();renderHistory();onModelChange();up();
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
