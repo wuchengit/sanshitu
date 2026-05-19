@@ -472,17 +472,17 @@ async function batchDownload(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
   var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
   if(!urls.length){t('没有可下载的图片','err');return;}
-  try{
-    t('正在打包 '+urls.length+' 张图片...','ok');
-    var r=await fetch('/zip.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})});
-    if(!r.ok)throw new Error('打包失败');
-    var blob=await r.blob();
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='sanshitu_batch.zip';
-    a.click();
-    t('✅ 已打包 '+urls.length+' 张','ok');
-  }catch(e){t('⚠️ 打包下载失败: '+e.message,'err');}
+  t('正在打包 '+urls.length+' 张图片...','ok');
+  // Use form submit for reliable download on all platforms
+  var f=document.createElement('form');
+  f.method='POST';f.action='/zip.php';f.style.display='none';
+  f.target='_blank';
+  var inp=document.createElement('input');
+  inp.name='urls';inp.value=JSON.stringify(urls);
+  f.appendChild(inp);
+  document.body.appendChild(f);
+  f.submit();
+  document.body.removeChild(f);
 }
 
 function _viewH(idx){
