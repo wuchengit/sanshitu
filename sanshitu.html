@@ -472,8 +472,8 @@ async function batchDownload(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
   var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
   if(!urls.length){t('没有可下载的图片','err');return;}
-  // 单张直接下载原图
-  if(urls.length===1){window.location.href=urls[0];return;}
+  // 单张直接下载（走代理避免跨域预览）
+  if(urls.length===1){window.location.href='/dl.php?url='+encodeURIComponent(urls[0]);return;}
   t('正在打包 '+urls.length+' 张图片...','ok');
   try{
     var r=await fetch('/zip.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})});
