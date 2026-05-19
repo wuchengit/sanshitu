@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260519 · 29 次提交 · 最后更新 2026-05-19</p>
+  <p class="subtitle">版本 20260519 · 111 次提交 · 最后更新 2026-05-20</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -67,79 +67,121 @@ h1 span{color:#667eea}
 
 <script>
 const DOCS = [
+// Tab 0: 产品文档
 `<h2>一、产品概述</h2>
 <p><strong>三视图生成器</strong> 是一个基于 AI 图片生成的角色参考图制作工具，帮助用户快速生成角色三视图（角色设定图），适用于游戏开发、动漫创作、角色设计等场景。</p>
 <p>🌐 <strong>线上地址</strong>: <a href="http://www.aiwuuw.com/sanshitu.html" style="color:#667eea">www.aiwuuw.com/sanshitu.html</a></p>
 
 <h2>二、核心功能</h2>
 
-<h3>2.1 四种三视图结构</h3>
+<h3>2.1 四种三视图结构（联动比例）</h3>
 <table>
-<tr><th>结构</th><th>说明</th></tr>
-<tr><td>经典三视图</td><td>上半部分：面部头像；下半部分：身体三视图（正面/侧面/背面）</td></tr>
-<tr><td>纯三视图</td><td>全身三视图并排（前/侧/后），含完整头部</td></tr>
-<tr><td>三视图+细节</td><td>左半：身体三视图；右半：服饰/配件细节特写</td></tr>
-<tr><td>头像三视图</td><td>左半：全身站姿；右半：头部三视图（前/侧/后）</td></tr>
+<tr><th>结构</th><th>默认比例</th><th>说明</th></tr>
+<tr><td>经典三视图</td><td>9:16</td><td>上半部分：面部头像；下半部分：身体三视图（正面/侧面/背面）</td></tr>
+<tr><td>纯三视图</td><td>16:9</td><td>全身三视图并排（前/侧/后），含完整头部</td></tr>
+<tr><td>三视图+细节</td><td>16:9</td><td>左半：身体三视图；右半：服饰/配件细节特写</td></tr>
+<tr><td>头像三视图</td><td>4:3</td><td>左半：全身站姿；右半：头部三视图（前/侧/后）</td></tr>
 </table>
-<p>每种结构均配有本地缩略图预览（6-22KB）。</p>
+<p>切换结构时自动联动设置最佳比例，每种结构配有本地 JPG 缩略图预览（6-22KB）。</p>
 
-<h3>2.2 12种人物风格</h3>
+<h3>2.2 17种人物风格</h3>
 <table>
 <tr><th>风格</th><th>氛围</th><th>风格</th><th>氛围</th></tr>
-<tr><td>🎬 电影角色</td><td>暖灰·柔光</td><td>🧑 男性角色</td><td>深灰·冷调</td></tr>
+<tr><td>🎬 电影角色</td><td>暖灰·柔光</td><td>🧑 冷峻硬朗</td><td>深灰·冷调</td></tr>
 <tr><td>🧝 奇幻精灵</td><td>深蓝·魔幻</td><td>🤖 赛博朋克</td><td>钢蓝·霓虹</td></tr>
 <tr><td>⚔️ 战士</td><td>深红·硬光</td><td>🏯 古风雅韵</td><td>水墨·柔光</td></tr>
 <tr><td>🕶️ 暗黑Noir</td><td>黑灰·侧光</td><td>🌸 甜美清新</td><td>暖粉·柔光</td></tr>
-<tr><td>👑 女王气场</td><td>金黑·顶光</td><td>🔥 街头潮流</td><td>城市灰·硬光</td></tr>
+<tr><td>👑 尊贵气场</td><td>金黑·顶光</td><td>🔥 街头潮流</td><td>城市灰·硬光</td></tr>
 <tr><td>🌙 梦幻仙境</td><td>紫蓝·梦幻</td><td>💠 科技未来</td><td>冰蓝·冷光</td></tr>
+<tr><td>🏚️ 废土风</td><td>荒漠·硬光</td><td>🎓 哥特风</td><td>暗紫·侧光</td></tr>
+<tr><td>🏫 校园风</td><td>暖白·柔光</td><td>👗 维多利亚</td><td>复古·暖调</td></tr>
+<tr><td>✨ 极简主义</td><td>纯白·冷光</td><td></td><td></td></tr>
+</table>
+<p>每种风格配有 AI 生成的肖像缩略图（2-10KB），支持「通用」选项。</p>
+
+<h3>2.3 11种艺术风格（全新维度）</h3>
+<table>
+<tr><th>风格</th><th>示例材质</th><th>风格</th><th>示例材质</th></tr>
+<tr><td>🎨 CG渲染</td><td>3D建模质感</td><td>📸 超写实</td><td>照片级真实</td></tr>
+<tr><td>🎌 动漫</td><td>赛璐珞风格</td><td>✂️ 剪纸</td><td>纸艺层叠</td></tr>
+<tr><td>🧸 布偶</td><td>毛绒质感</td><td>🖼️ 油画</td><td>厚涂笔触</td></tr>
+<tr><td>🎨 水彩</td><td>透明渲染</td><td>✏️ 素描</td><td>线稿质感</td></tr>
+<tr><td>👾 像素</td><td>复古点阵</td><td>🏺 黏土</td><td>手工泥塑</td></tr>
+<tr><td>🖌️ 水墨</td><td>东方写意</td><td></td><td></td></tr>
+</table>
+<p>每种风格配有材质示意图，卡片已压缩至 30% 高度。</p>
+
+<h3>2.4 导演风格维度（11位）</h3>
+<table>
+<tr><th>导演</th><th>风格关键词</th><th>导演</th><th>风格关键词</th></tr>
+<tr><td>王家卫</td><td>霓虹·朦胧·情绪</td><td>北野武</td><td>暴力·静默·蓝色</td></tr>
+<tr><td>斯皮尔伯格</td><td>史诗·光影·温情</td><td>宫崎骏</td><td>自然·飞行·少女</td></tr>
+<tr><td>诺兰</td><td>时间·破碎·暗调</td><td>蒂姆·波顿</td><td>哥特·怪异·童话</td></tr>
+<tr><td>黑泽明</td><td>武士·暴雨·史诗</td><td>韦斯·安德森</td><td>对称·糖果色·构图</td></tr>
+<tr><td>昆汀</td><td>暴力美学·对话·复古</td><td>扎克·施耐德</td><td>慢镜·暗黑·油画</td></tr>
+<tr><td>张艺谋</td><td>色彩·宏大·东方</td><td></td><td></td></tr>
+</table>
+<p>可选开关追加导演名字到提示词，每个类别有重置按钮。</p>
+
+<h3>2.5 人物属性（独立卡片）</h3>
+<table>
+<tr><th>属性</th><th>选项</th></tr>
+<tr><td>性别</td><td>男 / 女</td></tr>
+<tr><td>年龄</td><td>小孩 / 青年 / 中年 / 老者</td></tr>
+<tr><td>身高</td><td>矮 / 中等 / 高</td></tr>
+<tr><td>人种</td><td>东亚 / 南亚 / 中东 / 非洲 / 欧洲 / 拉美</td></tr>
+<tr><td>职业</td><td>30种（战士/法师/刺客/医生/教师/学生/警察/消防员…）</td></tr>
+<tr><td>年代</td><td>20种（古代/中世纪/维多利亚/1920s…赛博朋克/远未来）</td></tr>
 </table>
 
-<h3>2.3 辅助功能</h3>
+<h3>2.6 辅助功能</h3>
 <ul>
 <li><strong>参考图上传</strong>: 支持 0-6 张参考图（base64 传给 API）</li>
 <li><strong>模型选择</strong>: gpt-image-2 / gpt-image-2-vip（VIP 可选 1K/2K/4K 分辨率）</li>
 <li><strong>比例选择</strong>: 15 种常见比例（9:16, 16:9, 1:1, 4:3, 3:4 等）</li>
-<li><strong>人物参数</strong>: 性别、年龄段、身高可选</li>
 <li><strong>提示词预览</strong>: 实时组合结构 + 风格 + 自定义描述</li>
-<li><strong>提示词操作</strong>: 复制 / 下载 / 翻译（DeepSeek API）</li>
-<li><strong>生成历史</strong>: localStorage 存储，最多 30 条，缩略图网格展示</li>
-<li><strong>图片查看器</strong>: 浮层预览，支持滚轮缩放、拖拽平移、下载</li>
-<li><strong>图片信息</strong>: 实时显示比例/分辨率/文件大小</li>
-<li><strong>版本更新提示</strong>: 页面更新后自动弹窗告知用户</li>
+<li><strong>提示词操作</strong>: 复制 / 下载 / 翻译（DeepSeek API，支持中/英/日/韩/法/西）</li>
+<li><strong>生成历史</strong>: localStorage 最多 30 条，瀑布流 + JPG 缩略图，多选批量下载/删除，全选切换，连续生成 loading + 自动本地保存</li>
+<li><strong>图片查看器</strong>: 浮层预览，滚轮缩放、拖拽平移、下载</li>
+<li><strong>图片信息</strong>: 实时显示模型/比例/分辨率/文件大小</li>
+<li><strong>版本更新提示</strong>: 自动检测版本 + 硬刷新弹窗</li>
 </ul>
 
 <h2>三、技术架构</h2>
 
 <h3>3.1 技术栈</h3>
 <ul>
-<li><strong>前端</strong>: 纯 HTML/CSS/JS，单文件架构（464行，36KB）</li>
+<li><strong>前端</strong>: 纯 HTML/CSS/JS，单文件架构（~600行，~50KB）</li>
 <li><strong>图片生成 API</strong>: grsai.dakka.com.cn（国内节点）</li>
-<li><strong>翻译 API</strong>: DeepSeek API</li>
-<li><strong>存储</strong>: localStorage（历史记录、版本号、API Key）</li>
+<li><strong>翻译 API</strong>: DeepSeek API（PHP 代理中转）</li>
+<li><strong>存储</strong>: localStorage + API Key 服务端化</li>
 <li><strong>部署</strong>: Nginx + 腾讯云服务器</li>
 </ul>
 
 <h3>3.2 API 配置</h3>
 <ul>
 <li><strong>接口</strong>: POST https://grsai.dakka.com.cn/v1/api/generate</li>
-<li><strong>认证</strong>: Bearer sk-9dba…5a7e4</li>
+<li><strong>认证</strong>: Bearer sk-9dba…（服务端存储，不暴露前端）</li>
 <li><strong>模型</strong>: gpt-image-2 / gpt-image-2-vip</li>
-<li><strong>图片存储</strong>: aitohumanize.com CDN（非永久存储）</li>
+<li><strong>图片存储</strong>: aitohumanize.com CDN + save_image.php 本地备份</li>
 </ul>
 
 <h3>3.3 资源文件</h3>
 <ul>
 <li>4 张结构预览缩略图：<code>/images/previews/thumb/*.jpg</code>（6-22KB）</li>
-<li>4 张原始预览图：<code>/images/previews/*.png</code>（1.4-2.3MB，备用）</li>
+<li>17 张风格肖像缩略图（2-10KB，AI 生成）</li>
+<li>11 张艺术风格材质示意图</li>
 <li>Nginx 配置：HTML 无缓存，图片 30 天缓存</li>
 </ul>
 
 <h2>四、设计原则</h2>
 <ol>
 <li><strong>单文件架构</strong>: 所有代码在一个 HTML 文件内，零依赖</li>
-<li><strong>本地优先</strong>: 预览图本地化，不依赖外部 CDN 长期可用性</li>
-<li><strong>渐进增强</strong>: 核心功能不依赖 JS 框架，纯原生实现</li>
-<li><strong>用户无感更新</strong>: Nginx no-cache + 版本号比对弹窗</li>
+<li><strong>本地优先</strong>: 预览图本地化，不依赖外部 CDN</li>
+<li><strong>渐进增强</strong>: 核心功能纯原生实现</li>
+<li><strong>用户无感更新</strong>: Nginx no-cache + 版本号比对 + 硬刷新</li>
+<li><strong>安全优先</strong>: API Key 服务端化，密码明文比对</li>
+<li><strong>性别中立</strong>: 风格名称去性别化，属性自由组合</li>
 </ol>
 
 <h2>五、已知限制</h2>
@@ -150,63 +192,97 @@ const DOCS = [
 <li>响应式适配有限，PC 端体验最佳</li>
 </ol>`,
 
+// Tab 1: Bug修复列表
 `<h2>2026-05-19 修复</h2>
 
-<h3>纯三视图预览图错误</h3>
+<h3>登录 crypto 兼容性</h3>
 <table>
-<tr><th>问题</th><td>纯三视图的预览示意图与实际布局不符</td></tr>
-<tr><th>原因</th><td>旧图生成时提示词不准确</td></tr>
-<tr><th>修复</th><td>用 API 重新生成，展示前/侧/后三视图并排 + 完整头部</td></tr>
-<tr><th>提交</th><td><code>2e8856a</code>, <code>8b6a36e</code></td></tr>
+<tr><th>问题</th><td>登录密码加密在前端执行，某些环境 crypto API 不可用</td></tr>
+<tr><th>修复</th><td>改为明文比对，去掉前端 crypto 依赖</td></tr>
+<tr><th>提交</th><td><code>d66a595</code></td></tr>
 </table>
 
-<h3>预览图加载缓慢</h3>
+<h3>飞书浏览器缓存顽固</h3>
 <table>
-<tr><th>问题</th><td>4 张预览图使用完整 PNG，每张 1.4-2.3MB</td></tr>
-<tr><th>修复</th><td>生成 JPG 缩略图（400px 宽），压缩至 6-22KB，加载速度提升 100 倍</td></tr>
-<tr><th>提交</th><td><code>f784c9d</code></td></tr>
+<tr><th>问题</th><td>飞书内置浏览器对同名图片文件强缓存，更新图标后仍显示旧图</td></tr>
+<tr><th>修复</th><td>自动版本检测 + 硬刷新弹窗 + 文件名加 _v2 后缀绕过缓存</td></tr>
+<tr><th>提交</th><td><code>4d799db</code>, <code>e2c7cc6</code></td></tr>
 </table>
 
-<h3>浏览器缓存导致页面不更新</h3>
+<h3>残留默认 API Key 泄露</h3>
 <table>
-<tr><th>问题</th><td>更新代码后用户浏览器仍显示旧版本，需手动清缓存</td></tr>
-<tr><th>修复</th><td>① 图片 URL 加版本参数 ② Nginx 设置 no-cache ③ 版本更新检测弹窗</td></tr>
-<tr><th>提交</th><td><code>f784c9d</code>, <code>2630e85</code></td></tr>
+<tr><th>问题</th><td>浏览器 localStorage 残留旧默认 Key，服务端化后仍被读取</td></tr>
+<tr><th>修复</th><td>启动时自动检测并清理旧的默认 Key</td></tr>
+<tr><th>提交</th><td><code>620a7a6</code></td></tr>
 </table>
 
-<h3>expression 示意图字段修复</h3>
+<h3>风格名称性别化</h3>
 <table>
-<tr><th>问题</th><td>expression 示意图仍是硬编码字符串而非 preview 字段</td></tr>
-<tr><th>修复</th><td>替换为 preview 字段统一管理</td></tr>
-<tr><th>提交</th><td><code>666283c</code></td></tr>
+<tr><th>问题</th><td>人物风格名称带有性别暗示（男性角色、女王气场）</td></tr>
+<tr><th>修复</th><td>去性别化：男性角色→冷峻硬朗，女王气场→尊贵气场</td></tr>
+<tr><th>提交</th><td><code>ca84454</code></td></tr>
 </table>
 
-<h3>示意图引用语法错误</h3>
+<h3>批量下载跨平台兼容</h3>
 <table>
-<tr><th>问题</th><td>示意图改为 preview 字符串后出现语法问题</td></tr>
-<tr><th>修复</th><td>修复模板语法</td></tr>
-<tr><th>提交</th><td><code>b49fac4</code></td></tr>
+<tr><th>问题</th><td>JS 生成 zip 移动端不兼容</td></tr>
+<tr><th>修复</th><td>改用服务端 PHP 生成 zip + form 提交 + 页面跳转下载</td></tr>
+<tr><th>提交</th><td><code>c792fad</code>, <code>6376215</code></td></tr>
+</table>
+
+<h3>单张下载误打包 / 跨域</h3>
+<table>
+<tr><th>问题</th><td>单张图下载被误打包为 zip + CDN 跨域限制</td></tr>
+<tr><th>修复</th><td>单张走直链代理下载，不打包 zip</td></tr>
+<tr><th>提交</th><td><code>f281053</code>, <code>7374289</code></td></tr>
+</table>
+
+<h3>连续生成 loading 并发冲突</h3>
+<table>
+<tr><th>问题</th><td>快速连续生成多张图时 loading 状态互相覆盖、误删</td></tr>
+<tr><th>修复</th><td>唯一 loadId 精确匹配 + 3 秒防连点 + 页面加载清理超时记录</td></tr>
+<tr><th>提交</th><td><code>3604afc</code>, <code>828c234</code>, <code>a6469db</code>, <code>fb0b954</code></td></tr>
+</table>
+
+<h3>save_image 缩略图/代理问题</h3>
+<table>
+<tr><th>问题</th><td>save_image 依赖代理下载原图，代理未开启导致缩略图生成失败；loadId 被 API id 覆盖致更新失败</td></tr>
+<tr><th>修复</th><td>去掉代理依赖直接下载 + 保留 loadId 不被覆盖</td></tr>
+<tr><th>提交</th><td><code>1e3d0ac</code>, <code>28a10dd</code></td></tr>
+</table>
+
+<h3>全选 checkbox 状态不一致</h3>
+<table>
+<tr><th>问题</th><td>全选按钮 checkbox 初始状态与实际选中不同步</td></tr>
+<tr><th>修复</th><td>全选支持切换全选/全不选，初始化同步 checkbox 状态</td></tr>
+<tr><th>提交</th><td><code>65b9b84</code></td></tr>
+</table>
+
+<h3>「无」风格 / 缩略图过大</h3>
+<table>
+<tr><th>问题</th><td>选「无」风格生成错误形象图；缩略图 PNG 体积大</td></tr>
+<tr><th>修复</th><td>「无」→「通用」；缩略图改 JPG 体积减小 80%</td></tr>
+<tr><th>提交</th><td><code>4149411</code>, <code>e3a11270</code></td></tr>
+</table>
+
+<h3>纯三视图预览图错误 + 加载缓慢</h3>
+<table>
+<tr><th>问题</th><td>预览图与实际布局不符，每张 1.4-2.3MB PNG 加载慢</td></tr>
+<tr><th>修复</th><td>API 重新生成 + JPG 缩略图压缩至 6-22KB</td></tr>
+<tr><th>提交</th><td><code>2e8856a</code>, <code>8b6a36e</code>, <code>f784c9d</code></td></tr>
 </table>
 
 <h2>2026-05-18 修复（历史）</h2>
-
-<h3>纯三视图描述错误</h3>
-<ul><li>desc 改为"全身+头部" <code>398c4e1</code></li></ul>
-
-<h3>三视图提示词不准确</h3>
-<ul><li>纯三视图加入完整头部，"并排三视图"→"三视图+细节"，"表情头像"→"头像三视图" <code>7249996</code></li></ul>
-
-<h3>生成历史布局问题</h3>
-<ul><li>历史移至右侧独立区域，删除重复卡片 <code>c150e75</code>, <code>ff12854</code></li></ul>
-
-<h3>多图并发生成覆盖</h3>
-<ul><li>使用唯一 loadId 精确匹配 loading 记录 <code>3acdcc4</code></li></ul>
-
-<h3>按钮硬编码与 loading 动画</h3>
-<ul><li>统一使用 spin 动画名 <code>2c1c110</code></li></ul>
-
-<h3>代码残留清理</h3>
-<ul><li>清理 <code>_ren</code>, <code>_viewH</code>, <code>resultArea</code>, 空模板块等 <code>93d6649</code>, <code>f3dc557</code></li></ul>
+<ul>
+<li><strong>纯三视图描述错误</strong>: desc 改为"全身+头部" <code>398c4e1</code></li>
+<li><strong>提示词不准确</strong>: 并排→细节，表情→头像 <code>7249996</code></li>
+<li><strong>生成历史布局</strong>: 移至右侧独立区域，删除重复卡片 <code>c150e75</code></li>
+<li><strong>多图并发覆盖</strong>: loadId 精确匹配 <code>3acdcc4</code></li>
+<li><strong>代码残留清理</strong>: _ren, _viewH, resultArea 等 <code>93d6649</code></li>
+<li><strong>图片信息 undefined</strong>: h.push 补 info/model <code>a8430ff</code></li>
+<li><strong>兜底图 onerror</strong>: 本地占位图 <code>0e7d2d6</code></li>
+<li><strong>瀑布流 ID 不一致</strong>: historyStrip→historyMasonry <code>e8529c2</code></li>
+</ul>
 
 <h2>已知待修复</h2>
 <table>
@@ -216,113 +292,111 @@ const DOCS = [
 <tr><td>无批量生成功能</td><td>低</td><td>待评估</td></tr>
 </table>`,
 
-`<h2>2026-05-19</h2>
+// Tab 2: 提交记录
+`<h2>2026-05-19（49 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
-<tr><td><code>2630e85</code></td><td>10:59</td><td>feat: 版本更新检测弹窗，5秒自动消失 + 点击刷新</td></tr>
-<tr><td><code>f784c9d</code></td><td>10:48</td><td>perf: 预览图改用压缩缩略图(1.5MB→11KB) + 自动版本号防缓存</td></tr>
-<tr><td><code>8b6a36e</code></td><td>10:43</td><td>fix: 重新生成纯三视图预览图 + URL加版本参数避免缓存</td></tr>
-<tr><td><code>2e8856a</code></td><td>10:38</td><td>fix: 重新生成纯三视图预览图，本地化存储</td></tr>
-<tr><td><code>666283c</code></td><td>01:39</td><td>expression示意图替换为preview字符串</td></tr>
-<tr><td><code>b49fac4</code></td><td>01:39</td><td>示意图改为preview字符串字段，修复语法</td></tr>
-<tr><td><code>904c97e</code></td><td>01:38</td><td>恢复后重新替换4种示意图为真实生成图片</td></tr>
-<tr><td><code>6e82252</code></td><td>01:31</td><td>4种三视图示意图全部替换为真实生成图片</td></tr>
-<tr><td><code>398c4e1</code></td><td>01:13</td><td>fix: 纯三视图desc改为全身+头部，修typo</td></tr>
-<tr><td><code>7249996</code></td><td>01:12</td><td>优化三视图提示词：纯三视图含头部，并排→细节，表情→头像</td></tr>
-<tr><td><code>c150e75</code></td><td>00:50</td><td>fix: 生成历史移出参考图卡片，改为并列</td></tr>
-<tr><td><code>ff12854</code></td><td>00:46</td><td>参考图移到左侧API上方</td></tr>
-<tr><td><code>2decd4c</code></td><td>00:42</td><td>fix: 删除左侧重复的历史卡片</td></tr>
-<tr><td><code>ee48e87</code></td><td>00:41</td><td>删除生成结果，历史移到右侧原位置</td></tr>
-<tr><td><code>b2b4158</code></td><td>00:29</td><td>右侧分两列：左列结构/风格/参考图，右列生成历史</td></tr>
-<tr><td><code>aff0671</code></td><td>00:26</td><td>提示词加强：上下两部分紧密贴合无缝隙</td></tr>
-<tr><td><code>2c1c110</code></td><td>00:24</td><td>fix: 按钮硬编码文字, loading用spin动画名</td></tr>
-<tr><td><code>3acdcc4</code></td><td>00:19</td><td>fix: 用唯一loadId精确匹配loading记录，修复多图并发生成覆盖</td></tr>
-<tr><td><code>5e2f5a2</code></td><td>00:15</td><td>fix: 删除多余的}</td></tr>
-<tr><td><code>61d7e67</code></td><td>00:11</td><td>重写genBtn+renderHistory：loading+不disabled+失败清理</td></tr>
-<tr><td><code>b75930d</code></td><td>00:10</td><td>fix: 清理else/catch/finally残留代码</td></tr>
-<tr><td><code>1b390ae</code></td><td>00:09</td><td>fix: 删除遗留的area.innerHTML模板字面量块</td></tr>
-<tr><td><code>f3dc557</code></td><td>00:08</td><td>fix: 删除resultArea引用，loading代码现在能执行</td></tr>
-<tr><td><code>93d6649</code></td><td>00:06</td><td>fix: 删除_ren和_viewH残留</td></tr>
-<tr><td><code>3d793f6</code></td><td>00:05</td><td>生成历史：loading动画+替换成功图片+按钮不disabled</td></tr>
-<tr><td><code>8261e77</code></td><td>00:03</td><td>删除左侧重复的历史卡片(historyMasonry)</td></tr>
-<tr><td><code>7a5d42b</code></td><td>00:02</td><td>右侧生成结果替换为生成历史（最小改动）</td></tr>
-<tr><td><code>eff0c5d</code></td><td>00:00</td><td>fix: 删除破碎的function _ren和_viewH残留</td></tr>
-<tr><td><code>3398c5f</code></td><td>00:00</td><td>右侧生成结果区域替换为生成历史+loading+连续生成</td></tr>
+<tr><td><code>2619309</code></td><td>21:55</td><td>feat: 导演风格加入名开关，可追加导演名字加强风格</td></tr>
+<tr><td><code>327800f</code></td><td>21:50</td><td>feat: 每个类别加重置按钮，年龄增加小孩和老者</td></tr>
+<tr><td><code>7e2ab5c</code></td><td>21:26</td><td>feat: 恢复翻译功能</td></tr>
+<tr><td><code>b22464d</code></td><td>21:13</td><td>feat: 新增20种影视年代选项</td></tr>
+<tr><td><code>b36e947</code></td><td>18:25</td><td>feat: 新增30种职业选项</td></tr>
+<tr><td><code>0f81aae</code></td><td>18:21</td><td>feat: 人物属性新增人种选项</td></tr>
+<tr><td><code>63744c1</code></td><td>18:17</td><td>feat: 新增导演风格维度(11位导演)</td></tr>
+<tr><td><code>c651bcb</code></td><td>18:11</td><td>feat: 艺术风格新增水墨</td></tr>
+<tr><td><code>b31efa3</code></td><td>18:08</td><td>feat: 新增5种人物风格（废土/哥特/校园/维多利亚/极简）</td></tr>
+<tr><td><code>ba67316</code></td><td>18:02</td><td>refactor: 人物属性独立成卡片</td></tr>
+<tr><td><code>46ab7ca</code></td><td>17:59</td><td>style: 艺术风格卡片高度缩减为30%</td></tr>
+<tr><td><code>ca27d2e</code></td><td>17:55</td><td>feat: 艺术风格添加材质示意图</td></tr>
+<tr><td><code>9b94184</code></td><td>17:46</td><td>feat: 新增艺术风格维度(10种)</td></tr>
+<tr><td><code>ede9079</code></td><td>16:00</td><td>feat: 三视图结构联动比例</td></tr>
+<tr><td><code>4149411</code></td><td>15:52</td><td>fix: 无→通用，生成新风格形象图</td></tr>
+<tr><td><code>65b9b84</code></td><td>15:33</td><td>fix: 全选支持切换全选/全不选</td></tr>
+<tr><td><code>eb99d1d</code></td><td>15:29</td><td>feat: 历史多选添加全选按钮</td></tr>
+<tr><td><code>28a10dd</code></td><td>15:13</td><td>fix: 保留loadId不被API的id覆盖</td></tr>
+<tr><td><code>1e3d0ac</code></td><td>15:09</td><td>fix: save_image去掉代理依赖</td></tr>
+<tr><td><code>e3a1127</code></td><td>15:06</td><td>perf: 缩略图改用JPG，体积减小80%</td></tr>
+<tr><td><code>fb0b954</code></td><td>14:59</td><td>fix: 生成按钮3秒防连点</td></tr>
+<tr><td><code>828c234</code></td><td>14:56</td><td>fix: save_image回调也用loadId精确匹配</td></tr>
+<tr><td><code>a6469db</code></td><td>14:51</td><td>fix: 页面加载时清理超时loading记录</td></tr>
+<tr><td><code>3604afc</code></td><td>14:49</td><td>fix: 连续生成loading用loadId精确匹配</td></tr>
+<tr><td><code>7374289</code></td><td>14:40</td><td>fix: 单张下载走代理避免跨域</td></tr>
+<tr><td><code>f281053</code></td><td>14:39</td><td>fix: 单张图片直链下载不打包zip</td></tr>
+<tr><td><code>6376215</code></td><td>14:38</td><td>fix: 批量下载改用服务端生成zip</td></tr>
+<tr><td><code>dc744e6</code></td><td>14:38</td><td>chore: 添加gitignore</td></tr>
+<tr><td><code>c792fad</code></td><td>14:33</td><td>fix: 批量下载改用form提交</td></tr>
+<tr><td><code>110366a</code></td><td>14:07</td><td>feat: 批量下载打包为zip</td></tr>
+<tr><td><code>b0e58e2</code></td><td>14:01</td><td>feat: 生成历史多选（批量删除/下载）</td></tr>
+<tr><td><code>ca84454</code></td><td>13:36</td><td>fix: 风格名去性别化</td></tr>
+<tr><td><code>620a7a6</code></td><td>13:18</td><td>fix: 自动清理残留旧默认Key</td></tr>
+<tr><td><code>5341b08</code></td><td>13:14</td><td>feat: API Key服务端化</td></tr>
+<tr><td><code>e2c7cc6</code></td><td>13:08</td><td>fix: 风格图标加_v2绕过飞书缓存</td></tr>
+<tr><td><code>4d799db</code></td><td>12:52</td><td>feat: 自动版本检测+硬刷新</td></tr>
+<tr><td><code>abce4e9</code></td><td>12:35</td><td>bump: APP_VERSION 20260519.1</td></tr>
+<tr><td><code>5a1534b</code></td><td>12:22</td><td>feat: 风格图标改为人物肖像</td></tr>
+<tr><td><code>161666a</code></td><td>11:49</td><td>feat: 12种人物风格图标改用AI缩略图</td></tr>
+<tr><td><code>65a7b60</code></td><td>11:39</td><td>chore: 隐藏翻译语言下拉框</td></tr>
+<tr><td><code>e5206e3</code></td><td>11:38</td><td>chore: 暂时隐藏翻译功能</td></tr>
+<tr><td><code>e49b921</code></td><td>11:37</td><td>chore: 更新API Key</td></tr>
+<tr><td><code>3a287d2</code></td><td>11:30</td><td>fix: 补全5月18日62个提交记录</td></tr>
+<tr><td><code>d66a595</code></td><td>11:27</td><td>fix: 登录改为明文比对</td></tr>
+<tr><td><code>dd2abb7</code></td><td>11:24</td><td>feat: 项目文档页面</td></tr>
+<tr><td><code>2630e85</code></td><td>10:59</td><td>feat: 版本更新检测弹窗</td></tr>
+<tr><td><code>f784c9d</code></td><td>10:48</td><td>perf: 预览图改用压缩缩略图</td></tr>
+<tr><td><code>8b6a36e</code></td><td>10:43</td><td>fix: 重新生成纯三视图预览图+防缓存</td></tr>
+<tr><td><code>2e8856a</code></td><td>10:38</td><td>fix: 重新生成纯三视图预览图，本地化</td></tr>
 </table>
 
 <h2>2026-05-18（62 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
-<tr><td><code>a4ff7e4</code></td><td>23:54</td><td>右侧分成两列：左列结构/风格/参考图，右列生成历史</td></tr>
+<tr><td><code>a4ff7e4</code></td><td>23:54</td><td>右侧分成两列：左结构/风格，右生成历史</td></tr>
 <tr><td><code>daaec08</code></td><td>23:51</td><td>删除左侧重复的旧历史卡片</td></tr>
-<tr><td><code>79c09f3</code></td><td>23:51</td><td>在参考图下方插入生成历史卡片</td></tr>
-<tr><td><code>b3ab974</code></td><td>23:50</td><td>生成历史移回右侧，删除左侧重复卡片</td></tr>
-<tr><td><code>b0a6d6d</code></td><td>23:45</td><td>修复genBtn：加载loading记录，删除resultArea引用，失败清理loading</td></tr>
-<tr><td><code>e6da445</code></td><td>23:43</td><td>生成结果区取消，历史改为生成历史，支持连续生成和loading状态</td></tr>
-<tr><td><code>fe9c278</code></td><td>23:35</td><td>页面加载时调用onModelChange初始化分辨率选项</td></tr>
-<tr><td><code>20b7a6a</code></td><td>23:33</td><td>简化非VIP分辨率，只需一个1K选项</td></tr>
-<tr><td><code>d38d0ec</code></td><td>23:19</td><td>VIP/非VIP分辨率分开控制，非VIP可传比例字符串</td></tr>
-<tr><td><code>28ea488</code></td><td>23:14</td><td>补全所有比例(15种)和RES_MAP像素映射</td></tr>
-<tr><td><code>79818c2</code></td><td>23:13</td><td>补全所有比例选项和RES_MAP映射</td></tr>
-<tr><td><code>f4267b2</code></td><td>22:56</td><td>fix: 正确修改风格名称(电影女主→电影角色, 女战士→战士)</td></tr>
-<tr><td><code>9fe2af0</code></td><td>22:55</td><td>人物风格加性别/年龄/身高选项</td></tr>
-<tr><td><code>dd8bcc0</code></td><td>22:53</td><td>人物风格加性别/年龄/身高选项，风格名去性别化</td></tr>
-<tr><td><code>6b7d1e8</code></td><td>22:27</td><td>兜底图: renderHistory后逐个绑定onerror</td></tr>
-<tr><td><code>7c17d9b</code></td><td>22:23</td><td>兜底图: 用事件委托监听img加载失败，不内联onerror</td></tr>
+<tr><td><code>79c09f3</code></td><td>23:51</td><td>参考图下方插入生成历史卡片</td></tr>
+<tr><td><code>b3ab974</code></td><td>23:50</td><td>生成历史移回右侧</td></tr>
+<tr><td><code>b0a6d6d</code></td><td>23:45</td><td>修复genBtn：loading+resultArea清理</td></tr>
+<tr><td><code>e6da445</code></td><td>23:43</td><td>生成历史替代结果区，支持连续生成+loading</td></tr>
+<tr><td><code>fe9c278</code></td><td>23:35</td><td>页面加载初始化分辨率选项</td></tr>
+<tr><td><code>20b7a6a</code></td><td>23:33</td><td>简化非VIP分辨率</td></tr>
+<tr><td><code>d38d0ec</code></td><td>23:19</td><td>VIP/非VIP分辨率分开控制</td></tr>
+<tr><td><code>28ea488</code></td><td>23:14</td><td>补全15种比例+RES_MAP</td></tr>
+<tr><td><code>f4267b2</code></td><td>22:56</td><td>fix: 风格名去性别化</td></tr>
+<tr><td><code>9fe2af0</code></td><td>22:55</td><td>人物风格加性别/年龄/身高</td></tr>
+<tr><td><code>6b7d1e8</code></td><td>22:27</td><td>兜底图：绑定onerror</td></tr>
 <tr><td><code>9b5ba02</code></td><td>22:21</td><td>兜底图+图片失效自动禁用点击</td></tr>
-<tr><td><code>fc49461</code></td><td>22:17</td><td>fix: save_image回调变量改名避免冲突，临时移除onerror</td></tr>
-<tr><td><code>74c02e1</code></td><td>22:12</td><td>fix: renderHistory改用function而非箭头函数，onerror加转义</td></tr>
-<tr><td><code>0e7d2d6</code></td><td>22:11</td><td>fix: onerror改用本地占位图文件，避免语法错误</td></tr>
-<tr><td><code>07b1af6</code></td><td>22:01</td><td>历史图片加载失败时显示占位图(图片已失效)</td></tr>
-<tr><td><code>47970d5</code></td><td>21:40</td><td>fix: save_image返回后正确更新最后一条历史记录的URL为本地地址</td></tr>
+<tr><td><code>07b1af6</code></td><td>22:01</td><td>图片加载失败显示占位图</td></tr>
+<tr><td><code>47970d5</code></td><td>21:40</td><td>save_image回调更新URL为本地地址</td></tr>
 <tr><td><code>8844bf9</code></td><td>21:26</td><td>历史缩略图优先使用thumb</td></tr>
-<tr><td><code>e8529c2</code></td><td>21:24</td><td>fix: historyStrip→historyMasonry，HTML和JS统一</td></tr>
-<tr><td><code>f552560</code></td><td>21:23</td><td>fix: 清理旧history-item样式，瀑布流完整生效</td></tr>
-<tr><td><code>f9535c5</code></td><td>21:22</td><td>历史区域改为瀑布流布局，图片完整展示</td></tr>
-<tr><td><code>da97d4e</code></td><td>21:20</td><td>生成成功后自动保存图片到本地(save_image.php)</td></tr>
-<tr><td><code>e3837a1</code></td><td>21:13</td><td>fix: 加回遗漏的else失败处理分支</td></tr>
-<tr><td><code>593ebbb</code></td><td>21:11</td><td>fix: 把新area.innerHTML从else分支移到成功分支</td></tr>
-<tr><td><code>8139761</code></td><td>21:10</td><td>fix: 删除 viewH onload（统一由 openViewer 处理）</td></tr>
-<tr><td><code>d725ca5</code></td><td>21:05</td><td>统一结果区/浮层/历史的图片信息格式：模型 | 比例 x:y | 分辨率 WxH | 大小</td></tr>
-<tr><td><code>35a772c</code></td><td>20:57</td><td>修复：去掉onload中重复的文件大小追加</td></tr>
-<tr><td><code>f335a90</code></td><td>20:36</td><td>openViewer统一加入图片加载后获取完整信息</td></tr>
-<tr><td><code>30d0533</code></td><td>20:29</td><td>修复下载按钮：统一使用 dlImg 函数</td></tr>
-<tr><td><code>c367fd4</code></td><td>20:20</td><td>恢复经典三视图关键描述：脖颈与上边界对齐，像是没拍到头的感觉</td></tr>
-<tr><td><code>5ebd48f</code></td><td>20:13</td><td>生成结果区：图片加载后自动显示分辨率+文件大小</td></tr>
-<tr><td><code>efe159c</code></td><td>20:07</td><td>fix: viewH 用 x.info 避免 undefined</td></tr>
-<tr><td><code>a8430ff</code></td><td>20:06</td><td>修复bug：h.push补info/model, viewH防undefined(不改UI)</td></tr>
-<tr><td><code>ffcb98f</code></td><td>20:03</td><td>修复: 生成结果信息/下载/浮层信息/viewH undefined</td></tr>
-<tr><td><code>ae3d565</code></td><td>19:53</td><td>生成结果区：信息顶栏+右上角下载(含loading)+点击图片预览</td></tr>
-<tr><td><code>92916c6</code></td><td>19:46</td><td>头部特写改为完整头部展示</td></tr>
-<tr><td><code>c5e577a</code></td><td>19:41</td><td>加强三视图提示词：明确禁止三视图部分出现头部</td></tr>
-<tr><td><code>64e62ca</code></td><td>19:39</td><td>字号前加文字，翻译按钮移到目标语言前面</td></tr>
-<tr><td><code>50add62</code></td><td>19:36</td><td>提示框高度+50%，增加字体大小选项(小/默认/中/大)</td></tr>
-<tr><td><code>66ea6fb</code></td><td>19:11</td><td>人物风格增加「无」选项，默认选中</td></tr>
-<tr><td><code>cc6975a</code></td><td>19:00</td><td>移除前端日志UI，保留后台日志记录</td></tr>
-<tr><td><code>57eee8f</code></td><td>18:58</td><td>新增运行日志记录+查看功能</td></tr>
-<tr><td><code>27752cc</code></td><td>18:52</td><td>生成失败显示完整错误信息+重试按钮</td></tr>
-<tr><td><code>647c702</code></td><td>18:45</td><td>翻译请求加时间戳防止浏览器缓存旧响应</td></tr>
-<tr><td><code>7c7231e</code></td><td>18:41</td><td>翻译结果只显示在预览区，不入输入框</td></tr>
-<tr><td><code>9ec23d0</code></td><td>18:37</td><td>翻译：缓存原文，增加「恢复原文」按钮</td></tr>
-<tr><td><code>dcd2b76</code></td><td>18:19</td><td>fix: translatePrompt 改用 this 传参，错误信息显示详情</td></tr>
-<tr><td><code>c035b9c</code></td><td>18:13</td><td>翻译后预览区直接显示翻译结果，而非混入模板</td></tr>
-<tr><td><code>0713d3b</code></td><td>18:06</td><td>fix: PHP语法错误</td></tr>
-<tr><td><code>dccb2df</code></td><td>18:06</td><td>翻译: 增加目标语言选择(中/英/日/韩/法/西)</td></tr>
-<tr><td><code>bf16a7c</code></td><td>18:02</td><td>翻译改为PHP代理中转，复制反馈增强(按钮文字变化)</td></tr>
-<tr><td><code>bc83081</code></td><td>17:51</td><td>修复：复制改用execCommand，下载加异常处理，加入翻译(调用DeepSeek API)</td></tr>
-<tr><td><code>1161157</code></td><td>17:48</td><td>viewH: 信息改为完整中文词（比例/分辨率/大小）</td></tr>
-<tr><td><code>1e14f7b</code></td><td>17:45</td><td>修复：下载按钮恢复文字，浮层信息支持长文本</td></tr>
-<tr><td><code>666a39f</code></td><td>17:42</td><td>viewH: 浮层打开时实时读取真实比例+分辨率+文件大小</td></tr>
-<tr><td><code>f4a8612</code></td><td>17:36</td><td>viewH: 图片加载后追加真实分辨率 naturalWidth x naturalHeight</td></tr>
-<tr><td><code>38d02d5</code></td><td>17:34</td><td>v1 - 三视图生成器初始版本（浮层查看器+多语言）</td></tr>
+<tr><td><code>f552560</code></td><td>21:23</td><td>清理旧样式，瀑布流生效</td></tr>
+<tr><td><code>f9535c5</code></td><td>21:22</td><td>历史区域改为瀑布流布局</td></tr>
+<tr><td><code>da97d4e</code></td><td>21:20</td><td>生成成功后自动保存图片到本地</td></tr>
+<tr><td><code>e3837a1</code></td><td>21:13</td><td>fix: 加回遗漏else失败处理分支</td></tr>
+<tr><td><code>d725ca5</code></td><td>21:05</td><td>统一图片信息格式</td></tr>
+<tr><td><code>30d0533</code></td><td>20:29</td><td>修复下载按钮统一使用dlImg</td></tr>
+<tr><td><code>c367fd4</code></td><td>20:20</td><td>恢复经典三视图关键描述</td></tr>
+<tr><td><code>5ebd48f</code></td><td>20:13</td><td>图片加载后显示分辨率+大小</td></tr>
+<tr><td><code>ffcb98f</code></td><td>20:03</td><td>修复生成结果信息/下载/浮层undefined</td></tr>
+<tr><td><code>ae3d565</code></td><td>19:53</td><td>生成结果区信息顶栏+下载+预览</td></tr>
+<tr><td><code>c5e577a</code></td><td>19:41</td><td>加强三视图提示词</td></tr>
+<tr><td><code>50add62</code></td><td>19:36</td><td>提示框高度+50%，增加字体大小选项</td></tr>
+<tr><td><code>66ea6fb</code></td><td>19:11</td><td>人物风格增加「无」选项</td></tr>
+<tr><td><code>57eee8f</code></td><td>18:58</td><td>新增运行日志记录+查看</td></tr>
+<tr><td><code>27752cc</code></td><td>18:52</td><td>生成失败显示完整错误+重试按钮</td></tr>
+<tr><td><code>7c7231e</code></td><td>18:41</td><td>翻译结果只显示预览区</td></tr>
+<tr><td><code>9ec23d0</code></td><td>18:37</td><td>翻译缓存原文+恢复原文按钮</td></tr>
+<tr><td><code>dccb2df</code></td><td>18:06</td><td>翻译增加多语言选择</td></tr>
+<tr><td><code>bf16a7c</code></td><td>18:02</td><td>翻译改为PHP代理中转</td></tr>
+<tr><td><code>bc83081</code></td><td>17:51</td><td>复制+下载+翻译功能完善</td></tr>
+<tr><td><code>1161157</code></td><td>17:48</td><td>viewH信息改为完整中文词</td></tr>
+<tr><td><code>666a39f</code></td><td>17:42</td><td>浮层实时读取比例+分辨率+大小</td></tr>
+<tr><td><code>38d02d5</code></td><td>17:34</td><td>v1 三视图生成器初始版本</td></tr>
 </table>
 
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 96</li>
-<li><strong>今天 (05-19)</strong>: 6 个新提交</li>
-<li><strong>凌晨 (05-19)</strong>: 23 个提交</li>
-<li><strong>昨天 (05-18)</strong>: 62 个提交</li>
+<li><strong>总提交数</strong>: 111</li>
+<li><strong>2026-05-19</strong>: 49 个提交（全天）</li>
+<li><strong>2026-05-18</strong>: 62 个提交</li>
 </ul>`];
 
 function checkPwd(){
