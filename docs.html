@@ -264,11 +264,9 @@ const DOCS = [
 <li><strong>昨天 (05-18)</strong>: 1 个提交</li>
 </ul>`];
 
-async function checkPwd(){
+function checkPwd(){
   var p=document.getElementById('pwdInput').value;
-  var h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));
-  var hash=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hash==='6195b333403ce0c0eec9bec73d9fb58f0915890cb9d5d6fd69ec661de0371df5'){
+  if(p==='126593'){
     document.getElementById('loginOverlay').style.display='none';
     document.getElementById('mainContent').style.display='block';
     switchTab(0);
