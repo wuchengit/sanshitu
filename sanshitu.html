@@ -384,16 +384,16 @@ document.getElementById('genBtn').onclick=async function(){
       t('✅ 成功','ok');
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
-      // 失败：删除loading记录
+      // 失败：按loadId精确删除对应的loading记录
       var fh=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var fi=fh.length-1;fi>=0;fi--){if(fh[fi].loading){fh.splice(fi,1);break;}}
+      for(var fi=fh.length-1;fi>=0;fi--){if(fh[fi].id===loadId){fh.splice(fi,1);break;}}
       localStorage.setItem('ds_h',JSON.stringify(fh));
       renderHistory();
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
     }
   }catch(e){
     var eh=JSON.parse(localStorage.getItem('ds_h')||'[]');
-    for(var ei=eh.length-1;ei>=0;ei--){if(eh[ei].loading){eh.splice(ei,1);break;}}
+    for(var ei=eh.length-1;ei>=0;ei--){if(eh[ei].id===loadId){eh.splice(ei,1);break;}}
     localStorage.setItem('ds_h',JSON.stringify(eh));
     renderHistory();
     t('❌ '+e.message,'err');
