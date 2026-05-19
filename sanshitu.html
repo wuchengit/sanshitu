@@ -131,8 +131,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
       <div class="card">
         <div class="card-t">👤 人物属性</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
         <select id="optGender" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">性别不限</option><option value="female">女</option><option value="male">男</option></select>
+        <select id="optRace" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">人种不限</option><option value="East Asian">东亚</option><option value="Caucasian">白人/欧洲</option><option value="African">黑人/非洲</option><option value="South Asian">南亚/印度</option><option value="Middle Eastern">中东</option><option value="Latino">拉丁裔</option><option value="Southeast Asian">东南亚</option></select>
         <select id="optAge" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">年龄不限</option><option value="young adult, around 20-25 years old">年轻 20-25</option><option value="adult, around 26-35 years old">成熟 26-35</option><option value="mature, around 36-45 years old">中年 36-45</option></select>
         <select id="optHeight" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">身高不限</option><option value="tall stature">高</option><option value="medium height">中等</option><option value="petite">娇小</option></select>
       </div>
@@ -300,9 +301,10 @@ function buildPrompt(){
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
+  var r=document.getElementById('optRace').value;
   var a=document.getElementById('optAge').value;
   var h=document.getElementById('optHeight').value;
-  if(g||a||h){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(a?', '+a:'')+(h?', '+h:'');}
+  if(g||r||a||h){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'');}
   return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
