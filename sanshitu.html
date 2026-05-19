@@ -221,6 +221,7 @@ const RES_MAP = {
 };
 
 let selLayout='classic', selStyle='none', uploadedFiles=[];
+const LAYOUT_RATIO={classic:'9:16',pure:'16:9',side:'16:9',expression:'4:3'};
 
 function onModelChange(){
   var vip=document.getElementById('modelType').value==='gpt-image-2-vip';
@@ -254,6 +255,9 @@ function buildPrompt(){
 }
 
 function up(){
+  // 结构联动比例
+  var r=LAYOUT_RATIO[selLayout];
+  if(r)document.getElementById('aspectRatio').value=r;
   const p=buildPrompt();
   document.getElementById('promptPreview').textContent=p||'选择右侧结构和风格后自动组合...';
   document.getElementById('promptLen').textContent=p.length;
