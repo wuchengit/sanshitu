@@ -126,6 +126,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="style-grid" id="styleGrid"></div>
         <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格</div>
         <div class="style-grid" id="artGrid"></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演风格</div>
+        <div class="style-grid" id="dirGrid"></div>
       </div>
       <div class="card">
         <div class="card-t">👤 人物属性</div>
@@ -227,6 +229,21 @@ const ART_STYLES = [
   {id:'ink',icon:'<img src="/images/previews/styles/art_ink.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'水墨',prompt:'Chinese ink wash painting art style, black ink on rice paper, expressive brushwork, wet ink bleeding, traditional sumi-e aesthetic, 8K.'},
 ];
 
+const DIR_STYLES = [
+  {id:'none',name:'无',prompt:''},
+  {id:'wkw',name:'王家卫',prompt:'Neon-soaked cinematic aesthetic, nostalgic saturated colors, motion blur, shallow depth of field, rain-slicked streets, dreamlike romantic melancholy atmosphere.'},
+  {id:'kitano',name:'北野武',prompt:'Stark minimalist cinematic aesthetic, static wide compositions, sudden violence juxtaposed with stillness, blue-gray palette, contemplative beach scenes, deadpan visual poetry.'},
+  {id:'spielberg',name:'斯皮尔伯格',prompt:'Warm hopeful cinematic aesthetic, golden hour backlighting, dramatic lens flares, wonder-filled facial close-ups, sweeping orchestral visual storytelling.'},
+  {id:'miyazaki',name:'宫崎骏',prompt:'Lush hand-drawn cinematic aesthetic, vibrant nature-filled backgrounds, soft watercolor skies, whimsical flying scenes, gentle pastoral warmth, detailed food and machinery.'},
+  {id:'zhang',name:'张艺谋',prompt:'Bold saturated color cinematic aesthetic, sweeping epic wide shots, dramatic contrast between vivid single colors, poetic visual grandeur, large-scale choreographed compositions.'},
+  {id:'nolan',name:'诺兰',prompt:'Cold precise cinematic aesthetic, IMAX-scale wide compositions, blue-gray color palette, practical effects realism, geometric urban landscapes, cerebral atmospheric tension.'},
+  {id:'anderson',name:'韦斯·安德森',prompt:'Perfectly symmetrical cinematic aesthetic, pastel color palettes, flat compositions, whimsical miniature-like sets, meticulous art direction, storybook visual charm.'},
+  {id:'tarantino',name:'昆汀',prompt:'Vibrant punchy cinematic aesthetic, 1970s retro color grading, dynamic framing from below, stylized violence, pop culture saturated visuals, bold typographic titles.'},
+  {id:'kubrick',name:'库布里克',prompt:'Cold meticulous cinematic aesthetic, symmetrical one-point perspective, clinical precision, stark lighting contrasts, unsettling stillness, geometric perfection.'},
+  {id:'burton',name:'蒂姆·伯顿',prompt:'Dark whimsical cinematic aesthetic, gothic fairytale visuals, elongated twisted shapes, stark black-white contrasts with occasional vivid accents, moonlit surreal atmosphere.'},
+  {id:'kurosawa',name:'黑泽明',prompt:'Epic dynamic cinematic aesthetic, dramatic weather elements like rain and wind, bold geometric compositions, deep focus, sweeping movement, mythic visual grandeur.'},
+];
+
 const RES_MAP = {
   '9:16':{'1k':'941x1672','2k':'1152x2048','4k':'2160x3840'},
   '16:9':{'1k':'1280x720','2k':'2048x1152','4k':'3840x2160'},
@@ -245,7 +262,7 @@ const RES_MAP = {
   '1:3':{'1k':'688x2048','2k':'1280x3840'}
 };
 
-let selLayout='classic', selStyle='none', selArt='none', uploadedFiles=[];
+let selLayout='classic', selStyle='none', selArt='none', selDir='none', uploadedFiles=[];
 const LAYOUT_RATIO={classic:'9:16',pure:'16:9',side:'16:9',expression:'4:3'};
 
 function onModelChange(){
@@ -271,17 +288,22 @@ function renderArtStyles(){
   document.getElementById('artGrid').innerHTML=ART_STYLES.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''}" onclick="selArt='${a.id}';renderArtStyles();up()"><div class="icon">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
 }
 
+function renderDirStyles(){
+  document.getElementById('dirGrid').innerHTML=DIR_STYLES.map(d=>`<div class="style-card ${d.id===selDir?'active':''}" onclick="selDir='${d.id}';renderDirStyles();up()"><div class="name">${d.name}</div></div>`).join('');
+}
+
 function buildPrompt(){
   var layout=LAYOUTS.find(function(l){return l.id===selLayout;});
   var style=STYLES.find(function(s){return s.id===selStyle;});
   var art=ART_STYLES.find(function(a){return a.id===selArt;});
+  var dir=DIR_STYLES.find(function(d){return d.id===selDir;});
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
   var a=document.getElementById('optAge').value;
   var h=document.getElementById('optHeight').value;
   if(g||a||h){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(a?', '+a:'')+(h?', '+h:'');}
-  return [user,opts,layout.prompt,style.prompt,art.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
+  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
 function up(){
@@ -547,7 +569,7 @@ function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent
 var savedKey=localStorage.getItem('ds_key');
 if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
 document.getElementById('apiKey').value=savedKey||'';
-renderLayouts();renderStyles();renderArtStyles();renderUploads();renderHistory();onModelChange();up();
+renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
