@@ -205,17 +205,17 @@ const STYLES = [
 ];
 
 const ART_STYLES = [
-  {id:'none',name:'无',prompt:''},
-  {id:'cg',name:'3D CG',prompt:'High-quality 3D rendered CG art style, detailed textures, subsurface scattering, octane render quality, volumetric lighting, 8K.'},
-  {id:'realistic',name:'超写实',prompt:'Hyper-realistic photorealistic style, ultra-detailed skin texture, natural lighting, 8K resolution, indistinguishable from photography.'},
-  {id:'anime',name:'动漫',prompt:'Japanese anime art style, clean lineart, vibrant cel-shading, studio anime quality, detailed hair and eyes, 8K.'},
-  {id:'papercut',name:'剪纸',prompt:'Chinese paper cut art style, layered paper texture, intricate cutout patterns, flat depth, folk art aesthetic, 8K.'},
-  {id:'plush',name:'布偶',prompt:'Plush fabric doll art style, soft textile texture, stitched seams, fuzzy felt material, handmade toy aesthetic, 8K.'},
-  {id:'oil',name:'油画',prompt:'Oil painting art style, visible brushstrokes, rich impasto texture, classical oil on canvas technique, Rembrandt lighting, 8K.'},
-  {id:'watercolor',name:'水彩',prompt:'Watercolor painting art style, soft wet-on-wet washes, translucent pigments, delicate brush marks, artistic paper texture, 8K.'},
-  {id:'sketch',name:'素描',prompt:'Pencil sketch art style, detailed graphite linework, crosshatching shading, monochrome tonal range, sketchbook quality, 8K.'},
-  {id:'pixel',name:'像素风',prompt:'Retro pixel art style, visible pixel grid, limited color palette, 16-bit video game aesthetic, clean pixel edges, 8K.'},
-  {id:'clay',name:'黏土',prompt:'Claymation stop-motion art style, plasticine clay texture, fingerprints visible, miniature diorama, Aardman style, 8K.'},
+  {id:'none',icon:'<img src="/images/previews/styles/none_v3.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'无',prompt:''},
+  {id:'cg',icon:'<img src="/images/previews/styles/art_cg.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'3D CG',prompt:'High-quality 3D rendered CG art style, detailed textures, subsurface scattering, octane render quality, volumetric lighting, 8K.'},
+  {id:'realistic',icon:'<img src="/images/previews/styles/art_realistic.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'超写实',prompt:'Hyper-realistic photorealistic style, ultra-detailed skin texture, natural lighting, 8K resolution, indistinguishable from photography.'},
+  {id:'anime',icon:'<img src="/images/previews/styles/art_anime.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'动漫',prompt:'Japanese anime art style, clean lineart, vibrant cel-shading, studio anime quality, detailed hair and eyes, 8K.'},
+  {id:'papercut',icon:'<img src="/images/previews/styles/art_papercut.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'剪纸',prompt:'Chinese paper cut art style, layered paper texture, intricate cutout patterns, flat depth, folk art aesthetic, 8K.'},
+  {id:'plush',icon:'<img src="/images/previews/styles/art_plush.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'布偶',prompt:'Plush fabric doll art style, soft textile texture, stitched seams, fuzzy felt material, handmade toy aesthetic, 8K.'},
+  {id:'oil',icon:'<img src="/images/previews/styles/art_oil.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'油画',prompt:'Oil painting art style, visible brushstrokes, rich impasto texture, classical oil on canvas technique, Rembrandt lighting, 8K.'},
+  {id:'watercolor',icon:'<img src="/images/previews/styles/art_watercolor.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'水彩',prompt:'Watercolor painting art style, soft wet-on-wet washes, translucent pigments, delicate brush marks, artistic paper texture, 8K.'},
+  {id:'sketch',icon:'<img src="/images/previews/styles/art_sketch.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'素描',prompt:'Pencil sketch art style, detailed graphite linework, crosshatching shading, monochrome tonal range, sketchbook quality, 8K.'},
+  {id:'pixel',icon:'<img src="/images/previews/styles/art_pixel.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'像素风',prompt:'Retro pixel art style, visible pixel grid, limited color palette, 16-bit video game aesthetic, clean pixel edges, 8K.'},
+  {id:'clay',icon:'<img src="/images/previews/styles/art_clay.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'黏土',prompt:'Claymation stop-motion art style, plasticine clay texture, fingerprints visible, miniature diorama, Aardman style, 8K.'},
 ];
 
 const RES_MAP = {
@@ -259,7 +259,7 @@ function renderStyles(){
 }
 
 function renderArtStyles(){
-  document.getElementById('artGrid').innerHTML=ART_STYLES.map(a=>`<div class="style-card ${a.id===selArt?'active':''}" onclick="selArt='${a.id}';renderArtStyles();up()"><div class="name">${a.name}</div></div>`).join('');
+  document.getElementById('artGrid').innerHTML=ART_STYLES.map(a=>`<div class="style-card ${a.id===selArt?'active':''}" onclick="selArt='${a.id}';renderArtStyles();up()"><div class="icon">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
 }
 
 function buildPrompt(){
