@@ -250,18 +250,79 @@ const DOCS = [
 <tr><td><code>3398c5f</code></td><td>00:00</td><td>右侧生成结果区域替换为生成历史+loading+连续生成</td></tr>
 </table>
 
-<h2>2026-05-18</h2>
+<h2>2026-05-18（62 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>a4ff7e4</code></td><td>23:54</td><td>右侧分成两列：左列结构/风格/参考图，右列生成历史</td></tr>
+<tr><td><code>daaec08</code></td><td>23:51</td><td>删除左侧重复的旧历史卡片</td></tr>
+<tr><td><code>79c09f3</code></td><td>23:51</td><td>在参考图下方插入生成历史卡片</td></tr>
+<tr><td><code>b3ab974</code></td><td>23:50</td><td>生成历史移回右侧，删除左侧重复卡片</td></tr>
+<tr><td><code>b0a6d6d</code></td><td>23:45</td><td>修复genBtn：加载loading记录，删除resultArea引用，失败清理loading</td></tr>
+<tr><td><code>e6da445</code></td><td>23:43</td><td>生成结果区取消，历史改为生成历史，支持连续生成和loading状态</td></tr>
+<tr><td><code>fe9c278</code></td><td>23:35</td><td>页面加载时调用onModelChange初始化分辨率选项</td></tr>
+<tr><td><code>20b7a6a</code></td><td>23:33</td><td>简化非VIP分辨率，只需一个1K选项</td></tr>
+<tr><td><code>d38d0ec</code></td><td>23:19</td><td>VIP/非VIP分辨率分开控制，非VIP可传比例字符串</td></tr>
+<tr><td><code>28ea488</code></td><td>23:14</td><td>补全所有比例(15种)和RES_MAP像素映射</td></tr>
+<tr><td><code>79818c2</code></td><td>23:13</td><td>补全所有比例选项和RES_MAP映射</td></tr>
+<tr><td><code>f4267b2</code></td><td>22:56</td><td>fix: 正确修改风格名称(电影女主→电影角色, 女战士→战士)</td></tr>
+<tr><td><code>9fe2af0</code></td><td>22:55</td><td>人物风格加性别/年龄/身高选项</td></tr>
+<tr><td><code>dd8bcc0</code></td><td>22:53</td><td>人物风格加性别/年龄/身高选项，风格名去性别化</td></tr>
+<tr><td><code>6b7d1e8</code></td><td>22:27</td><td>兜底图: renderHistory后逐个绑定onerror</td></tr>
+<tr><td><code>7c17d9b</code></td><td>22:23</td><td>兜底图: 用事件委托监听img加载失败，不内联onerror</td></tr>
+<tr><td><code>9b5ba02</code></td><td>22:21</td><td>兜底图+图片失效自动禁用点击</td></tr>
+<tr><td><code>fc49461</code></td><td>22:17</td><td>fix: save_image回调变量改名避免冲突，临时移除onerror</td></tr>
+<tr><td><code>74c02e1</code></td><td>22:12</td><td>fix: renderHistory改用function而非箭头函数，onerror加转义</td></tr>
+<tr><td><code>0e7d2d6</code></td><td>22:11</td><td>fix: onerror改用本地占位图文件，避免语法错误</td></tr>
+<tr><td><code>07b1af6</code></td><td>22:01</td><td>历史图片加载失败时显示占位图(图片已失效)</td></tr>
+<tr><td><code>47970d5</code></td><td>21:40</td><td>fix: save_image返回后正确更新最后一条历史记录的URL为本地地址</td></tr>
+<tr><td><code>8844bf9</code></td><td>21:26</td><td>历史缩略图优先使用thumb</td></tr>
+<tr><td><code>e8529c2</code></td><td>21:24</td><td>fix: historyStrip→historyMasonry，HTML和JS统一</td></tr>
+<tr><td><code>f552560</code></td><td>21:23</td><td>fix: 清理旧history-item样式，瀑布流完整生效</td></tr>
+<tr><td><code>f9535c5</code></td><td>21:22</td><td>历史区域改为瀑布流布局，图片完整展示</td></tr>
+<tr><td><code>da97d4e</code></td><td>21:20</td><td>生成成功后自动保存图片到本地(save_image.php)</td></tr>
+<tr><td><code>e3837a1</code></td><td>21:13</td><td>fix: 加回遗漏的else失败处理分支</td></tr>
+<tr><td><code>593ebbb</code></td><td>21:11</td><td>fix: 把新area.innerHTML从else分支移到成功分支</td></tr>
+<tr><td><code>8139761</code></td><td>21:10</td><td>fix: 删除 viewH onload（统一由 openViewer 处理）</td></tr>
+<tr><td><code>d725ca5</code></td><td>21:05</td><td>统一结果区/浮层/历史的图片信息格式：模型 | 比例 x:y | 分辨率 WxH | 大小</td></tr>
+<tr><td><code>35a772c</code></td><td>20:57</td><td>修复：去掉onload中重复的文件大小追加</td></tr>
+<tr><td><code>f335a90</code></td><td>20:36</td><td>openViewer统一加入图片加载后获取完整信息</td></tr>
+<tr><td><code>30d0533</code></td><td>20:29</td><td>修复下载按钮：统一使用 dlImg 函数</td></tr>
+<tr><td><code>c367fd4</code></td><td>20:20</td><td>恢复经典三视图关键描述：脖颈与上边界对齐，像是没拍到头的感觉</td></tr>
+<tr><td><code>5ebd48f</code></td><td>20:13</td><td>生成结果区：图片加载后自动显示分辨率+文件大小</td></tr>
+<tr><td><code>efe159c</code></td><td>20:07</td><td>fix: viewH 用 x.info 避免 undefined</td></tr>
+<tr><td><code>a8430ff</code></td><td>20:06</td><td>修复bug：h.push补info/model, viewH防undefined(不改UI)</td></tr>
+<tr><td><code>ffcb98f</code></td><td>20:03</td><td>修复: 生成结果信息/下载/浮层信息/viewH undefined</td></tr>
+<tr><td><code>ae3d565</code></td><td>19:53</td><td>生成结果区：信息顶栏+右上角下载(含loading)+点击图片预览</td></tr>
+<tr><td><code>92916c6</code></td><td>19:46</td><td>头部特写改为完整头部展示</td></tr>
+<tr><td><code>c5e577a</code></td><td>19:41</td><td>加强三视图提示词：明确禁止三视图部分出现头部</td></tr>
+<tr><td><code>64e62ca</code></td><td>19:39</td><td>字号前加文字，翻译按钮移到目标语言前面</td></tr>
+<tr><td><code>50add62</code></td><td>19:36</td><td>提示框高度+50%，增加字体大小选项(小/默认/中/大)</td></tr>
+<tr><td><code>66ea6fb</code></td><td>19:11</td><td>人物风格增加「无」选项，默认选中</td></tr>
+<tr><td><code>cc6975a</code></td><td>19:00</td><td>移除前端日志UI，保留后台日志记录</td></tr>
+<tr><td><code>57eee8f</code></td><td>18:58</td><td>新增运行日志记录+查看功能</td></tr>
+<tr><td><code>27752cc</code></td><td>18:52</td><td>生成失败显示完整错误信息+重试按钮</td></tr>
+<tr><td><code>647c702</code></td><td>18:45</td><td>翻译请求加时间戳防止浏览器缓存旧响应</td></tr>
+<tr><td><code>7c7231e</code></td><td>18:41</td><td>翻译结果只显示在预览区，不入输入框</td></tr>
+<tr><td><code>9ec23d0</code></td><td>18:37</td><td>翻译：缓存原文，增加「恢复原文」按钮</td></tr>
+<tr><td><code>dcd2b76</code></td><td>18:19</td><td>fix: translatePrompt 改用 this 传参，错误信息显示详情</td></tr>
+<tr><td><code>c035b9c</code></td><td>18:13</td><td>翻译后预览区直接显示翻译结果，而非混入模板</td></tr>
+<tr><td><code>0713d3b</code></td><td>18:06</td><td>fix: PHP语法错误</td></tr>
+<tr><td><code>dccb2df</code></td><td>18:06</td><td>翻译: 增加目标语言选择(中/英/日/韩/法/西)</td></tr>
+<tr><td><code>bf16a7c</code></td><td>18:02</td><td>翻译改为PHP代理中转，复制反馈增强(按钮文字变化)</td></tr>
+<tr><td><code>bc83081</code></td><td>17:51</td><td>修复：复制改用execCommand，下载加异常处理，加入翻译(调用DeepSeek API)</td></tr>
+<tr><td><code>1161157</code></td><td>17:48</td><td>viewH: 信息改为完整中文词（比例/分辨率/大小）</td></tr>
+<tr><td><code>1e14f7b</code></td><td>17:45</td><td>修复：下载按钮恢复文字，浮层信息支持长文本</td></tr>
+<tr><td><code>666a39f</code></td><td>17:42</td><td>viewH: 浮层打开时实时读取真实比例+分辨率+文件大小</td></tr>
+<tr><td><code>f4a8612</code></td><td>17:36</td><td>viewH: 图片加载后追加真实分辨率 naturalWidth x naturalHeight</td></tr>
+<tr><td><code>38d02d5</code></td><td>17:34</td><td>v1 - 三视图生成器初始版本（浮层查看器+多语言）</td></tr>
 </table>
 
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 29</li>
-<li><strong>今天 (05-19)</strong>: 4 个新提交</li>
+<li><strong>总提交数</strong>: 96</li>
+<li><strong>今天 (05-19)</strong>: 6 个新提交</li>
 <li><strong>凌晨 (05-19)</strong>: 23 个提交</li>
-<li><strong>昨天 (05-18)</strong>: 1 个提交</li>
+<li><strong>昨天 (05-18)</strong>: 62 个提交</li>
 </ul>`];
 
 function checkPwd(){
