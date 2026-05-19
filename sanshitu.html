@@ -139,6 +139,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="preview-btn" id="selToggle" onclick="toggleSelect()" style="margin-bottom:4px">☐ 多选</button>
       <div class="sel-toolbar" id="selToolbar">
         <span class="sel-count" id="selCount">已选 0 项</span>
+        <button onclick="selectAll()">☑ 全选</button>
         <button onclick="batchDelete()">🗑 删除选中</button>
         <button onclick="batchDownload()">⬇️ 下载选中</button>
         <button onclick="toggleSelect()">✕ 取消</button>
@@ -462,6 +463,13 @@ function upSelCount(){
 function getSelected(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
   return h.map(function(x,i){return x._sel&&!x.broken?i:-1;}).filter(function(i){return i>=0;});
+}
+function selectAll(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  h.forEach(function(x){if(!x.loading&&!x.broken)x._sel=true;});
+  localStorage.setItem('ds_h',JSON.stringify(h));
+  renderHistory();
+  upSelCount();
 }
 function batchDelete(){
   var ids=getSelected();
