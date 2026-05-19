@@ -473,16 +473,12 @@ async function batchDownload(){
   var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
   if(!urls.length){t('没有可下载的图片','err');return;}
   t('正在打包 '+urls.length+' 张图片...','ok');
-  // Use form submit for reliable download on all platforms
-  var f=document.createElement('form');
-  f.method='POST';f.action='/zip.php';f.style.display='none';
-  f.target='_blank';
-  var inp=document.createElement('input');
-  inp.name='urls';inp.value=JSON.stringify(urls);
-  f.appendChild(inp);
-  document.body.appendChild(f);
-  f.submit();
-  document.body.removeChild(f);
+  try{
+    var r=await fetch('/zip.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})});
+    var d=await r.json();
+    if(d.ok){window.location.href=d.url;}
+    else{t('⚠️ 打包失败','err');}
+  }catch(e){t('⚠️ 下载出错','err');}
 }
 
 function _viewH(idx){
