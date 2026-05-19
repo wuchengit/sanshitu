@@ -374,7 +374,7 @@ document.getElementById('genBtn').onclick=async function(){
       var url=d.results[0].url;
       // 更新loading记录（先显示远程URL）
       var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
+      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:loadId,apiId:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
       if(_h.length>30)_h.shift();
       localStorage.setItem('ds_h',JSON.stringify(_h));
       renderHistory();
