@@ -124,6 +124,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="card" style="padding:10px 12px">
         <div class="card-t" style="margin-bottom:6px">🎭 人物风格</div>
         <div class="style-grid" id="styleGrid"></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格</div>
+        <div class="style-grid" id="artGrid"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px">
         <select id="optGender" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">性别不限</option><option value="female">女</option><option value="male">男</option></select>
         <select id="optAge" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">年龄不限</option><option value="young adult, around 20-25 years old">年轻 20-25</option><option value="adult, around 26-35 years old">成熟 26-35</option><option value="mature, around 36-45 years old">中年 36-45</option></select>
@@ -202,6 +204,20 @@ const STYLES = [
   {id:'tech',icon:'<img src="/images/previews/styles/tech_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'科技未来',desc:'冰蓝·冷光',prompt:'Tech futuristic character casting sheet, ice blue technological gradient. Clean cool LED lighting, minimalist tech aesthetic, futuristic cinematic style, 8K.'}
 ];
 
+const ART_STYLES = [
+  {id:'none',name:'无',prompt:''},
+  {id:'cg',name:'3D CG',prompt:'High-quality 3D rendered CG art style, detailed textures, subsurface scattering, octane render quality, volumetric lighting, 8K.'},
+  {id:'realistic',name:'超写实',prompt:'Hyper-realistic photorealistic style, ultra-detailed skin texture, natural lighting, 8K resolution, indistinguishable from photography.'},
+  {id:'anime',name:'动漫',prompt:'Japanese anime art style, clean lineart, vibrant cel-shading, studio anime quality, detailed hair and eyes, 8K.'},
+  {id:'papercut',name:'剪纸',prompt:'Chinese paper cut art style, layered paper texture, intricate cutout patterns, flat depth, folk art aesthetic, 8K.'},
+  {id:'plush',name:'布偶',prompt:'Plush fabric doll art style, soft textile texture, stitched seams, fuzzy felt material, handmade toy aesthetic, 8K.'},
+  {id:'oil',name:'油画',prompt:'Oil painting art style, visible brushstrokes, rich impasto texture, classical oil on canvas technique, Rembrandt lighting, 8K.'},
+  {id:'watercolor',name:'水彩',prompt:'Watercolor painting art style, soft wet-on-wet washes, translucent pigments, delicate brush marks, artistic paper texture, 8K.'},
+  {id:'sketch',name:'素描',prompt:'Pencil sketch art style, detailed graphite linework, crosshatching shading, monochrome tonal range, sketchbook quality, 8K.'},
+  {id:'pixel',name:'像素风',prompt:'Retro pixel art style, visible pixel grid, limited color palette, 16-bit video game aesthetic, clean pixel edges, 8K.'},
+  {id:'clay',name:'黏土',prompt:'Claymation stop-motion art style, plasticine clay texture, fingerprints visible, miniature diorama, Aardman style, 8K.'},
+];
+
 const RES_MAP = {
   '9:16':{'1k':'941x1672','2k':'1152x2048','4k':'2160x3840'},
   '16:9':{'1k':'1280x720','2k':'2048x1152','4k':'3840x2160'},
@@ -220,7 +236,7 @@ const RES_MAP = {
   '1:3':{'1k':'688x2048','2k':'1280x3840'}
 };
 
-let selLayout='classic', selStyle='none', uploadedFiles=[];
+let selLayout='classic', selStyle='none', selArt='none', uploadedFiles=[];
 const LAYOUT_RATIO={classic:'9:16',pure:'16:9',side:'16:9',expression:'4:3'};
 
 function onModelChange(){
@@ -242,16 +258,21 @@ function renderStyles(){
   document.getElementById('styleGrid').innerHTML=STYLES.map(s=>`<div class="style-card ${s.id===selStyle?'active':''}" onclick="selStyle='${s.id}';renderStyles();up()"><div class="icon">${s.icon}</div><div class="name">${s.name}</div><div class="desc">${s.desc}</div></div>`).join('');
 }
 
+function renderArtStyles(){
+  document.getElementById('artGrid').innerHTML=ART_STYLES.map(a=>`<div class="style-card ${a.id===selArt?'active':''}" onclick="selArt='${a.id}';renderArtStyles();up()"><div class="name">${a.name}</div></div>`).join('');
+}
+
 function buildPrompt(){
   var layout=LAYOUTS.find(function(l){return l.id===selLayout;});
   var style=STYLES.find(function(s){return s.id===selStyle;});
+  var art=ART_STYLES.find(function(a){return a.id===selArt;});
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
   var a=document.getElementById('optAge').value;
   var h=document.getElementById('optHeight').value;
   if(g||a||h){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(a?', '+a:'')+(h?', '+h:'');}
-  return [user,opts,layout.prompt,style.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
+  return [user,opts,layout.prompt,style.prompt,art.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
 function up(){
@@ -517,7 +538,7 @@ function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent
 var savedKey=localStorage.getItem('ds_key');
 if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
 document.getElementById('apiKey').value=savedKey||'';
-renderLayouts();renderStyles();renderUploads();renderHistory();onModelChange();up();
+renderLayouts();renderStyles();renderArtStyles();renderUploads();renderHistory();onModelChange();up();
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
