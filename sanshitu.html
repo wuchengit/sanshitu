@@ -371,14 +371,17 @@ document.getElementById('genBtn').onclick=async function(){
     var d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
-      // 保存图片到本地
-      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
-        if(d2.original&&d2.thumb){var hh=JSON.parse(localStorage.getItem('ds_h')||'[]');if(hh.length>0){var l=hh[hh.length-1];l.u=d2.original;l.thumb=d2.thumb;localStorage.setItem('ds_h',JSON.stringify(hh));renderHistory();}}
-      }).catch(function(){});
-      // 更新loading记录
+      // 更新loading记录（先显示远程URL）
       var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
       for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:d.id,info:m+' '+av,model:m,t:Date.now()};break;}}
       if(_h.length>30)_h.shift();
+      localStorage.setItem('ds_h',JSON.stringify(_h));
+      renderHistory();
+      // 异步保存到本地（用loadId精确匹配更新）
+      var _loadId=loadId;
+      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+        if(d2.original&&d2.thumb){var sh=JSON.parse(localStorage.getItem('ds_h')||'[]');for(var si=sh.length-1;si>=0;si--){if(sh[si].id===_loadId){sh[si].u=d2.original;sh[si].thumb=d2.thumb;break;}}localStorage.setItem('ds_h',JSON.stringify(sh));renderHistory();}
+      }).catch(function(){});
       localStorage.setItem('ds_h',JSON.stringify(_h));
       renderHistory();
       t('✅ 成功','ok');
