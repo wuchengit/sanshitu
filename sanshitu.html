@@ -128,6 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="style-grid" id="artGrid"></div>
         <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演风格<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button></div>
         <div class="style-grid" id="dirGrid"></div>
+        <div id="dirToggle" style="display:none"><label style="font-size:10px;color:#aaa;display:flex;align-items:center;gap:4px;cursor:pointer;margin-top:4px"><input type="checkbox" id="dirNameToggle" onchange="up()"> 追加导演名字加强风格</label></div>
       </div>
       <div class="card">
         <div class="card-t">👤 人物属性</div>
@@ -307,6 +308,7 @@ function renderArtStyles(){
 
 function renderDirStyles(){
   document.getElementById('dirGrid').innerHTML=DIR_STYLES.map(d=>`<div class="style-card ${d.id===selDir?'active':''}" onclick="selDir='${d.id}';renderDirStyles();up()"><div class="name">${d.name}</div></div>`).join('');
+  document.getElementById('dirToggle').style.display=selDir&&selDir!=='none'?'block':'none';
 }
 
 function buildPrompt(){
@@ -314,6 +316,7 @@ function buildPrompt(){
   var style=STYLES.find(function(s){return s.id===selStyle;});
   var art=ART_STYLES.find(function(a){return a.id===selArt;});
   var dir=DIR_STYLES.find(function(d){return d.id===selDir;});
+  var dirName=dir&&selDir!=='none'&&document.getElementById('dirNameToggle').checked?(', in the cinematic style of director '+dir.name):'';
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
@@ -323,7 +326,7 @@ function buildPrompt(){
   var j=document.getElementById('optJob').value;
   var e=document.getElementById('optEra').value;
   if(g||r||a||h||j||e){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'')+(j?', dressed as a '+j:'')+(e?', set in '+e:'');}
-  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
+  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,dirName,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
 function up(){
