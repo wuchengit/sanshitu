@@ -410,7 +410,7 @@ function _viewH(idx){
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
 
 // Init
-document.getElementById('apiKey').value=localStorage.getItem('ds_key')||'sk-848e99d4f23f4599b2690249164c70d7';
+document.getElementById('apiKey').value=localStorage.getItem('ds_key')||'sk-9dbaa91bdf764459812856da0ae5a7e4';
 renderLayouts();renderStyles();renderUploads();renderHistory();onModelChange();up();
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
