@@ -23,7 +23,6 @@ $thumbPath = $thumbDir . '/' . $thumbName;
 // 用 curl 下载（走代理）
 $ch = curl_init($url);
 curl_setopt_array($ch, [
-    CURLOPT_PROXY => '127.0.0.1:7890',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT => 30,
     CURLOPT_FOLLOWLOCATION => true,
