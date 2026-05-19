@@ -146,6 +146,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <option value="monk">🧘 武僧</option><option value="vampire">🧛 吸血鬼</option><option value="werewolf">🐺 狼人</option><option value="elf_archer">🧝 精灵射手</option><option value="dwarf">⛏️ 矮人</option>
         <option value="robot">🤖 机器人</option><option value="angel">👼 天使</option><option value="demon">👿 恶魔</option><option value="dragon_knight">🐉 龙骑士</option><option value="mecha_pilot">🦾 机甲驾驶员</option>
       </select>
+      <select id="optEra" onchange="up()" style="width:100%;margin-top:6px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer">
+        <option value="">⏳ 年代不限</option>
+        <option value="Stone Age prehistoric era">🪨 远古石器</option><option value="Ancient Egypt, pharaoh era">🏛️ 古埃及</option><option value="Ancient Greece, toga and temple">🏺 古希腊</option><option value="Ancient Rome, gladiator and empire">⚔️ 古罗马</option><option value="Medieval Europe, castle and knight">🏰 中世纪</option>
+        <option value="Renaissance Europe, 15th-16th century">🎭 文艺复兴</option><option value="Viking Age, Norse era">🪓 维京时代</option><option value="Sengoku period, feudal Japan">⛩️ 日本战国</option><option value="Tang Dynasty, ancient China">🐉 大唐盛世</option><option value="Ancient Chinese martial arts, wuxia era">🥋 江湖武侠</option>
+        <option value="Victorian era, 19th century London">🎩 维多利亚</option><option value="American Wild West, frontier era">🌵 西部拓荒</option><option value="1920s Shanghai, Art Deco era">🌃 1920s上海滩</option><option value="World War II era, 1940s">🪖 二战时期</option><option value="1950s America, post-war era">🍔 1950s美国</option>
+        <option value="1960s hippie counterculture era">☮️ 1960s嬉皮</option><option value="1980s retro synthwave era">📼 1980s复古</option><option value="Cyberpunk dystopian future">🌆 赛博时代</option><option value="Post-apocalyptic wasteland future">🏜️ 末日废土</option><option value="Space age sci-fi interstellar future">🛸 太空科幻</option>
+      </select>
       </div>
       <div class="card">
         <div class="card-t">🖼️ 参考图</div>
@@ -314,7 +321,8 @@ function buildPrompt(){
   var a=document.getElementById('optAge').value;
   var h=document.getElementById('optHeight').value;
   var j=document.getElementById('optJob').value;
-  if(g||r||a||h||j){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'')+(j?', dressed as a '+j:'');}
+  var e=document.getElementById('optEra').value;
+  if(g||r||a||h||j||e){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'')+(j?', dressed as a '+j:'')+(e?', set in '+e:'');}
   return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
