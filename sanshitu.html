@@ -402,6 +402,11 @@ document.getElementById('genBtn').onclick=async function(){
 
 function renderHistory(){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  // 清理超过2分钟的loading记录（页面刷新后无法恢复）
+  var now=Date.now();
+  var cleaned=false;
+  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>120000){h.splice(ci,1);cleaned=true;}}
+  if(cleaned)localStorage.setItem('ds_h',JSON.stringify(h));
   var out='';
   var selMode=document.getElementById('historyMasonry').classList.contains('sel-mode');
   if(h.length){
