@@ -147,15 +147,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 const APP_VERSION="20260519.1";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
+  // Auto-check server version and force reload if needed
+  fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
+    sv=sv.trim();
+    if(storedVer!==sv){
+      localStorage.setItem('ds_ver',sv);
+      if(storedVer){location.reload(true);return;}
+    }
+  }).catch(function(){});
   if(storedVer&&storedVer!==APP_VERSION){
     var bar=document.createElement('div');
     bar.className='update-bar show';
-    bar.innerHTML='🔄 页面已更新 <button class="update-btn" onclick="location.reload()">刷新页面</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
+    bar.innerHTML='🔄 页面已更新 <button class="update-btn" onclick="location.reload(true)">刷新页面</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
     document.body.appendChild(bar);
-    localStorage.setItem('ds_ver',APP_VERSION);
     setTimeout(function(){bar.style.display='none';},5000);
-  }else if(!storedVer){
-    localStorage.setItem('ds_ver',APP_VERSION);
   }
 })();
 const LAYOUTS = [
