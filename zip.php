@@ -1,9 +1,10 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
 
-$body = file_get_contents('php://input');
-$data = json_decode($body, true);
-$urls = $data['urls'] ?? [];
+// Accept JSON body or form field 'urls' containing JSON array
+$raw = $_POST['urls'] ?? file_get_contents('php://input');
+$data = json_decode($raw, true);
+$urls = is_array($data) ? $data : ($data['urls'] ?? []);
 
 if (empty($urls)) { http_response_code(400); echo json_encode(['error'=>'No URLs']); exit; }
 
