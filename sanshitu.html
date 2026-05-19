@@ -466,19 +466,23 @@ function batchDelete(){
   renderHistory();
   t('已删除 '+ids.length+' 项','ok');
 }
-function batchDownload(){
+async function batchDownload(){
   var ids=getSelected();
   if(!ids.length){t('请先选择历史记录','err');return;}
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  ids.forEach(function(idx,i){
-    var x=h[idx];
-    if(!x||!x.u||x.broken)return;
-    setTimeout(function(){
-      var a=document.createElement('a');
-      a.href=x.u;a.download='sanshitu_'+(i+1)+'.png';a.click();
-    },i*300);
-  });
-  t('正在下载 '+ids.length+' 张图片...','ok');
+  var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
+  if(!urls.length){t('没有可下载的图片','err');return;}
+  try{
+    t('正在打包 '+urls.length+' 张图片...','ok');
+    var r=await fetch('/zip.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})});
+    if(!r.ok)throw new Error('打包失败');
+    var blob=await r.blob();
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='sanshitu_batch.zip';
+    a.click();
+    t('✅ 已打包 '+urls.length+' 张','ok');
+  }catch(e){t('⚠️ 打包下载失败: '+e.message,'err');}
 }
 
 function _viewH(idx){
