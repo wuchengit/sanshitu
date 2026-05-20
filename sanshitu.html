@@ -638,6 +638,7 @@ function openViewer(url,info,prompt){
   document.getElementById('viewerInfo').textContent=info||'';
   document.getElementById('viewerPromptBox').style.display=viewerPrompt?'flex':'none';
   document.getElementById('viewerPromptText').textContent=viewerPrompt;
+  document.getElementById('viewerRestoreBtn').style.display='none';
   vs=1;vx=0;vy=0;
   document.getElementById('viewerImg').style.transform='translate(0,0) scale(1)';
   document.getElementById('viewerZoom').textContent='🔄 滚轮缩放·拖动查看';
@@ -655,13 +656,36 @@ function openViewer(url,info,prompt){
     });
   };
 }
-function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';}
+function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';_viewerOrigPrompt='';}
 document.getElementById('viewerOverlay').addEventListener('wheel',function(e){if(e.target.closest('#viewerContainer')){e.preventDefault();var d=e.deltaY>0?-0.1:0.1;vs=Math.max(.5,Math.min(10,vs+d));document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}},{passive:false});
 document.getElementById('viewerOverlay').addEventListener('mousedown',function(e){if(e.target.closest('#viewerContainer')&&e.button===0){isD=true;sx=e.clientX-vx;sy=e.clientY-vy;this.style.cursor='grabbing';}});
 document.addEventListener('mousemove',function(e){if(isD){vx=e.clientX-sx;vy=e.clientY-sy;document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}});
 document.addEventListener('mouseup',function(){if(isD){isD=false;document.getElementById('viewerOverlay').style.cursor='grab';}});
 function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('提示词已复制','ok');}
 function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
+var _viewerOrigPrompt='';
+function translateViewerPrompt(btn){
+  var text=document.getElementById('viewerPromptText').textContent;
+  if(!text||text.length<5){toast('⚠️ 提示词太短','err');return;}
+  if(!_viewerOrigPrompt)_viewerOrigPrompt=text;
+  btn.innerHTML='⏳';btn.disabled=true;
+  var lang=document.getElementById('targetLang').value;
+  fetch('/translate.php?_t='+Date.now(),{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:text,lang:lang})
+  }).then(function(r){return r.json()}).then(function(d){
+    if(d.translation){
+      document.getElementById('viewerPromptText').textContent=d.translation;
+      document.getElementById('viewerRestoreBtn').style.display='inline-block';
+      toast('🌐 已译→'+lang,'ok');
+    }else{toast('⚠️ '+(d.error||'翻译失败'),'err');}
+  }).catch(function(e){toast('⚠️ 翻译出错: '+e.message,'err');})
+  .finally(function(){btn.innerHTML='🌐 翻译';btn.disabled=false;});
+}
+function restoreViewerPrompt(){
+  document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
+  document.getElementById('viewerRestoreBtn').style.display='none';
+}
 async function downloadViewer(){var url=document.getElementById('viewerImg').src;try{var r=await fetch(url);var b=await r.blob();var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click()}catch(e){window.open(url,'_blank')}}
 function viewH(idx){
   var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
@@ -841,7 +865,9 @@ updateAuthUI();
 <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
 <span style="color:#888;font-size:10px;flex:1">📝 提示词</span>
 <button class="preview-btn" onclick="copyViewerPrompt()" style="font-size:9px;padding:2px 6px">📋 复制</button>
-<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button></div>
+<button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px">🌐 翻译</button>
+<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button>
+<button class="preview-btn" id="viewerRestoreBtn" onclick="restoreViewerPrompt()" style="display:none;font-size:9px;padding:2px 6px">↩ 原文</button></div>
 <div style="padding:10px;overflow-y:auto;flex:1">
 <pre id="viewerPromptText" style="color:#bbb;font-size:11px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.5"></pre></div></div></div>
 <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;background:#1a1a20cc;padding:4px 14px;border-radius:12px" id="viewerZoom">🔄 滚轮缩放·拖动查看</div></div>
