@@ -834,12 +834,16 @@ updateAuthUI();
 <span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
 <button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
 <button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer">✕</button></div>
-<div id="viewerContainer" style="position:relative;max-width:90vw;max-height:70vh;overflow:hidden;border-radius:8px" onclick="event.stopPropagation()">
-<img id="viewerImg" src="" style="display:block;max-width:90vw;max-height:70vh;object-fit:contain;cursor:grab;user-select:none"></div>
-<div id="viewerPromptBox" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:6px;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;padding:6px 12px;max-width:90vw" onclick="event.stopPropagation()">
-<span id="viewerPromptText" style="color:#999;font-size:10px;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace"></span>
-<button class="preview-btn" onclick="copyViewerPrompt()" style="font-size:9px;padding:2px 6px">📋</button>
-<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️</button></div>
+<div style="display:flex;gap:12px;align-items:flex-start;max-width:90vw;max-height:85vh" onclick="event.stopPropagation()">
+<div id="viewerContainer" style="position:relative;overflow:hidden;border-radius:8px;flex-shrink:0">
+<img id="viewerImg" src="" style="display:block;max-width:64vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
+<div id="viewerPromptBox" style="display:none;flex-direction:column;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;max-height:85vh;max-width:340px;min-width:200px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
+<span style="color:#888;font-size:10px;flex:1">📝 提示词</span>
+<button class="preview-btn" onclick="copyViewerPrompt()" style="font-size:9px;padding:2px 6px">📋 复制</button>
+<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button></div>
+<div style="padding:10px;overflow-y:auto;flex:1">
+<pre id="viewerPromptText" style="color:#bbb;font-size:11px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.5"></pre></div></div></div>
 <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;background:#1a1a20cc;padding:4px 14px;border-radius:12px" id="viewerZoom">🔄 滚轮缩放·拖动查看</div></div>
 
 <!-- 登录弹窗 -->
