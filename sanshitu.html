@@ -78,6 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 /* 登录 */
 .login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
 .login-btn:hover{opacity:.85}
+.add-custom-btn{padding:1px 6px;background:transparent;border:1px solid #333;border-radius:3px;color:#555;font-size:10px;cursor:pointer;float:right;margin-right:4px;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{font-size:7px;background:#667eea22;color:#667eea;padding:0 3px;border-radius:4px}.custom-item .del-custom{position:absolute;top:1px;left:1px;width:14px;height:14px;background:#ef444488;border-radius:50%;color:#fff;font-size:8px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:14px;z-index:2}.custom-item:hover .del-custom{display:flex}
 .user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
 .user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
 .user-badge .logout:hover{color:#e74c3c}
@@ -144,15 +145,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- ===== RIGHT ===== -->
     <div>
       <div class="card" style="padding:10px 12px">
-        <div class="card-t" style="margin-bottom:6px">📐 人物资产结构<button class="reset-btn" onclick="selLayout='classic';renderLayouts();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px">📐 人物资产结构<button class="reset-btn" onclick="selLayout='classic';renderLayouts();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('layout')" title="自定义资产结构">＋</button></div>
         <div class="layout-strip" id="layoutStrip"></div>
       </div>
       <div class="card" style="padding:10px 12px">
-        <div class="card-t" style="margin-bottom:6px">🎭 人物风格<button class="reset-btn" onclick="selStyle='none';renderStyles();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px">🎭 人物风格<button class="reset-btn" onclick="selStyle='none';renderStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('style')" title="自定义人物风格">＋</button></div>
         <div class="style-grid" id="styleGrid"></div>
-        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('art')" title="自定义艺术风格">＋</button></div>
         <div class="style-grid" id="artGrid"></div>
-        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('dir')" title="自定义导演代表作">＋</button></div>
         <div class="style-grid" id="dirGrid"></div>
       </div>
       <div class="card">
@@ -202,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.4";
+const APP_VERSION="20260520.5";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -329,26 +330,34 @@ function onModelChange(){
 }
 
 function renderLayouts(){
-  document.getElementById('layoutStrip').innerHTML=LAYOUTS.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''}" onclick="selLayout='${l.id}';renderLayouts();up()"><div class="preview">${l.preview.replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l.desc}</div></div>`).join('');
+  var merged=LAYOUTS.concat(getMergedStyle('layout'));
+  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')">✕</button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${l.preview.replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div></div>`).join('');
 }
 
 function renderStyles(){
-  document.getElementById('styleGrid').innerHTML=STYLES.map(s=>`<div class="style-card ${s.id===selStyle?'active':''}" onclick="selStyle='${s.id}';renderStyles();up()"><div class="icon">${s.icon}</div><div class="name">${s.name}</div><div class="desc">${s.desc}</div></div>`).join('');
+  var merged=STYLES.concat(getMergedStyle('style'));
+  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')">✕</button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}</div>`).join('');
 }
 
 function renderArtStyles(){
-  document.getElementById('artGrid').innerHTML=ART_STYLES.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''}" onclick="selArt='${a.id}';renderArtStyles();up()"><div class="icon">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
+  var merged=ART_STYLES.concat(getMergedStyle('art'));
+  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')">✕</button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
 }
 
 function renderDirStyles(){
-  document.getElementById('dirGrid').innerHTML=DIR_STYLES.map(d=>`<div class="style-card ${d.id===selDir?'active':''}" onclick="selDir='${d.id}';renderDirStyles();up()"><div class="name">${d.label}</div><div class="desc">${d.name}</div></div>`).join('');
+  var merged=DIR_STYLES.concat(getMergedStyle('dir'));
+  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')">✕</button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div></div>`).join('');
 }
 
 function buildPrompt(){
-  var layout=LAYOUTS.find(function(l){return l.id===selLayout;});
-  var style=STYLES.find(function(s){return s.id===selStyle;});
-  var art=ART_STYLES.find(function(a){return a.id===selArt;});
-  var dir=DIR_STYLES.find(function(d){return d.id===selDir;});
+  var mergedLayouts=LAYOUTS.concat(getMergedStyle('layout'));
+  var mergedStyles=STYLES.concat(getMergedStyle('style'));
+  var mergedArts=ART_STYLES.concat(getMergedStyle('art'));
+  var mergedDirs=DIR_STYLES.concat(getMergedStyle('dir'));
+  var layout=mergedLayouts.find(function(l){return l.id===selLayout;});
+  var style=mergedStyles.find(function(s){return s.id===selStyle;});
+  var art=mergedArts.find(function(a){return a.id===selArt;});
+  var dir=mergedDirs.find(function(d){return d.id===selDir;});
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
@@ -776,8 +785,101 @@ function doLogout(){
   AUTH_USER = null;
   localStorage.removeItem('sanshitu_token');
   localStorage.removeItem('sanshitu_user');
+  customPresets=[];
+  reRender();
   updateAuthUI();
   toast('已退出登录');
+}
+
+// ====== 自定义预设 ======
+var customPresets=[];
+var customModalCategory='';
+
+async function loadCustomPresets(){
+  if(!AUTH_TOKEN) return;
+  try {
+    var r=await fetch('/api/user/custom.php',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    if(r.ok){
+      var d=await r.json();
+      customPresets=d.presets||[];
+      reRender();
+    }
+  }catch(e){}
+}
+
+function showCustomModal(cat){
+  if(!AUTH_TOKEN){showLoginModal();return;}
+  customModalCategory=cat;
+  document.getElementById('customError').classList.remove('show');
+  document.getElementById('customTitle').textContent='➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat];
+  document.getElementById('customName').value='';
+  document.getElementById('customLabel').value='';
+  document.getElementById('customPrompt').value='';
+  document.getElementById('customIcon').value='';
+  document.getElementById('customLabelGroup').style.display=cat==='dir'?'block':'none';
+  document.getElementById('customModal').classList.add('show');
+}
+
+async function saveCustomPreset(){
+  var name=document.getElementById('customName').value.trim();
+  var label=document.getElementById('customLabel').value.trim();
+  var prompt=document.getElementById('customPrompt').value.trim();
+  var icon=document.getElementById('customIcon').value.trim();
+  var err=document.getElementById('customError');
+  if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
+  try {
+    var r=await fetch('/api/user/custom.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({category:customModalCategory,name:name,label:label,prompt:prompt})
+    });
+    if(r.ok){
+      document.getElementById('customModal').classList.remove('show');
+      await loadCustomPresets();
+      toast('已保存','ok');
+    }else{
+      var d=await r.json();
+      err.textContent=d.error||'保存失败';err.classList.add('show');
+    }
+  }catch(e){err.textContent='网络错误';err.classList.add('show');}
+}
+
+async function deleteCustomPreset(id){
+  if(!confirm('确定删除？'))return;
+  try {
+    var r=await fetch('/api/user/custom.php',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id:id})
+    });
+    if(r.ok){
+      customPresets=customPresets.filter(function(p){return p.id!==id;});
+      // 如果有选中这个自定义项，重置
+      if(selStyle&&selStyle.startsWith('c_'+id+'_')) selStyle='none';
+      if(selArt&&selArt.startsWith('c_'+id+'_')) selArt='none';
+      if(selDir&&selDir.startsWith('c_'+id+'_')) selDir='none';
+      if(selLayout&&selLayout.startsWith('c_'+id+'_')) selLayout='classic';
+      reRender();up();
+      toast('已删除','ok');
+    }
+  }catch(e){toast('删除失败','err');}
+}
+
+// 合并自定义预设到风格列表
+function getMergedStyle(type){
+  var cats=customPresets.filter(function(p){return p.category===type;});
+  return cats.map(function(p){
+    return {
+      id:'c_'+p.id+'_'+type,
+      name:p.name,
+      label:p.label,
+      prompt:p.prompt,
+      icon:'<div style="width:100%;height:100%;background:#667eea11;display:flex;align-items:center;justify-content:center;font-size:16px">✨</div>',
+      desc:'自定义',
+      _custom:true,
+      _id:p.id
+    };
+  });
 }
 
 function updateAuthUI(){
@@ -786,6 +888,10 @@ function updateAuthUI(){
   document.getElementById('userBadge').style.display = loggedIn ? 'flex' : 'none';
   if (loggedIn) {
     document.getElementById('userEmail').textContent = AUTH_USER.email;
+    loadCustomPresets();
+  } else {
+    customPresets=[];
+    reRender();
   }
   }
 
@@ -901,6 +1007,21 @@ updateAuthUI();
 <div class="form-group"><input type="password" id="authPassword" placeholder="密码" autocomplete="current-password"></div>
 <button class="btn-primary" id="authSubmit" onclick="handleAuth()">登录</button>
 <div class="toggle-link"><span id="authToggleText">没有账号？</span> <a id="authToggleLink" onclick="toggleAuthMode()">立即注册</a></div>
+</div></div></div>
+
+
+<!-- 自定义预设弹窗 -->
+<div class="modal-overlay" id="customModal">
+<div style="position:relative">
+<div class="modal-box">
+<button class="modal-close" onclick="document.getElementById('customModal').classList.remove('show')">✕</button>
+<h2 id="customTitle">➕ 自定义预设</h2>
+<div id="customError" class="error"></div>
+<div class="form-group"><label style="color:#888;font-size:10px">名称</label><input id="customName" placeholder="显示名称"></div>
+<div class="form-group" id="customLabelGroup" style="display:none"><label style="color:#888;font-size:10px">代表作</label><input id="customLabel" placeholder="代表作名称（如 重庆森林）"></div>
+<div class="form-group"><label style="color:#888;font-size:10px">提示词（英文）</label><textarea id="customPrompt" rows="4" placeholder="描述视觉风格的英文提示词..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e8e8ed;font-size:12px;font-family:monospace;resize:vertical"></textarea></div>
+<div class="form-group"><label style="color:#888;font-size:10px">图标URL（可选，人物风格/艺术风格）</label><input id="customIcon" placeholder="留空则使用默认图标"></div>
+<button class="btn-primary" onclick="saveCustomPreset()">💾 保存</button>
 </div></div></div>
 
 </body>
