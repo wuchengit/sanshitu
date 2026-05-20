@@ -202,7 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.2";
+const APP_VERSION="20260520.3";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -627,6 +627,8 @@ var savedKey=localStorage.getItem('ds_key');
 if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
 document.getElementById('apiKey').value=savedKey||'';
 renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
+// 清除上次翻译原文的旧缓存
+localStorage.removeItem('origPrompt');
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
@@ -669,8 +671,16 @@ function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPr
 var _viewerOrigPrompt='';
 function translateViewerPrompt(btn){
   if(!_viewerOrigPrompt||_viewerOrigPrompt.length<5){t('⚠️ 提示词太短','err');return;}
-  btn.innerHTML='⏳';btn.disabled=true;
   var lang=document.getElementById('viewerTargetLang').value;
+  // 翻回原文语言→直接显示原文，不调API
+  if(lang==='英文'){
+    document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
+    document.getElementById('viewerRestoreBtn').style.display='none';
+    btn.textContent='💡 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    return;
+  }
+  btn.innerHTML='⏳';btn.disabled=true;
   fetch('/translate.php?_t='+Date.now(),{
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({prompt:_viewerOrigPrompt,lang:lang})
