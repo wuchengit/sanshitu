@@ -864,7 +864,8 @@ updateAuthUI();
 <div id="viewerPromptBox" style="display:none;flex-direction:column;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;max-height:85vh;max-width:340px;min-width:200px;overflow:hidden">
 <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
 <span style="color:#888;font-size:10px;flex:1">📝 提示词</span>
-<button class="preview-btn" onclick="copyViewerPrompt()" style="font-size:9px;padding:2px 6px">📋 复制</button>
+<select id="viewerTargetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:1px 2px;cursor:pointer"><option value="中文">中文</option><option value="英文">English</option><option value="日文">日本語</option><option value="韩文">한국어</option><option value="法文">Français</option><option value="西班牙文">Español</option></select>
+<button class="preview-btn" onclick="copyViewerPrompt(this)" style="font-size:9px;padding:2px 6px">📋 复制</button>
 <button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px">🌐 翻译</button>
 <button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button>
 <button class="preview-btn" id="viewerRestoreBtn" onclick="restoreViewerPrompt()" style="display:none;font-size:9px;padding:2px 6px">↩ 原文</button></div>
