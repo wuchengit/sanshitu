@@ -126,9 +126,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="style-grid" id="styleGrid"></div>
         <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button></div>
         <div class="style-grid" id="artGrid"></div>
-        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演风格<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button></div>
         <div class="style-grid" id="dirGrid"></div>
-        <div id="dirToggle" style="display:none"><label style="font-size:10px;color:#aaa;display:flex;align-items:center;gap:4px;cursor:pointer;margin-top:4px"><input type="checkbox" id="dirNameToggle" onchange="up()"> 追加导演名字加强风格</label></div>
       </div>
       <div class="card">
         <div class="card-t">👤 人物属性</div>
@@ -248,18 +247,18 @@ const ART_STYLES = [
 ];
 
 const DIR_STYLES = [
-  {id:'none',name:'无',prompt:''},
-  {id:'wkw',name:'王家卫',prompt:'Neon-soaked cinematic aesthetic, nostalgic saturated colors, motion blur, shallow depth of field, rain-slicked streets, dreamlike romantic melancholy atmosphere.'},
-  {id:'kitano',name:'北野武',prompt:'Stark minimalist cinematic aesthetic, static wide compositions, sudden violence juxtaposed with stillness, blue-gray palette, contemplative beach scenes, deadpan visual poetry.'},
-  {id:'spielberg',name:'斯皮尔伯格',prompt:'Warm hopeful cinematic aesthetic, golden hour backlighting, dramatic lens flares, wonder-filled facial close-ups, sweeping orchestral visual storytelling.'},
-  {id:'miyazaki',name:'宫崎骏',prompt:'Lush hand-drawn cinematic aesthetic, vibrant nature-filled backgrounds, soft watercolor skies, whimsical flying scenes, gentle pastoral warmth, detailed food and machinery.'},
-  {id:'zhang',name:'张艺谋',prompt:'Bold saturated color cinematic aesthetic, sweeping epic wide shots, dramatic contrast between vivid single colors, poetic visual grandeur, large-scale choreographed compositions.'},
-  {id:'nolan',name:'诺兰',prompt:'Cold precise cinematic aesthetic, IMAX-scale wide compositions, blue-gray color palette, practical effects realism, geometric urban landscapes, cerebral atmospheric tension.'},
-  {id:'anderson',name:'韦斯·安德森',prompt:'Perfectly symmetrical cinematic aesthetic, pastel color palettes, flat compositions, whimsical miniature-like sets, meticulous art direction, storybook visual charm.'},
-  {id:'tarantino',name:'昆汀',prompt:'Vibrant punchy cinematic aesthetic, 1970s retro color grading, dynamic framing from below, stylized violence, pop culture saturated visuals, bold typographic titles.'},
-  {id:'kubrick',name:'库布里克',prompt:'Cold meticulous cinematic aesthetic, symmetrical one-point perspective, clinical precision, stark lighting contrasts, unsettling stillness, geometric perfection.'},
-  {id:'burton',name:'蒂姆·伯顿',prompt:'Dark whimsical cinematic aesthetic, gothic fairytale visuals, elongated twisted shapes, stark black-white contrasts with occasional vivid accents, moonlit surreal atmosphere.'},
-  {id:'kurosawa',name:'黑泽明',prompt:'Epic dynamic cinematic aesthetic, dramatic weather elements like rain and wind, bold geometric compositions, deep focus, sweeping movement, mythic visual grandeur.'},
+  {id:'none',name:'无',label:'无',prompt:''},
+  {id:'wkw',name:'王家卫',label:'重庆森林',prompt:'In the visual style of Chungking Express: neon-drenched city nights, saturated color grading, motion blur, intimate close-ups, rain-slicked streets, handheld camera urgency, dreamlike romantic melancholy.'},
+  {id:'kitano',name:'北野武',label:'花火',prompt:'In the visual style of Hana-bi: stark minimalist compositions, long static takes, sudden bursts of stylized violence, blue-gray seaside palette, contemplative silence juxtaposed with explosive emotion.'},
+  {id:'spielberg',name:'斯皮尔伯格',label:'侏罗纪公园',prompt:'In the visual style of Jurassic Park: warm golden hour backlighting, dramatic lens flares, awe-filled wide shots, sweeping orchestral visual scale, tension built through shadow and silhouette.'},
+  {id:'miyazaki',name:'宫崎骏',label:'千与千寻',prompt:'In the visual style of Spirited Away: lush hand-drawn aesthetic, vibrant nature-filled backgrounds, soft watercolor skies, whimsical spirit world details, gentle pastoral warmth, elaborate food and bathhouse scenes.'},
+  {id:'zhang',name:'张艺谋',label:'英雄',prompt:'In the visual style of Hero: bold saturated color palettes, sweeping epic wide shots, dramatic contrast between vivid single colors, elegant martial arts choreography, poetic visual grandeur.'},
+  {id:'nolan',name:'诺兰',label:'盗梦空间',prompt:'In the visual style of Inception: cold precise IMAX-scale compositions, blue-gray palette, practical effects realism, geometric urban landscapes folding into surreal dreamscapes, cerebral atmospheric tension.'},
+  {id:'anderson',name:'韦斯·安德森',label:'布达佩斯大饭店',prompt:'In the visual style of The Grand Budapest Hotel: perfectly symmetrical compositions, pastel pink-purple palettes, flat storytelling frames, whimsical miniature-like sets, meticulous art direction.'},
+  {id:'tarantino',name:'昆汀',label:'低俗小说',prompt:'In the visual style of Pulp Fiction: vibrant 1970s retro color grading, dynamic low-angle framing, stylized violence, pop culture saturated interiors, bold typographic sequences.'},
+  {id:'kubrick',name:'库布里克',label:'2001太空漫游',prompt:'In the visual style of 2001: A Space Odyssey: cold meticulous symmetry, one-point perspective, clinical precision, stark lighting contrasts, unsettling cosmic stillness, geometric perfection.'},
+  {id:'burton',name:'蒂姆·伯顿',label:'圣诞夜惊魂',prompt:'In the visual style of The Nightmare Before Christmas: dark whimsical gothic fairytale aesthetics, elongated twisted shapes, stark black-white contrasts with vivid accents, moonlit surreal atmosphere.'},
+  {id:'kurosawa',name:'黑泽明',label:'七武士',prompt:'In the visual style of Seven Samurai: epic dynamic compositions, dramatic rain and wind elements, bold geometric framing, deep focus cinematography, sweeping samurai movement, mythic visual grandeur.'},
 ];
 
 const RES_MAP = {
@@ -307,8 +306,7 @@ function renderArtStyles(){
 }
 
 function renderDirStyles(){
-  document.getElementById('dirGrid').innerHTML=DIR_STYLES.map(d=>`<div class="style-card ${d.id===selDir?'active':''}" onclick="selDir='${d.id}';renderDirStyles();up()"><div class="name">${d.name}</div></div>`).join('');
-  document.getElementById('dirToggle').style.display=selDir&&selDir!=='none'?'block':'none';
+  document.getElementById('dirGrid').innerHTML=DIR_STYLES.map(d=>`<div class="style-card ${d.id===selDir?'active':''}" onclick="selDir='${d.id}';renderDirStyles();up()"><div class="name">${d.label}</div><div class="desc">${d.name}</div></div>`).join('');
 }
 
 function buildPrompt(){
@@ -316,7 +314,6 @@ function buildPrompt(){
   var style=STYLES.find(function(s){return s.id===selStyle;});
   var art=ART_STYLES.find(function(a){return a.id===selArt;});
   var dir=DIR_STYLES.find(function(d){return d.id===selDir;});
-  var dirName=dir&&selDir!=='none'&&document.getElementById('dirNameToggle').checked?(', in the cinematic style of director '+dir.name):'';
   var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
@@ -326,7 +323,7 @@ function buildPrompt(){
   var j=document.getElementById('optJob').value;
   var e=document.getElementById('optEra').value;
   if(g||r||a||h||j||e){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'')+(j?', dressed as a '+j:'')+(e?', set in '+e:'');}
-  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,dirName,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
+  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
 }
 
 function up(){
