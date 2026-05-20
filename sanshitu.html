@@ -202,7 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.3";
+const APP_VERSION="20260520.4";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -362,15 +362,14 @@ function buildPrompt(){
 }
 
 function up(){
-  // 结构联动比例
   var r=LAYOUT_RATIO[selLayout];
   if(r)document.getElementById('aspectRatio').value=r;
   const p=buildPrompt();
-  document.getElementById('promptPreview').textContent=p||'选择右侧结构和风格后自动组合...';
+  var el=document.getElementById('promptPreview');
+  el.textContent=p||'选择右侧结构和风格后自动组合...';
   document.getElementById('promptLen').textContent=p.length;
-  // 提示词变动→清除翻译缓存的原文
-  var orig=localStorage.getItem('origPrompt');
-  if(orig && p && orig!==p){localStorage.removeItem('origPrompt');var rb=document.getElementById('restoreBtn');if(rb)rb.remove();}
+  // 提示词变了就清除旧原文
+  if(el.dataset.orig && el.dataset.orig!==p){delete el.dataset.orig;var rb=document.getElementById('restoreBtn');if(rb)rb.remove();}
 }
 
 
@@ -391,33 +390,40 @@ function dlImg(url,btn){
 }
 
 function translatePrompt(btn){
-  var text=document.getElementById('promptPreview').textContent;
+  var el=document.getElementById('promptPreview');
+  var text=el.textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
-  // 首次翻译时保存原文到localStorage
-  if(!localStorage.getItem('origPrompt')) localStorage.setItem('origPrompt', text);
-  btn.innerHTML='⏳';
+  // 用元素上的data属性保存原文，不会被任何其他代码影响
+  if(!el.dataset.orig) el.dataset.orig=text;
   var lang=document.getElementById('targetLang').value;
-  var src=localStorage.getItem('origPrompt')||text;
+  // 翻回原文语言→直接用原文
+  if(lang==='英文'&&el.dataset.orig){
+    el.textContent=el.dataset.orig;
+    document.getElementById('promptLen').textContent=el.dataset.orig.length;
+    var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
+    btn.textContent='💡 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    return;
+  }
+  btn.innerHTML='⏳';
+  var src=el.dataset.orig||text;
   fetch('/translate.php?_t='+Date.now(),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({prompt:src,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(!d.translation){t('⚠️ '+(d.error||'翻译失败'),'err');return;}
-    var same=d.translation.trim()===src.trim();
-    document.getElementById('promptPreview').textContent=d.translation;
+    el.textContent=d.translation;
     document.getElementById('promptLen').textContent=d.translation.length;
     var rb=document.getElementById('restoreBtn');
-    if(same){if(rb)rb.remove();}
-    else if(!rb){
+    if(!rb){
       var btns=btn.parentElement;
       rb=document.createElement('button');
       rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='↩ 原文';
       rb.onclick=function(){
-        var orig=localStorage.getItem('origPrompt');
-        document.getElementById('promptPreview').textContent=orig;
-        document.getElementById('promptLen').textContent=orig.length;
-        localStorage.removeItem('origPrompt');
+        el.textContent=el.dataset.orig;
+        document.getElementById('promptLen').textContent=el.dataset.orig.length;
+        delete el.dataset.orig;
         this.remove();
       };
       btns.insertBefore(rb, btn.nextSibling);
@@ -627,8 +633,6 @@ var savedKey=localStorage.getItem('ds_key');
 if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
 document.getElementById('apiKey').value=savedKey||'';
 renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
-// 清除上次翻译原文的旧缓存
-localStorage.removeItem('origPrompt');
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
