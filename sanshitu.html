@@ -674,10 +674,10 @@ function translateViewerPrompt(btn){
     body:JSON.stringify({prompt:_viewerOrigPrompt,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
-      _viewerOrigPrompt=_viewerOrigPrompt;
+      var same=d.translation.trim()===_viewerOrigPrompt.trim();
       document.getElementById('viewerPromptText').textContent=d.translation;
-      document.getElementById('viewerRestoreBtn').style.display='inline-block';
-      btn.textContent='✓ 已翻译';btn.style.color='#22c55e';
+      document.getElementById('viewerRestoreBtn').style.display=same?'none':'inline-block';
+      btn.textContent=same?'💡 原文':'✓ 已翻译';btn.style.color='#22c55e';
       setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
