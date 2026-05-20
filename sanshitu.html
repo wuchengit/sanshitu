@@ -202,7 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.1";
+const APP_VERSION="20260520.2";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -368,11 +368,9 @@ function up(){
   const p=buildPrompt();
   document.getElementById('promptPreview').textContent=p||'选择右侧结构和风格后自动组合...';
   document.getElementById('promptLen').textContent=p.length;
-  // 提示词变了就清除翻译原文缓存和恢复按钮
-  if(window._origPrompt && window._origPrompt!==p){
-    delete window._origPrompt;
-    var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
-  }
+  // 提示词变动→清除翻译缓存的原文
+  var orig=localStorage.getItem('origPrompt');
+  if(orig && p && orig!==p){localStorage.removeItem('origPrompt');var rb=document.getElementById('restoreBtn');if(rb)rb.remove();}
 }
 
 
@@ -395,16 +393,18 @@ function dlImg(url,btn){
 function translatePrompt(btn){
   var text=document.getElementById('promptPreview').textContent;
   if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
-  if(!window._origPrompt) window._origPrompt=text;
+  // 首次翻译时保存原文到localStorage
+  if(!localStorage.getItem('origPrompt')) localStorage.setItem('origPrompt', text);
   btn.innerHTML='⏳';
   var lang=document.getElementById('targetLang').value;
+  var src=localStorage.getItem('origPrompt')||text;
   fetch('/translate.php?_t='+Date.now(),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:window._origPrompt,lang:lang})
+    body:JSON.stringify({prompt:src,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(!d.translation){t('⚠️ '+(d.error||'翻译失败'),'err');return;}
-    var same=d.translation.trim()===window._origPrompt.trim();
+    var same=d.translation.trim()===src.trim();
     document.getElementById('promptPreview').textContent=d.translation;
     document.getElementById('promptLen').textContent=d.translation.length;
     var rb=document.getElementById('restoreBtn');
@@ -414,8 +414,10 @@ function translatePrompt(btn){
       rb=document.createElement('button');
       rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='↩ 原文';
       rb.onclick=function(){
-        document.getElementById('promptPreview').textContent=window._origPrompt;
-        document.getElementById('promptLen').textContent=window._origPrompt.length;
+        var orig=localStorage.getItem('origPrompt');
+        document.getElementById('promptPreview').textContent=orig;
+        document.getElementById('promptLen').textContent=orig.length;
+        localStorage.removeItem('origPrompt');
         this.remove();
       };
       btns.insertBefore(rb, btn.nextSibling);
