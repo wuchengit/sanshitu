@@ -368,6 +368,11 @@ function up(){
   const p=buildPrompt();
   document.getElementById('promptPreview').textContent=p||'选择右侧结构和风格后自动组合...';
   document.getElementById('promptLen').textContent=p.length;
+  // 提示词变了就清除翻译原文缓存和恢复按钮
+  if(window._origPrompt && window._origPrompt!==p){
+    delete window._origPrompt;
+    var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
+  }
 }
 
 
