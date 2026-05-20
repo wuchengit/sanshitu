@@ -12,6 +12,19 @@ if (!$prompt || strlen($prompt) < 3) {
     exit;
 }
 
+// Cache: MD5 of prompt + language
+$cacheDir = __DIR__ . '/cache/translations';
+if (!is_dir($cacheDir)) mkdir($cacheDir, 0755, true);
+$cacheKey = md5($prompt . '|' . $lang);
+$cacheFile = $cacheDir . '/' . $cacheKey . '.txt';
+
+// Check cache
+if (file_exists($cacheFile)) {
+    echo json_encode(['translation' => file_get_contents($cacheFile), 'cached' => true]);
+    exit;
+}
+
+// Call DeepSeek API
 $ctx = stream_context_create([
     'http' => [
         'proxy' => 'tcp://127.0.0.1:7890',
@@ -40,4 +53,9 @@ if (!$result) {
 $data = json_decode($result, true);
 $translation = $data['choices'][0]['message']['content'] ?? '';
 
-echo json_encode(['translation' => $translation]);
+if ($translation) {
+    file_put_contents($cacheFile, $translation);
+    echo json_encode(['translation' => $translation, 'cached' => false]);
+} else {
+    echo json_encode(['error' => '翻译结果为空']);
+}
