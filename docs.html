@@ -193,7 +193,23 @@ const DOCS = [
 </ol>`,
 
 // Tab 1: Bug修复列表
-`<h2>2026-05-19 修复</h2>
+`<h2>2026-05-20 修复</h2>
+
+<h3>面部三视图定义错误</h3>
+<table>
+<tr><th>问题</th><td>面部三视图提示词写成全身+面部，实际应为肩部以上面部特写三视角（正面/侧面/后脑勺）</td></tr>
+<tr><th>修复</th><td>修正提示词为面部特写三视角，描述从「全身+面部」改为「面部三视角」，预览图重新生成</td></tr>
+<tr><th>提交</th><td><code>960a994</code></td></tr>
+</table>
+
+<h3>预览图用 SVG 占位符</h3>
+<table>
+<tr><th>问题</th><td>新增资产结构预览图用 SVG 占位符，不符合真人示例要求</td></tr>
+<tr><th>修复</th><td>用 grsai API 生成真人示例预览图，替换 3 个 SVG 占位符</td></tr>
+<tr><th>提交</th><td><code>7b68546</code></td></tr>
+</table>
+
+<h2>2026-05-19 修复</h2>
 
 <h3>登录 crypto 兼容性</h3>
 <table>
@@ -207,6 +223,13 @@ const DOCS = [
 <tr><th>问题</th><td>飞书内置浏览器对同名图片文件强缓存，更新图标后仍显示旧图</td></tr>
 <tr><th>修复</th><td>自动版本检测 + 硬刷新弹窗 + 文件名加 _v2 后缀绕过缓存</td></tr>
 <tr><th>提交</th><td><code>4d799db</code>, <code>e2c7cc6</code></td></tr>
+</table>
+
+<h3>API Key 前端泄露</h3>
+<table>
+<tr><th>问题</th><td>API Key 硬编码在前端页面源码中，任何人查看页面源码即可获取</td></tr>
+<tr><th>修复</th><td>API Key 服务端化，前端页面不再暴露 Key，用户自行填入</td></tr>
+<tr><th>提交</th><td><code>5341b08</code>, <code>620a7a6</code></td></tr>
 </table>
 
 <h3>残留默认 API Key 泄露</h3>
@@ -262,7 +285,7 @@ const DOCS = [
 <table>
 <tr><th>问题</th><td>选「无」风格生成错误形象图；缩略图 PNG 体积大</td></tr>
 <tr><th>修复</th><td>「无」→「通用」；缩略图改 JPG 体积减小 80%</td></tr>
-<tr><th>提交</th><td><code>4149411</code>, <code>e3a11270</code></td></tr>
+<tr><th>提交</th><td><code>4149411</code>, <code>e3a1127</code></td></tr>
 </table>
 
 <h3>纯三视图预览图错误 + 加载缓慢</h3>
@@ -272,16 +295,65 @@ const DOCS = [
 <tr><th>提交</th><td><code>2e8856a</code>, <code>8b6a36e</code>, <code>f784c9d</code></td></tr>
 </table>
 
-<h2>2026-05-18 修复（历史）</h2>
+<h3>5月18日提交记录遗漏</h3>
+<table>
+<tr><th>问题</th><td>提交记录文档只记录了 32 条，实际有 62 条，遗漏 30 条</td></tr>
+<tr><th>修复</th><td>补全全部 62 条提交记录</td></tr>
+<tr><th>提交</th><td><code>3a287d2</code></td></tr>
+</table>
+
+<h2>2026-05-18 修复</h2>
+
+<h3>结果区 else 分支位置错误</h3>
+<table>
+<tr><th>问题</th><td>area.innerHTML 写在 else 分支中，成功时不更新 UI；缺 else 失败处理</td></tr>
+<tr><th>修复</th><td>移到成功分支，补回 else 失败处理</td></tr>
+<tr><th>提交</th><td><code>593ebbb</code>, <code>e3837a1</code></td></tr>
+</table>
+
+<h3>_ren / _viewH 函数残留</h3>
+<table>
+<tr><th>问题</th><td>破碎的 _ren / _viewH 函数定义残留，resultArea 引用未删除</td></tr>
+<tr><th>修复</th><td>删除所有残留代码</td></tr>
+<tr><th>提交</th><td><code>93d6649</code>, <code>eff0c5d</code>, <code>f3dc557</code></td></tr>
+</table>
+
+<h3>图片加载失败无兜底图</h3>
+<table>
+<tr><th>问题</th><td>历史图片 CDN 链接失效后空白/裂图，无占位提示</td></tr>
+<tr><th>修复</th><td>显示本地占位图；事件委托监听（不内联 onerror 避免语法错误）；批量绑定</td></tr>
+<tr><th>提交</th><td><code>07b1af6</code>, <code>0e7d2d6</code>, <code>74c02e1</code>, <code>6b7d1e8</code>, <code>7c17d9b</code>, <code>9b5ba02</code></td></tr>
+</table>
+
+<h3>历史缩略图未用本地文件</h3>
+<table>
+<tr><th>问题</th><td>历史缩略图直连 CDN 原图，未优先用已保存的本地 thumb</td></tr>
+<tr><th>修复</th><td>优先使用本地 thumb，无本地文件才请求 CDN</td></tr>
+<tr><th>提交</th><td><code>8844bf9</code></td></tr>
+</table>
+
+<h3>historyStrip → historyMasonry ID 不一致</h3>
+<table>
+<tr><th>问题</th><td>HTML id 和 JS 引用不一致，瀑布流布局失效；旧样式未清理</td></tr>
+<tr><th>修复</th><td>统一为 historyMasonry，清理旧样式</td></tr>
+<tr><th>提交</th><td><code>e8529c2</code>, <code>f552560</code></td></tr>
+</table>
+
+<h3>save_image 回调变量冲突 / 翻译错误 / PHP语法</h3>
+<table>
+<tr><th>问题</th><td>save_image 回调变量冲突；translatePrompt this 指向错误；PHP 翻译代理语法错误</td></tr>
+<tr><th>修复</th><td>变量改名 + this 传参 + 修复语法</td></tr>
+<tr><th>提交</th><td><code>fc49461</code>, <code>47970d5</code>, <code>dcd2b76</code>, <code>0713d3b</code></td></tr>
+</table>
+
+<h3>其他修复</h3>
 <ul>
-<li><strong>纯三视图描述错误</strong>: desc 改为"全身+头部" <code>398c4e1</code></li>
-<li><strong>提示词不准确</strong>: 并排→细节，表情→头像 <code>7249996</code></li>
-<li><strong>生成历史布局</strong>: 移至右侧独立区域，删除重复卡片 <code>c150e75</code></li>
+<li><strong>风格名称修改不完整</strong>: 电影女主→电影角色，女战士→战士 <code>f4267b2</code></li>
+<li><strong>viewH undefined / onload 重复</strong>: viewH 防 undefined；统一 openViewer 处理 <code>efe159c</code>, <code>8139761</code></li>
+<li><strong>纯三视图描述错误</strong>: desc 改"全身+头部"；提示词优化 <code>398c4e1</code>, <code>7249996</code></li>
+<li><strong>生成历史布局</strong>: 移至右侧独立区域，删重复卡片 <code>c150e75</code></li>
 <li><strong>多图并发覆盖</strong>: loadId 精确匹配 <code>3acdcc4</code></li>
-<li><strong>代码残留清理</strong>: _ren, _viewH, resultArea 等 <code>93d6649</code></li>
-<li><strong>图片信息 undefined</strong>: h.push 补 info/model <code>a8430ff</code></li>
-<li><strong>兜底图 onerror</strong>: 本地占位图 <code>0e7d2d6</code></li>
-<li><strong>瀑布流 ID 不一致</strong>: historyStrip→historyMasonry <code>e8529c2</code></li>
+<li><strong>按钮硬编码</strong>: 统一 spin 动画名 <code>2c1c110</code></li>
 </ul>
 
 <h2>已知待修复</h2>
