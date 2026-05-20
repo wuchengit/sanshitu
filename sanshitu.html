@@ -665,7 +665,7 @@ function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.crea
 function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
 var _viewerOrigPrompt='';
 function translateViewerPrompt(btn){
-  if(!_viewerOrigPrompt||_viewerOrigPrompt.length<5){toast('⚠️ 提示词太短','err');return;}
+  if(!_viewerOrigPrompt||_viewerOrigPrompt.length<5){t('⚠️ 提示词太短','err');return;}
   btn.innerHTML='⏳';btn.disabled=true;
   var lang=document.getElementById('viewerTargetLang').value;
   fetch('/translate.php?_t='+Date.now(),{
@@ -673,13 +673,14 @@ function translateViewerPrompt(btn){
     body:JSON.stringify({prompt:_viewerOrigPrompt,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
+      _viewerOrigPrompt=_viewerOrigPrompt;
       document.getElementById('viewerPromptText').textContent=d.translation;
       document.getElementById('viewerRestoreBtn').style.display='inline-block';
       btn.textContent='✓ 已翻译';btn.style.color='#22c55e';
       setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
-    }else{toast('⚠️ '+(d.error||'翻译失败'),'err');}
-  }).catch(function(e){toast('⚠️ 翻译出错: '+e.message,'err');})
-  .finally(function(){btn.innerHTML='🌐 翻译';btn.disabled=false;});
+    }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
+  }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
+  .finally(function(){btn.disabled=false;});
 }
 function restoreViewerPrompt(){
   document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
