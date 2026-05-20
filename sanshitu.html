@@ -37,7 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .upload-box .del{position:absolute;top:1px;right:1px;width:14px;height:14px;background:#ef4444cc;border-radius:50%;color:#fff;font-size:7px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:14px}
 .upload-box:hover .del{display:flex}
 
-/* 三视图结构 - 紧凑 */
+/* 人物资产结构 - 紧凑 */
 .layout-strip{display:flex;gap:6px}
 .layout-card{flex:0 0 auto;width:100px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 4px;cursor:pointer;transition:all .2s;text-align:center}
 .layout-card:hover{border-color:#667eea66}
@@ -118,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- ===== RIGHT ===== -->
     <div>
       <div class="card" style="padding:10px 12px">
-        <div class="card-t" style="margin-bottom:6px">📐 三视图结构<button class="reset-btn" onclick="selLayout='classic';renderLayouts();up()">重置</button></div>
+        <div class="card-t" style="margin-bottom:6px">📐 人物资产结构<button class="reset-btn" onclick="selLayout='classic';renderLayouts();up()">重置</button></div>
         <div class="layout-strip" id="layoutStrip"></div>
       </div>
       <div class="card" style="padding:10px 12px">
@@ -196,15 +196,24 @@ const APP_VERSION="20260519.1";
   }
 })();
 const LAYOUTS = [
-  {id:'classic',name:'经典三视图',desc:'面部+三视图',
+  {id:'classic',name:'经典三视图',desc:'9:16 面部+三视图',
     preview:'<img src="/images/previews/thumb/classic.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
     prompt:'Split vertical composition with NO GAP between the two sections - they are tightly joined at a single horizontal seam line. Top section: full front-facing headshot showing the COMPLETE head from top of hair to chin, filling the entire top half. Bottom section begins IMMEDIATELY at the bottom of the chin, with NO empty space, gap, or padding between sections. Bottom section: full-body three-view orthographic turn-around (front, side, back) of the BODY ONLY - the neck area aligns with the top edge of the bottom section as if the photograph was cropped just above the shoulders, giving the natural impression that the head is simply outside the frame rather than removed. No face appears in the bottom section. Same background throughout.'},
-  {id:'pure',name:'纯三视图',desc:'全身+头部',
+  {id:'portrait',name:'全身定妆照',desc:'9:16 正面站立',
+    preview:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 160" style="width:100%;height:100%"><rect width="90" height="160" fill="#1a1a20"/><circle cx="45" cy="28" r="12" fill="none" stroke="#555" stroke-width="1.2"/><line x1="45" y1="40" x2="45" y2="72" stroke="#555" stroke-width="1"/><line x1="25" y1="50" x2="65" y2="50" stroke="#555" stroke-width="0.8"/><line x1="45" y1="72" x2="40" y2="100" stroke="#555" stroke-width="0.8"/><line x1="45" y1="72" x2="50" y2="100" stroke="#555" stroke-width="0.8"/><line x1="40" y1="100" x2="36" y2="140" stroke="#555" stroke-width="0.8"/><line x1="50" y1="100" x2="54" y2="140" stroke="#555" stroke-width="0.8"/></svg>',
+    prompt:'Full-body character design sheet, front-facing standing pose, entire figure from head to toe centered in frame, clean neutral background, studio lighting, professional character reference, 8K.'},
+  {id:'pure',name:'纯三视图',desc:'16:9 全身+头部',
     preview:'<img src="/images/previews/thumb/pure.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
     prompt:'Full-body three-view orthographic turn-around (front, side, back) of a figure INCLUDING the complete head from top to toe. All three views show the entire body arranged side by side. Clean character reference sheet, pure background, soft studio lighting.'},
-  {id:'side',name:'三视图+细节',desc:'三视图+特写细节',
+  {id:'face3view',name:'面部三视图',desc:'16:9 全身+面部',
+    preview:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" style="width:100%;height:100%"><rect width="160" height="90" fill="#1a1a20"/><circle cx="27" cy="16" r="7" fill="none" stroke="#667eea" stroke-width="1"/><circle cx="27" cy="40" r="9" fill="none" stroke="#667eea" stroke-width="1"/><rect x="21" y="40" width="12" height="20" rx="3" fill="none" stroke="#667eea" stroke-width="0.6"/><circle cx="80" cy="16" r="7" fill="none" stroke="#667eea" stroke-width="1"/><circle cx="80" cy="40" r="9" fill="none" stroke="#667eea" stroke-width="1"/><rect x="74" y="40" width="12" height="20" rx="3" fill="none" stroke="#667eea" stroke-width="0.6"/><circle cx="133" cy="16" r="7" fill="none" stroke="#667eea" stroke-width="1"/><circle cx="133" cy="40" r="9" fill="none" stroke="#667eea" stroke-width="1"/><rect x="127" y="40" width="12" height="20" rx="3" fill="none" stroke="#667eea" stroke-width="0.6"/></svg>',
+    prompt:'Split horizontal composition. Three full-body orthographic views (front, side, back) arranged side by side, each figure INCLUDING the complete head with facial features clearly visible. Clean character reference sheet, pure background, soft studio lighting. All three views show the full character with face.'},
+  {id:'side',name:'三视图+细节',desc:'16:9 三视图+特写',
     preview:'<img src="/images/previews/thumb/side.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Split horizontal composition. Left half: full-body three-view orthographic (front, side, back) of figure INCLUDEING head. Right half: close-up detail shots of accessories, clothing textures, distinctive items from the prompt - enlarged scale with clear visibility. If no accessories, show costume detail close-ups. Same background.'},
+    prompt:'Split horizontal composition. Left half: full-body three-view orthographic (front, side, back) of figure INCLUDING head. Right half: close-up detail shots of accessories, clothing textures, distinctive items from the prompt - enlarged scale with clear visibility. If no accessories, show costume detail close-ups. Same background.'},
+  {id:'halfbody',name:'半身三视图',desc:'16:9 半身三视角',
+    preview:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" style="width:100%;height:100%"><rect width="160" height="90" fill="#1a1a20"/><circle cx="27" cy="14" r="9" fill="none" stroke="#555" stroke-width="1"/><rect x="21" y="23" width="12" height="14" rx="3" fill="none" stroke="#555" stroke-width="0.6"/><line x1="27" y1="37" x2="27" y2="78" stroke="#555" stroke-width="0.5" stroke-dasharray="2,1"/><circle cx="80" cy="14" r="9" fill="none" stroke="#555" stroke-width="1"/><rect x="74" y="23" width="12" height="14" rx="3" fill="none" stroke="#555" stroke-width="0.6"/><line x1="80" y1="37" x2="80" y2="78" stroke="#555" stroke-width="0.5" stroke-dasharray="2,1"/><circle cx="133" cy="14" r="9" fill="none" stroke="#555" stroke-width="1"/><rect x="127" y="23" width="12" height="14" rx="3" fill="none" stroke="#555" stroke-width="0.6"/><line x1="133" y1="37" x2="133" y2="78" stroke="#555" stroke-width="0.5" stroke-dasharray="2,1"/></svg>',
+    prompt:'Three-view orthographic turn-around (front, side, back) showing the character from waist up INCLUDING the complete head with facial features. All three half-body views arranged side by side. Clean character reference sheet, pure background, studio lighting, 8K.'},
   {id:'expression',name:'头像三视图',desc:'全身照+头部三视图',
     preview:'<img src="/images/previews/thumb/expression.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
     prompt:'Split horizontal composition. Left half: full-body front-facing portrait of the complete figure from head to toe, standing naturally. Right half arranged vertically: head and shoulders 3-view reference (front, side, back views) showing the complete head and upper shoulders, stacked top to bottom. Same background. Clean character reference sheet.'}
@@ -280,7 +289,7 @@ const RES_MAP = {
 };
 
 let selLayout='classic', selStyle='none', selArt='none', selDir='none', uploadedFiles=[];
-const LAYOUT_RATIO={classic:'9:16',pure:'16:9',side:'16:9',expression:'4:3'};
+const LAYOUT_RATIO={classic:'9:16',portrait:'9:16',pure:'16:9',face3view:'16:9',side:'16:9',halfbody:'16:9',expression:'4:3'};
 
 function onModelChange(){
   var vip=document.getElementById('modelType').value==='gpt-image-2-vip';
