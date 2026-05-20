@@ -74,13 +74,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast.show{transform:translateX(0)}
 .toast.err{border-color:#ef4444;color:#ef4444}
 .toast.ok{border-color:#22c55e;color:#22c55e}
-@keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}</style>
+@keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+/* 登录 */
+.login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
+.login-btn:hover{opacity:.85}
+.user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
+.user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
+.user-badge .logout:hover{color:#e74c3c}
+.save-cfg-btn{padding:3px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;cursor:pointer;margin-left:4px;transition:all .2s;display:none}
+.save-cfg-btn.show{display:inline-block}
+.save-cfg-btn:hover{background:#333;color:#fff}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:9998;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#1a1a20;border:1px solid #2a2a32;border-radius:12px;padding:24px;width:360px;max-width:90vw}
+.modal-box h2{font-size:16px;margin-bottom:16px;color:#e8e8ed}
+.modal-box .form-group{margin-bottom:12px}
+.modal-box .form-group input{width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:10px 12px;color:#e8e8ed;font-size:13px}
+.modal-box .form-group input:focus{outline:none;border-color:#667eea}
+.modal-box .btn-primary{width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:13px;cursor:pointer;font-weight:600}
+.modal-box .btn-primary:hover{opacity:.9}
+.modal-box .toggle-link{text-align:center;margin-top:12px;font-size:11px;color:#888}
+.modal-box .toggle-link a{color:#667eea;cursor:pointer}
+.modal-box .error{color:#e74c3c;font-size:11px;margin-top:8px;display:none}
+.modal-box .error.show{display:block}
+.modal-close{position:absolute;top:12px;right:12px;width:28px;height:28px;background:#25252d;border:1px solid #333;border-radius:50%;color:#aaa;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.header{position:relative;padding-right:120px}
+</style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">SD-API</span></h1>
     <p>高度人物面部一致性 · 专业三视图 · 适合集成 SD-API 平台</p>
+    <button class="login-btn" id="loginBtn" onclick="showLoginModal()">🔑 登录</button>
+<span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
   </div>
   <div class="main-grid">
     <!-- ===== LEFT ===== -->
@@ -111,7 +138,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
-        <button class="btn btn-gen" id="genBtn" style="margin-top:6px">🎨 生成图片</button>
+        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1">🎨 生成图片</button><button class="save-cfg-btn" onclick="saveConfig()" title="登录后保存当前配置到云端">💾</button><button class="save-cfg-btn" onclick="loadConfig()" title="登录后加载云端配置" style="margin-left:0">📥</button></div>
       </div>
       
     </div>
@@ -637,6 +664,166 @@ function viewH(idx){
   openViewer(x.u, x.model||'');
 }
 
+
+// ====== AUTH ======
+var AUTH_TOKEN = localStorage.getItem('sanshitu_token') || '';
+var AUTH_USER = JSON.parse(localStorage.getItem('sanshitu_user') || 'null');
+var authMode = 'login';
+
+function showLoginModal(){
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authModal').classList.add('show');
+  setAuthMode('login');
+}
+
+function closeLoginModal(){
+  document.getElementById('authModal').classList.remove('show');
+}
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('authTitle').textContent = mode === 'login' ? '🔑 登录' : '📝 注册';
+  document.getElementById('authSubmit').textContent = mode === 'login' ? '登录' : '注册';
+  document.getElementById('authToggleText').textContent = mode === 'login' ? '没有账号？' : '已有账号？';
+  document.getElementById('authToggleLink').textContent = mode === 'login' ? '立即注册' : '去登录';
+  document.getElementById('authError').classList.remove('show');
+}
+
+function toggleAuthMode(){
+  setAuthMode(authMode === 'login' ? 'register' : 'login');
+}
+
+async function handleAuth(){
+  var email = document.getElementById('authEmail').value.trim();
+  var password = document.getElementById('authPassword').value;
+  var errEl = document.getElementById('authError');
+
+  if (!email || !password) { errEl.textContent = '请填写邮箱和密码'; errEl.classList.add('show'); return; }
+
+  var endpoint = authMode === 'login' ? '/api/auth/login.php' : '/api/auth/register.php';
+  try {
+    var r = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, password: password})
+    });
+    var d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error || '操作失败'; errEl.classList.add('show'); return; }
+
+    AUTH_TOKEN = d.token;
+    AUTH_USER = d.user;
+    localStorage.setItem('sanshitu_token', d.token);
+    localStorage.setItem('sanshitu_user', JSON.stringify(d.user));
+    updateAuthUI();
+    closeLoginModal();
+    toast('登录成功', 'ok');
+  } catch(e) {
+    errEl.textContent = '网络错误，请重试';
+    errEl.classList.add('show');
+  }
+}
+
+function doLogout(){
+  AUTH_TOKEN = '';
+  AUTH_USER = null;
+  localStorage.removeItem('sanshitu_token');
+  localStorage.removeItem('sanshitu_user');
+  updateAuthUI();
+  toast('已退出登录');
+}
+
+function updateAuthUI(){
+  var loggedIn = !!(AUTH_TOKEN && AUTH_USER);
+  document.getElementById('loginBtn').style.display = loggedIn ? 'none' : 'inline-block';
+  document.getElementById('userBadge').style.display = loggedIn ? 'flex' : 'none';
+  if (loggedIn) {
+    document.getElementById('userEmail').textContent = AUTH_USER.email;
+  }
+  var btns = document.querySelectorAll('.save-cfg-btn, .load-cfg-btn');
+  btns.forEach(function(b){ if (loggedIn) b.classList.add('show'); else b.classList.remove('show'); });
+}
+
+async function saveConfig(){
+  if (!AUTH_TOKEN) { showLoginModal(); return; }
+  var cfg = {
+    selLayout: selLayout, selStyle: selStyle, selArt: selArt, selDir: selDir,
+    optGender: document.getElementById('optGender').value,
+    optRace: document.getElementById('optRace').value,
+    optAge: document.getElementById('optAge').value,
+    optHeight: document.getElementById('optHeight').value,
+    optJob: document.getElementById('optJob').value,
+    optEra: document.getElementById('optEra').value,
+    modelType: document.getElementById('modelType').value,
+    resolution: document.getElementById('resolution').value,
+    aspectRatio: document.getElementById('aspectRatio').value
+  };
+  try {
+    var r = await fetch('/api/user/config.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN},
+      body: JSON.stringify({key: 'preset', data: cfg})
+    });
+    if (r.ok) { toast('配置已保存', 'ok'); }
+    else { var d = await r.json(); toast(d.error || '保存失败', 'err'); if (r.status === 401) doLogout(); }
+  } catch(e) { toast('网络错误', 'err'); }
+}
+
+async function loadConfig(){
+  if (!AUTH_TOKEN) { showLoginModal(); return; }
+  try {
+    var r = await fetch('/api/user/config.php?key=preset', {
+      headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}
+    });
+    if (r.ok) {
+      var d = await r.json();
+      if (d.config) {
+        var c = d.config;
+        if (c.selLayout) selLayout = c.selLayout;
+        if (c.selStyle) selStyle = c.selStyle;
+        if (c.selArt) selArt = c.selArt;
+        if (c.selDir) selDir = c.selDir;
+        setVal('optGender', c.optGender);
+        setVal('optRace', c.optRace);
+        setVal('optAge', c.optAge);
+        setVal('optHeight', c.optHeight);
+        setVal('optJob', c.optJob);
+        setVal('optEra', c.optEra);
+        setVal('modelType', c.modelType);
+        setVal('resolution', c.resolution);
+        setVal('aspectRatio', c.aspectRatio);
+        reRender();
+        onModelChange();
+        up();
+        toast('配置已加载', 'ok');
+      } else {
+        toast('暂无保存的配置');
+      }
+    } else {
+      var d2 = await r.json();
+      toast(d2.error || '加载失败', 'err');
+      if (r.status === 401) doLogout();
+    }
+  } catch(e) { toast('网络错误', 'err'); }
+}
+
+function setVal(id, val){
+  if (val !== undefined && val !== null && val !== '') {
+    var el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+}
+
+function reRender(){
+  renderLayouts();
+  renderStyles();
+  renderArtStyles();
+  renderDirStyles();
+}
+
+updateAuthUI();
+
 </script>
 <!-- 浮层查看器 -->
 <div id="viewerOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center;cursor:grab" onclick="closeViewer(event)">
@@ -647,5 +834,19 @@ function viewH(idx){
 <div id="viewerContainer" style="position:relative;max-width:90vw;max-height:85vh;overflow:hidden;border-radius:8px" onclick="event.stopPropagation()">
 <img id="viewerImg" src="" style="display:block;max-width:90vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
 <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;background:#1a1a20cc;padding:4px 14px;border-radius:12px" id="viewerZoom">🔄 滚轮缩放·拖动查看</div></div>
+
+<!-- 登录弹窗 -->
+<div class="modal-overlay" id="authModal">
+<div style="position:relative">
+<div class="modal-box">
+<button class="modal-close" onclick="closeLoginModal()">✕</button>
+<h2 id="authTitle">🔑 登录</h2>
+<div id="authError" class="error"></div>
+<div class="form-group"><input type="email" id="authEmail" placeholder="邮箱" autocomplete="email"></div>
+<div class="form-group"><input type="password" id="authPassword" placeholder="密码" autocomplete="current-password"></div>
+<button class="btn-primary" id="authSubmit" onclick="handleAuth()">登录</button>
+<div class="toggle-link"><span id="authToggleText">没有账号？</span> <a id="authToggleLink" onclick="toggleAuthMode()">立即注册</a></div>
+</div></div></div>
+
 </body>
 </html>
