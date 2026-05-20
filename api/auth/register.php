@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/jwt.php';
+require_once __DIR__ . '/../lib/crypto.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = trim(strtolower($input['email'] ?? ''));
@@ -24,18 +25,22 @@ if (strlen($password) < 6) {
   exit;
 }
 
-// Check existing
-$stmt = db()->prepare('SELECT id FROM users WHERE email = ?');
-$stmt->execute([$email]);
+// Check existing by email hash
+$hash = email_lookup_hash($email);
+$stmt = db()->prepare('SELECT id FROM users WHERE email_hash = ?');
+$stmt->execute([$hash]);
 if ($stmt->fetch()) {
   http_response_code(409);
   echo json_encode(['error' => 'Email already registered']);
   exit;
 }
 
-// Create user
-$hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-db()->prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)')->execute([$email, $hash]);
+// Create user (email encrypted, no plaintext)
+$emailEnc = encrypt($email);
+$pwdHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+db()->prepare(
+  'INSERT INTO users (email_hash, email_enc, password_hash) VALUES (?, ?, ?)'
+)->execute([$hash, $emailEnc, $pwdHash]);
 $userId = (int) db()->lastInsertId();
 
 $token = jwt_encode(['sub' => $userId, 'email' => $email]);

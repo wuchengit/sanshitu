@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/jwt.php';
+require_once __DIR__ . '/../lib/crypto.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = trim(strtolower($input['email'] ?? ''));
@@ -19,8 +20,12 @@ if (!$email || !$password) {
   exit;
 }
 
-$row = db()->prepare('SELECT id, email, password_hash FROM users WHERE email = ?');
-$row->execute([$email]);
+// Lookup by email hash
+$hash = email_lookup_hash($email);
+$row = db()->prepare(
+  'SELECT id, email_enc, password_hash FROM users WHERE email_hash = ?'
+);
+$row->execute([$hash]);
 $user = $row->fetch();
 
 if (!$user || !password_verify($password, $user['password_hash'])) {
@@ -29,5 +34,11 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
   exit;
 }
 
-$token = jwt_encode(['sub' => $user['id'], 'email' => $user['email']]);
-echo json_encode(['token' => $token, 'user' => ['id' => $user['id'], 'email' => $user['email']]]);
+// Decrypt email for response
+$decryptedEmail = decrypt($user['email_enc']) ?: $email;
+
+$token = jwt_encode(['sub' => $user['id'], 'email' => $decryptedEmail]);
+echo json_encode([
+  'token' => $token,
+  'user' => ['id' => $user['id'], 'email' => $decryptedEmail]
+]);
