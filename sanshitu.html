@@ -638,6 +638,7 @@ function openViewer(url,info,prompt){
   document.getElementById('viewerInfo').textContent=info||'';
   document.getElementById('viewerPromptBox').style.display=viewerPrompt?'flex':'none';
   document.getElementById('viewerPromptText').textContent=viewerPrompt;
+  _viewerOrigPrompt=viewerPrompt;
   document.getElementById('viewerRestoreBtn').style.display='none';
   vs=1;vx=0;vy=0;
   document.getElementById('viewerImg').style.transform='translate(0,0) scale(1)';
