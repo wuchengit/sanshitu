@@ -203,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.6";
+const APP_VERSION="20260520.7";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -222,81 +222,7 @@ const APP_VERSION="20260520.6";
     setTimeout(function(){bar.style.display='none';},5000);
   }
 })();
-const LAYOUTS = [
-  {id:'classic',name:'经典三视图',desc:'9:16 面部+三视图',
-    preview:'<img src="/images/previews/thumb/classic.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Split vertical composition with NO GAP between the two sections - they are tightly joined at a single horizontal seam line. Top section: full front-facing headshot showing the COMPLETE head from top of hair to chin, filling the entire top half. Bottom section begins IMMEDIATELY at the bottom of the chin, with NO empty space, gap, or padding between sections. Bottom section: full-body three-view orthographic turn-around (front, side, back) of the BODY ONLY - the neck area aligns with the top edge of the bottom section as if the photograph was cropped just above the shoulders, giving the natural impression that the head is simply outside the frame rather than removed. No face appears in the bottom section. Same background throughout.'},
-  {id:'portrait',name:'全身定妆照',desc:'9:16 正面站立',
-    preview:'<img src="/images/previews/thumb/portrait.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Full-body character design sheet, front-facing standing pose, entire figure from head to toe centered in frame, clean neutral background, studio lighting, professional character reference, 8K.'},
-  {id:'pure',name:'纯三视图',desc:'16:9 全身+头部',
-    preview:'<img src="/images/previews/thumb/pure.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Full-body three-view orthographic turn-around (front, side, back) of a figure INCLUDING the complete head from top to toe. All three views show the entire body arranged side by side. Clean character reference sheet, pure background, soft studio lighting.'},
-  {id:'face3view',name:'面部三视图',desc:'16:9 面部三视角',
-    preview:'<img src="/images/previews/thumb/face3view.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Face-focused three-view reference sheet arranged horizontally side by side. Three close-up views from shoulders up: front face portrait, side profile, and back view of the head. Facial features clearly visible in front and side views, hair and head shape shown in all three angles. Clean studio background, professional facial reference, 8K.'},
-  {id:'side',name:'三视图+细节',desc:'16:9 三视图+特写',
-    preview:'<img src="/images/previews/thumb/side.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Split horizontal composition. Left half: full-body three-view orthographic (front, side, back) of figure INCLUDING head. Right half: close-up detail shots of accessories, clothing textures, distinctive items from the prompt - enlarged scale with clear visibility. If no accessories, show costume detail close-ups. Same background.'},
-  {id:'halfbody',name:'半身三视图',desc:'16:9 半身三视角',
-    preview:'<img src="/images/previews/thumb/halfbody.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Three-view orthographic turn-around (front, side, back) showing the character from waist up INCLUDING the complete head with facial features. All three half-body views arranged side by side. Clean character reference sheet, pure background, studio lighting, 8K.'},
-  {id:'expression',name:'头像三视图',desc:'全身照+头部三视图',
-    preview:'<img src="/images/previews/thumb/expression.jpg?___V___" style="width:100%;height:100%;object-fit:contain">',
-    prompt:'Split horizontal composition. Left half: full-body front-facing portrait of the complete figure from head to toe, standing naturally. Right half arranged vertically: head and shoulders 3-view reference (front, side, back views) showing the complete head and upper shoulders, stacked top to bottom. Same background. Clean character reference sheet.'}
-];
-
-const STYLES = [
-{id:'none',icon:'<img src="/images/previews/styles/none_v3.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'通用',desc:'不使用风格模板',prompt:''},
-  {id:'film',icon:'<img src="/images/previews/styles/film_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'电影角色',desc:'暖灰·柔光',prompt:'Film character casting sheet, warm neutral gray seamless background. Cinematic color palette, soft key lighting, professional movie reference sheet style, high-end fashion editorial quality, 8K.'},
-  {id:'male',icon:'<img src="/images/previews/styles/male_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'冷峻硬朗',desc:'深灰·冷调',prompt:'Character casting sheet, dark charcoal gray seamless background. Studio hard lighting, strong contrast, bold cinematic aesthetic, professional portfolio quality, 8K.'},
-  {id:'fantasy',icon:'<img src="/images/previews/styles/fantasy_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'奇幻精灵',desc:'深蓝·魔幻',prompt:'Fantasy character casting sheet, ethereal deep blue gradient background. Magical atmosphere lighting, luminous skin glow, fantasy cinematic art style, 8K.'},
-  {id:'cyber',icon:'<img src="/images/previews/styles/cyber_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'赛博朋克',desc:'钢蓝·霓虹',prompt:'Sci-fi cyberpunk character casting sheet, cold steel blue background with neon edge lighting. Industrial aesthetic, volumetric lighting, blade runner atmosphere, 8K.'},
-  {id:'warrior',icon:'<img src="/images/previews/styles/warrior_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'战士',desc:'深红·硬光',prompt:'Warrior character casting sheet, dark crimson gradient background. Dramatic heroic lighting, strong contrast, epic cinematic style, concept art quality, 8K.'},
-  {id:'hanfu',icon:'<img src="/images/previews/styles/hanfu_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'古风雅韵',desc:'水墨·柔光',prompt:'Traditional Chinese aesthetic character casting sheet, ink-wash gray gradient background. Soft oriental lighting, classical elegance, traditional Chinese cinematic style, 8K.'},
-  {id:'noir',icon:'<img src="/images/previews/styles/noir_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'暗黑Noir',desc:'黑灰·侧光',prompt:'Film noir character casting sheet, dark gradient background. High contrast chiaroscuro lighting, dramatic shadows, neo-noir cinematic style, 8K.'},
-  {id:'sweet',icon:'<img src="/images/previews/styles/sweet_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'甜美清新',desc:'暖粉·柔光',prompt:'Fresh sweet character casting sheet, soft warm pastel pink-gray gradient. Bright airy lighting, commercial fashion editorial style, 8K.'},
-  {id:'goddess',icon:'<img src="/images/previews/styles/goddess_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'尊贵气场',desc:'金黑·顶光',prompt:'Noble regal character casting sheet, luxurious dark background with gold gradient. Imperial elegant lighting, high fashion editorial, opulent cinematic style, 8K.'},
-  {id:'street',icon:'<img src="/images/previews/styles/street_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'街头潮流',desc:'城市灰·硬光',prompt:'Street style character casting sheet, urban concrete gray background. Harsh urban lighting, street fashion editorial, contemporary cool vibe, 8K.'},
-  {id:'dream',icon:'<img src="/images/previews/styles/dream_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'梦幻仙境',desc:'紫蓝·梦幻',prompt:'Dreamy ethereal character casting sheet, purple-blue gradient background. Soft magical atmospheric lighting, fairy tale atmosphere, 8K.'},
-  {id:'tech',icon:'<img src="/images/previews/styles/tech_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'科技未来',desc:'冰蓝·冷光',prompt:'Tech futuristic character casting sheet, ice blue technological gradient. Clean cool LED lighting, minimalist tech aesthetic, futuristic cinematic style, 8K.'},
-  {id:'wasteland',icon:'<img src="/images/previews/styles/wasteland_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'废土末日',desc:'尘土·破败',prompt:'Post-apocalyptic wasteland character casting sheet, dusty yellow-brown gradient background. Harsh desert sun lighting, rugged survival aesthetic, weathered gritty cinematic style, 8K.'},
-  {id:'gothic',icon:'<img src="/images/previews/styles/gothic_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'暗黑哥特',desc:'紫黑·哥特',prompt:'Dark gothic character casting sheet, deep purple-black gradient background. Moody dramatic candlelight, Victorian gothic romantic aesthetic, mysterious cinematic style, 8K.'},
-  {id:'school',icon:'<img src="/images/previews/styles/school_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'日系校园',desc:'明亮·青春',prompt:'Japanese school character casting sheet, bright clean classroom background. Soft natural window lighting, youthful fresh energy, J-drama cinematic style, 8K.'},
-  {id:'victorian',icon:'<img src="/images/previews/styles/victorian_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'维多利亚',desc:'暗金·复古',prompt:'Victorian era character casting sheet, dark gold vintage background. Warm oil lamp lighting, elegant aristocratic aesthetic, steampunk period cinematic style, 8K.'},
-  {id:'zen',icon:'<img src="/images/previews/styles/zen_v2.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'极简禅意',desc:'素白·极简',prompt:'Zen minimalist character casting sheet, pure white clean background. Soft diffused natural light, meditation calm atmosphere, simple elegant cinematic style, 8K.'},
-];
-
-const ART_STYLES = [
-  {id:'none',icon:'<img src="/images/previews/styles/none_v3.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'无',prompt:''},
-  {id:'cg',icon:'<img src="/images/previews/styles/art_cg.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'3D CG',prompt:'High-quality 3D rendered CG art style, detailed textures, subsurface scattering, octane render quality, volumetric lighting, 8K.'},
-  {id:'realistic',icon:'<img src="/images/previews/styles/art_realistic.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'超写实',prompt:'Hyper-realistic photorealistic style, ultra-detailed skin texture, natural lighting, 8K resolution, indistinguishable from photography.'},
-  {id:'anime',icon:'<img src="/images/previews/styles/art_anime.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'动漫',prompt:'Japanese anime art style, clean lineart, vibrant cel-shading, studio anime quality, detailed hair and eyes, 8K.'},
-  {id:'papercut',icon:'<img src="/images/previews/styles/art_papercut.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'剪纸',prompt:'Chinese paper cut art style, layered paper texture, intricate cutout patterns, flat depth, folk art aesthetic, 8K.'},
-  {id:'plush',icon:'<img src="/images/previews/styles/art_plush.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'布偶',prompt:'Plush fabric doll art style, soft textile texture, stitched seams, fuzzy felt material, handmade toy aesthetic, 8K.'},
-  {id:'oil',icon:'<img src="/images/previews/styles/art_oil.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'油画',prompt:'Oil painting art style, visible brushstrokes, rich impasto texture, classical oil on canvas technique, Rembrandt lighting, 8K.'},
-  {id:'watercolor',icon:'<img src="/images/previews/styles/art_watercolor.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'水彩',prompt:'Watercolor painting art style, soft wet-on-wet washes, translucent pigments, delicate brush marks, artistic paper texture, 8K.'},
-  {id:'sketch',icon:'<img src="/images/previews/styles/art_sketch.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'素描',prompt:'Pencil sketch art style, detailed graphite linework, crosshatching shading, monochrome tonal range, sketchbook quality, 8K.'},
-  {id:'pixel',icon:'<img src="/images/previews/styles/art_pixel.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'像素风',prompt:'Retro pixel art style, visible pixel grid, limited color palette, 16-bit video game aesthetic, clean pixel edges, 8K.'},
-  {id:'clay',icon:'<img src="/images/previews/styles/art_clay.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'黏土',prompt:'Claymation stop-motion art style, plasticine clay texture, fingerprints visible, miniature diorama, Aardman style, 8K.'},
-  {id:'ink',icon:'<img src="/images/previews/styles/art_ink.jpg?___V___" style="width:100%;height:100%;object-fit:cover">',name:'水墨',prompt:'Chinese ink wash painting art style, black ink on rice paper, expressive brushwork, wet ink bleeding, traditional sumi-e aesthetic, 8K.'},
-];
-
-const DIR_STYLES = [
-  {id:'none',name:'无',label:'无',prompt:''},
-  {id:'wkw',name:'王家卫',label:'重庆森林',prompt:'In the visual style of Chungking Express: neon-drenched city nights, saturated color grading, motion blur, intimate close-ups, rain-slicked streets, handheld camera urgency, dreamlike romantic melancholy.'},
-  {id:'kitano',name:'北野武',label:'花火',prompt:'In the visual style of Hana-bi: stark minimalist compositions, long static takes, sudden bursts of stylized violence, blue-gray seaside palette, contemplative silence juxtaposed with explosive emotion.'},
-  {id:'spielberg',name:'斯皮尔伯格',label:'侏罗纪公园',prompt:'In the visual style of Jurassic Park: warm golden hour backlighting, dramatic lens flares, awe-filled wide shots, sweeping orchestral visual scale, tension built through shadow and silhouette.'},
-  {id:'miyazaki',name:'宫崎骏',label:'千与千寻',prompt:'In the visual style of Spirited Away: lush hand-drawn aesthetic, vibrant nature-filled backgrounds, soft watercolor skies, whimsical spirit world details, gentle pastoral warmth, elaborate food and bathhouse scenes.'},
-  {id:'zhang',name:'张艺谋',label:'英雄',prompt:'In the visual style of Hero: bold saturated color palettes, sweeping epic wide shots, dramatic contrast between vivid single colors, elegant martial arts choreography, poetic visual grandeur.'},
-  {id:'nolan',name:'诺兰',label:'盗梦空间',prompt:'In the visual style of Inception: cold precise IMAX-scale compositions, blue-gray palette, practical effects realism, geometric urban landscapes folding into surreal dreamscapes, cerebral atmospheric tension.'},
-  {id:'anderson',name:'韦斯·安德森',label:'布达佩斯大饭店',prompt:'In the visual style of The Grand Budapest Hotel: perfectly symmetrical compositions, pastel pink-purple palettes, flat storytelling frames, whimsical miniature-like sets, meticulous art direction.'},
-  {id:'tarantino',name:'昆汀',label:'低俗小说',prompt:'In the visual style of Pulp Fiction: vibrant 1970s retro color grading, dynamic low-angle framing, stylized violence, pop culture saturated interiors, bold typographic sequences.'},
-  {id:'kubrick',name:'库布里克',label:'2001太空漫游',prompt:'In the visual style of 2001: A Space Odyssey: cold meticulous symmetry, one-point perspective, clinical precision, stark lighting contrasts, unsettling cosmic stillness, geometric perfection.'},
-  {id:'burton',name:'蒂姆·伯顿',label:'圣诞夜惊魂',prompt:'In the visual style of The Nightmare Before Christmas: dark whimsical gothic fairytale aesthetics, elongated twisted shapes, stark black-white contrasts with vivid accents, moonlit surreal atmosphere.'},
-  {id:'kurosawa',name:'黑泽明',label:'七武士',prompt:'In the visual style of Seven Samurai: epic dynamic compositions, dramatic rain and wind elements, bold geometric framing, deep focus cinematography, sweeping samurai movement, mythic visual grandeur.'},
-];
-
+var LAYOUTS=[],STYLES=[],ART_STYLES=[],DIR_STYLES=[];
 const RES_MAP = {
   '9:16':{'1k':'941x1672','2k':'1152x2048','4k':'2160x3840'},
   '16:9':{'1k':'1280x720','2k':'2048x1152','4k':'3840x2160'},
@@ -641,7 +567,11 @@ function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent
 var savedKey=localStorage.getItem('ds_key');
 if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
 document.getElementById('apiKey').value=savedKey||'';
-renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
+// Load templates from API (not exposed in source)
+fetch('/api/templates.php').then(function(r){return r.json()}).then(function(d){
+  LAYOUTS=d.layouts;STYLES=d.styles;ART_STYLES=d.art_styles;DIR_STYLES=d.dir_styles;
+  renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
+}).catch(function(){renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();});
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
