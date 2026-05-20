@@ -81,8 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
 .user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
 .user-badge .logout:hover{color:#e74c3c}
-.save-cfg-btn{padding:3px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;cursor:pointer;margin-left:4px;transition:all .2s;display:none}
-.save-cfg-btn.show{display:inline-block}
+.save-cfg-btn{padding:3px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;cursor:pointer;margin-left:4px;transition:all .2s}
 .save-cfg-btn:hover{background:#333;color:#fff}
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:9998;justify-content:center;align-items:center}
 .modal-overlay.show{display:flex}
@@ -741,9 +740,7 @@ function updateAuthUI(){
   if (loggedIn) {
     document.getElementById('userEmail').textContent = AUTH_USER.email;
   }
-  var btns = document.querySelectorAll('.save-cfg-btn, .load-cfg-btn');
-  btns.forEach(function(b){ if (loggedIn) b.classList.add('show'); else b.classList.remove('show'); });
-}
+  }
 
 async function saveConfig(){
   if (!AUTH_TOKEN) { showLoginModal(); return; }
