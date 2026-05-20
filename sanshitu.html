@@ -394,10 +394,11 @@ function translatePrompt(btn){
   if(!window._origPrompt) window._origPrompt=text;
   btn.innerHTML='⏳';
   var lang=document.getElementById('targetLang').value;
+  // 始终以原文为母本翻译
   fetch('/translate.php?_t='+Date.now(),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:text,lang:lang})
+    body:JSON.stringify({prompt:window._origPrompt,lang:lang})
   }).then(function(r){return r.json()}).then(function(d){
     if(d.translation){
       document.getElementById('promptPreview').textContent=d.translation;
