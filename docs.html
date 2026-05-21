@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260520 · 139 次提交 · 最后更新 2026-05-21</p>
+  <p class="subtitle">版本 20260522 · 自定义预设增强 · 最后更新 2026-05-22</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -144,10 +144,11 @@ const DOCS = [
 
 <h3>2.6 用户系统</h3>
 <ul>
-<li><strong>登录系统</strong>: 邮箱 + 密码 → JWT 认证，支持登录/注册</li>
-<li><strong>云端存储</strong>: 用户配置（API Key、自定义预设等）加密存储到云端</li>
+<li><strong>登录系统</strong>: Logto OIDC 登录，用户认证迁移到 Logto，前端通过 OIDC 流程登录，后端通过 <code>/oidc/me</code> 校验 access token，用户标识使用 Logto <code>sub</code></li>
+<li><strong>callback 处理页</strong>: 新增 <code>callback.html</code> 处理 Logto 登录回调，携带一次性登录 hash 跳转回主页面</li>
+<li><strong>云端存储</strong>: 用户配置、自定义预设等加密存储到云端</li>
 <li><strong>数据安全</strong>: AES-256-CBC 加密存储敏感数据，提示词模板后端化不暴露源码</li>
-<li><strong>未登录体验</strong>: 保存/下载按钮始终可见，未登录点击弹出登录弹窗</li>
+<li><strong>未登录体验</strong>: 保存/加载/自定义入口始终可见，未登录点击跳转 Logto 登录</li>
 </ul>
 
 <h3>2.7 辅助功能</h3>
@@ -158,7 +159,7 @@ const DOCS = [
 <li><strong>提示词预览</strong>: 实时组合结构 + 风格 + 自定义描述</li>
 <li><strong>提示词操作</strong>: 复制 / 下载 / 翻译（DeepSeek API，支持中/英/日/韩/法/西），翻译结果缓存到本地文件，相同 prompt+语言不重复调 API，语言选择器内嵌翻译按钮状态实时反馈</li>
 <li><strong>预览浮层</strong>: 左右布局，左侧图片（支持缩放/拖拽），右侧完整提示词面板，支持复制、下载、翻译、恢复原文</li>
-<li><strong>多维度自定义预设</strong>: 用户可保存/加载自定义预设配置（结构+风格+属性组合）</li>
+<li><strong>多维度自定义预设</strong>: 用户可保存/加载自定义预设配置（结构+风格+属性组合）；每个维度 item 支持编辑按钮（预设→新建自定义，自定义→原地更新）；同名自动递增序号；编辑弹窗增加保存+另存按钮；序号从1开始；另存自动递增避免覆盖</li>
 <li><strong>生成历史</strong>: localStorage 最多 30 条，瀑布流 + JPG 缩略图，多选批量下载/删除，全选切换，连续生成 loading + 自动本地保存</li>
 <li><strong>图片查看器</strong>: 浮层预览，滚轮缩放、拖拽平移、下载</li>
 <li><strong>图片信息</strong>: 实时显示模型/比例/分辨率/文件大小</li>
@@ -174,7 +175,7 @@ const DOCS = [
 <li><strong>图片生成 API</strong>: grsai.dakka.com.cn（国内节点）</li>
 <li><strong>翻译 API</strong>: DeepSeek API（PHP 代理中转 + 本地文件缓存）</li>
 <li><strong>存储</strong>: localStorage + API Key / 提示词模板服务端化</li>
-<li><strong>认证</strong>: JWT（HS256），邮箱+密码登录</li>
+<li><strong>认证</strong>: Logto OIDC，前端回调写入登录态，后端通过 <code>/oidc/me</code> 校验 access token</li>
 <li><strong>加密</strong>: AES-256-CBC（用户敏感数据）</li>
 <li><strong>部署</strong>: Nginx + 腾讯云服务器</li>
 </ul>
@@ -202,7 +203,7 @@ const DOCS = [
 <li><strong>本地优先</strong>: 预览图本地化，不依赖外部 CDN</li>
 <li><strong>渐进增强</strong>: 核心功能纯原生实现</li>
 <li><strong>用户无感更新</strong>: Nginx no-cache + 版本号比对 + 硬刷新</li>
-<li><strong>安全优先</strong>: API Key 服务端化，密码明文比对</li>
+<li><strong>安全优先</strong>: API Key 服务端化，用户认证交由 Logto，后端只校验 access token</li>
 <li><strong>性别中立</strong>: 风格名称去性别化，属性自由组合</li>
 </ol>
 
@@ -215,7 +216,46 @@ const DOCS = [
 </ol>`,
 
 // Tab 1: Bug修复列表
-`<h2>2026-05-20 修复</h2>
+`<h2>2026-05-21 修复</h2>
+
+<h3>自定义预设 PUT handler 缺失</h3>
+<table>
+<tr><th>问题</th><td>custom.php 只处理了 GET/POST/DELETE，缺少 PUT 请求处理，导致自定义预设的原地更新功能不可用</td></tr>
+<tr><th>修复</th><td>补上 PUT handler，支持自定义预设的原地更新</td></tr>
+<tr><th>提交</th><td><code>7ce5bef</code></td></tr>
+</table>
+
+<h3>另存为序号叠加</h3>
+<table>
+<tr><th>问题</th><td>另存时已有数字后缀（如"自定义1"）未剥离，导致另存后名字叠加为"自定义1 1"而非"自定义2"</td></tr>
+<tr><th>修复</th><td>另存时先剥掉已有数字后缀再自增，确保序号正确递增</td></tr>
+<tr><th>提交</th><td><code>c2019b6</code></td></tr>
+</table>
+
+<h3>序号从0开始 / 预设复制名字不递增</h3>
+<table>
+<tr><th>问题</th><td>自定义预设序号从0开始（"自定义0"），不符合预期；从预设复制时名字等于原始名，序号不递增</td></tr>
+<tr><th>修复</th><td>序号从1开始；从预设复制时名字等于原始名始终递增序号</td></tr>
+<tr><th>提交</th><td><code>f572ed8</code>, <code>2e0240d</code></td></tr>
+</table>
+
+<h2>2026-05-21 修复（Login迁移遗留）</h2>
+
+<h3>Logto 登录状态不稳定</h3>
+<table>
+<tr><th>问题</th><td>Logto 登录成功后返回页面仍显示“登录”，自定义预设入口误触发旧邮箱登录弹窗；同时 /sanshitu rewrite 路径存在旧脚本/缓存干扰。</td></tr>
+<tr><th>修复</th><td>统一未登录入口跳转 Logto；callback 回跳到 <code>/sanshitu.html</code> 并携带一次性登录 hash；主页面以内存、sessionStorage、localStorage 三层兜底读取登录态；修复查看器浮层过早绑定导致的 JS 中断。</td></tr>
+<tr><th>监控</th><td>登录 hash 消费、前端 JS 错误和认证事件写入 <code>/log.php</code>，日志文件不可写时降级到 <code>/tmp/sanshitu_generate.log</code>。</td></tr>
+</table>
+
+<h3>用户接口迁移到 Logto</h3>
+<table>
+<tr><th>问题</th><td><code>api/user/config.php</code> 和 <code>api/user/custom.php</code> 仍依赖旧 JWT，无法识别 Logto access token。</td></tr>
+<tr><th>修复</th><td>新增 <code>api/lib/logto_auth.php</code>，通过 <code>auth.aiwuuw.com/oidc/me</code> 校验 Bearer token；用户数据改用 Logto <code>sub</code> 作为 <code>user_id</code>。</td></tr>
+<tr><th>数据库</th><td><code>user_configs.user_id</code> 与 <code>custom_presets.user_id</code> 已从 INT 迁移为 VARCHAR(64)，并移除旧 users 外键。</td></tr>
+</table>
+
+<h2>2026-05-20 修复</h2>
 
 <h3>面部三视图定义错误</h3>
 <table>
@@ -415,7 +455,20 @@ const DOCS = [
 </table>`,
 
 // Tab 2: 提交记录
-`<h2>2026-05-20（28 个提交）</h2>
+`<h2>2026-05-21（8 个提交）</h2>
+<table>
+<tr><th>提交</th><th>时间</th><th>说明</th></tr>
+<tr><td><code>7ce5bef</code></td><td>18:05</td><td>fix: 补上 PUT handler for custom.php</td></tr>
+<tr><td><code>c2019b6</code></td><td>18:02</td><td>fix: 另存时剥掉已有数字后缀再自增</td></tr>
+<tr><td><code>84ec331</code></td><td>17:59</td><td>feat: 自定义编辑弹窗增加保存+另存按钮</td></tr>
+<tr><td><code>f572ed8</code></td><td>17:56</td><td>fix: 序号从1开始</td></tr>
+<tr><td><code>2e0240d</code></td><td>17:54</td><td>fix: 从预设复制时名字等于原始名始终递增序号</td></tr>
+<tr><td><code>6e1c6ce</code></td><td>17:48</td><td>feat: 从预设新建自定义时同名自动递增序号</td></tr>
+<tr><td><code>d70a3ef</code></td><td>17:42</td><td>feat: 每个维度item增加编辑按钮 - 预设→新建自定义, 自定义→原地更新</td></tr>
+<tr><td><code>0d63967</code></td><td>15:31</td><td>feat: Logto OIDC 登录集成 + callback处理页</td></tr>
+</table>
+
+<h2>2026-05-20（28 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>2441bd0</code></td><td>16:17</td><td>security: 提示词模板移至后端templates.json，前端源码不再暴露</td></tr>
@@ -549,7 +602,8 @@ const DOCS = [
 
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 139</li>
+<li><strong>总提交数</strong>: 173</li>
+<li><strong>2026-05-21</strong>: 8 个提交（下午）</li>
 <li><strong>2026-05-20</strong>: 28 个提交（全天）</li>
 <li><strong>2026-05-19</strong>: 49 个提交（全天）</li>
 <li><strong>2026-05-18</strong>: 62 个提交</li>
