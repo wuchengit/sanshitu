@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>🎬 SD-API 三视图生成器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f12;color:#e8e8ed;min-height:100vh}
+.container{max-width:1400px;margin:0 auto;padding:16px 20px}
+.header{margin-bottom:16px}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header h1 span{background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.badge-sd{background:#667eea22;color:#667eea;border:1px solid #667eea44;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:600}
+.header p{color:#888;font-size:11px;margin-top:2px}
+.main-grid{display:grid;grid-template-columns:2fr 3fr;gap:16px}
+@media(max-width:1000px){.main-grid{grid-template-columns:1fr}}
+
+.card{background:#1a1a20;border-radius:10px;border:1px solid #2a2a32;padding:12px;margin-bottom:10px}
+.card-t{font-size:11px;font-weight:600;margin-bottom:8px;color:#aaa;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.form-group{margin-bottom:8px}
+.form-group label{display:block;font-size:10px;color:#999;margin-bottom:3px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;transition:border-color .2s;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#667eea}
+.form-group textarea{resize:vertical}
+.model-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+
+/* 参考图 - 紧凑 */
+.upload-row{display:flex;gap:4px;flex-wrap:wrap}
+.upload-box{width:44px;height:44px;background:#25252d;border:1px dashed #444;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#555;transition:all .2s;position:relative;overflow:hidden;flex-shrink:0}
+.upload-box:hover{border-color:#667eea66;color:#667eea}
+.upload-box.has{border-style:solid;border-color:#333}
+.upload-box img{width:100%;height:100%;object-fit:cover}
+.upload-box .del{position:absolute;top:1px;right:1px;width:14px;height:14px;background:#ef4444cc;border-radius:50%;color:#fff;font-size:7px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:14px}
+.upload-box:hover .del{display:flex}
+
+/* 人物资产结构 - 紧凑 */
+.layout-strip{display:flex;gap:6px}
+.layout-card{flex:0 0 auto;width:100px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 4px;cursor:pointer;transition:all .2s;text-align:center}
+.layout-card:hover{border-color:#667eea66}
+.layout-card.active{border-color:#667eea;background:#667eea15}
+.layout-card .preview{width:100%;aspect-ratio:9/10;background:#1a1a20;border-radius:3px;margin-bottom:3px;overflow:hidden}
+.layout-card .preview svg{width:100%;height:100%;display:block}
+.layout-card .name{font-size:9px;font-weight:600;color:#ccc}
+.layout-card .desc{font-size:8px;color:#777;margin-top:1px}
+
+/* 风格 - 紧凑网格 */
+.style-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.style-card{background:#25252d;border:1px solid #333;border-radius:6px;padding:4px 2px;cursor:pointer;transition:all .2s;text-align:center}
+.style-card:hover{border-color:#667eea66}
+.style-card.active{border-color:#667eea;background:#667eea15}.reset-btn{padding:1px 6px;background:transparent;border:1px solid #333;border-radius:3px;color:#555;font-size:8px;cursor:pointer;float:right}.reset-btn:hover{color:#e74c3c;border-color:#e74c3c}
+.style-card .icon{width:100%;aspect-ratio:1;margin-bottom:1px;overflow:hidden;border-radius:3px}.style-card .icon img{width:100%;height:100%;object-fit:cover}.art-card .icon{aspect-ratio:2;max-height:40px}
+.style-card .name{font-size:9px;font-weight:600;color:#ccc}
+.style-card .desc{font-size:7px;color:#777;line-height:1.1}
+
+/* 预览 */
+.preview-box{background:#0a0a0e;border-radius:5px;padding:8px;font-size:10px;color:#999;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto}
+.preview-tools{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.preview-btn{padding:3px 8px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;cursor:pointer;font-size:9px;transition:all .2s}
+.preview-btn:hover{background:#333;color:#fff}
+
+.btn{padding:8px;border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;width:100%}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-gen{background:linear-gradient(135deg,#667eea,#764ba2)}
+
+/* 历史 */
+.history-masonry{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;max-height:400px;overflow-y:auto;padding:4px}.history-item{aspect-ratio:9/16;border-radius:4px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;position:relative}.history-item:hover{border-color:#667eea}.history-item img{width:100%;height:100%;object-fit:contain;display:block;background:#0a0a0e}.history-item .chk{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#1a1a20cc;border:2px solid #444;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}.history-item .chk.on{background:#667eea;border-color:#667eea}.history-item.broken{opacity:.4;cursor:default}.history-item.broken:hover{border-color:#333}.sel-mode .history-item .chk{display:flex}.sel-mode .history-item{cursor:pointer}.sel-mode .history-item.broken{cursor:default}.sel-toolbar{display:none;align-items:center;gap:6px;margin-bottom:6px}.sel-toolbar.show{display:flex}.sel-toolbar button{padding:4px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:10px;cursor:pointer}.sel-toolbar button:hover{background:#333;color:#fff}.sel-count{font-size:10px;color:#888}
+
+.toast{position:fixed;top:12px;right:12px;background:#1a1a20;border:1px solid #333;border-radius:8px;padding:8px 14px;font-size:12px;transform:translateX(120%);transition:transform .3s;z-index:100}
+.toast.show{transform:translateX(0)}
+.toast.err{border-color:#ef4444;color:#ef4444}
+.toast.ok{border-color:#22c55e;color:#22c55e}
+@keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+/* 登录 */
+.login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
+.login-btn:hover{opacity:.85}
+.add-custom-btn{padding:1px 6px;background:transparent;border:1px solid #333;border-radius:3px;color:#555;font-size:10px;cursor:pointer;float:right;margin-right:4px;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{font-size:7px;background:#667eea22;color:#667eea;padding:0 3px;border-radius:4px}.custom-item .del-custom{position:absolute;top:1px;left:1px;width:14px;height:14px;background:#ef444488;border-radius:50%;color:#fff;font-size:8px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:14px;z-index:2}.custom-item:hover .del-custom{display:flex}
+.user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
+.user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
+.user-badge .logout:hover{color:#e74c3c}
+.save-cfg-btn{padding:3px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;cursor:pointer;margin-left:4px;transition:all .2s}
+.save-cfg-btn:hover{background:#333;color:#fff}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:9998;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#1a1a20;border:1px solid #2a2a32;border-radius:12px;padding:24px;width:360px;max-width:90vw}
+.modal-box h2{font-size:16px;margin-bottom:16px;color:#e8e8ed}
+.modal-box .form-group{margin-bottom:12px}
+.modal-box .form-group input{width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:10px 12px;color:#e8e8ed;font-size:13px}
+.modal-box .form-group input:focus{outline:none;border-color:#667eea}
+.modal-box .btn-primary{width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:13px;cursor:pointer;font-weight:600}
+.modal-box .btn-primary:hover{opacity:.9}
+.modal-box .toggle-link{text-align:center;margin-top:12px;font-size:11px;color:#888}
+.modal-box .toggle-link a{color:#667eea;cursor:pointer}
+.modal-box .error{color:#e74c3c;font-size:11px;margin-top:8px;display:none}
+.modal-box .error.show{display:block}
+.modal-close{position:absolute;top:12px;right:12px;width:28px;height:28px;background:#25252d;border:1px solid #333;border-radius:50%;color:#aaa;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.header{position:relative;padding-right:120px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">SD-API</span></h1>
+    <p>高度人物面部一致性 · 专业三视图 · 适合集成 SD-API 平台</p>
+    <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.aiwuuw.com/callback'">🔑 登录</button>
+<span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
+  </div>
+  <div class="main-grid">
+    <!-- ===== LEFT ===== -->
+    <div>
+      <div class="card">
+        <div class="card-t">🔑 API 配置</div>
+        <input type="password" id="apiKey" placeholder="自定义Key（可选）" style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px">
+      </div>
+      <div class="card">
+        <div class="card-t">📝 提示词</div>
+        <textarea id="promptInput" rows="8" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+      <div class="card">
+        <div class="card-t">⚙️ 模型</div>
+        <div class="model-row">
+          <div class="form-group"><label>类型</label><select id="modelType" onchange="onModelChange()"><option value="gpt-image-2">gpt-image-2</option><option value="gpt-image-2-vip">gpt-image-2-vip</option></select></div>
+          <div class="form-group"><label>比例</label><select id="aspectRatio" onchange="up()"><option value="9:16">9:16 竖屏</option><option value="16:9">16:9 横屏</option><option value="1:1">1:1 方形</option><option value="4:3">4:3</option><option value="3:4">3:4</option><option value="3:2">3:2</option><option value="2:3">2:3</option><option value="5:4">5:4</option><option value="4:5">4:5</option><option value="21:9">21:9 超宽</option><option value="9:21">9:21 超长</option><option value="2:1">2:1</option><option value="1:2">1:2</option><option value="3:1">3:1</option><option value="1:3">1:3</option></select></div>
+          <div class="form-group"><label>分辨率</label><select id="resolution" onchange="up()"><option value="1k">1K (默认)</option><option value="2k">2K</option><option value="4k">4K</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">📋 提示词预览</div>
+        <div class="preview-box" id="promptPreview">选择右侧结构和风格后自动组合...</div>
+        <div class="preview-tools">
+          <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
+          <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
+          <button class="preview-btn" onclick="translatePrompt(this)">🌐 翻译</button>
+          <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
+          <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1">🎨 生成图片</button><button class="save-cfg-btn" onclick="saveConfig()" title="登录后保存当前配置到云端">💾</button><button class="save-cfg-btn" onclick="loadConfig()" title="登录后加载云端配置" style="margin-left:0">📥</button></div>
+      </div>
+      
+    </div>
+    <!-- ===== RIGHT ===== -->
+    <div>
+      <div class="card" style="padding:10px 12px">
+        <div class="card-t" style="margin-bottom:6px">📐 人物资产结构<button class="reset-btn" onclick="selLayout='classic';renderLayouts();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('layout')" title="自定义资产结构">＋</button></div>
+        <div class="layout-strip" id="layoutStrip"></div>
+      </div>
+      <div class="card" style="padding:10px 12px">
+        <div class="card-t" style="margin-bottom:6px">🎭 人物风格<button class="reset-btn" onclick="selStyle='none';renderStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('style')" title="自定义人物风格">＋</button></div>
+        <div class="style-grid" id="styleGrid"></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('art')" title="自定义艺术风格">＋</button></div>
+        <div class="style-grid" id="artGrid"></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('dir')" title="自定义导演代表作">＋</button></div>
+        <div class="style-grid" id="dirGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-t">👤 人物属性</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+        <select id="optGender" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">性别不限</option><option value="female">女</option><option value="male">男</option></select>
+        <select id="optRace" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">人种不限</option><option value="East Asian">东亚</option><option value="Caucasian">白人/欧洲</option><option value="African">黑人/非洲</option><option value="South Asian">南亚/印度</option><option value="Middle Eastern">中东</option><option value="Latino">拉丁裔</option><option value="Southeast Asian">东南亚</option></select>
+        <select id="optAge" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">年龄不限</option><option value="child, around 6-10 years old">小孩 6-10</option><option value="young adult, around 20-25 years old">年轻 20-25</option><option value="adult, around 26-35 years old">成熟 26-35</option><option value="mature, around 36-45 years old">中年 36-45</option><option value="elderly, around 60-80 years old">老者 60-80</option></select>
+        <select id="optHeight" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">身高不限</option><option value="tall stature">高</option><option value="medium height">中等</option><option value="petite">娇小</option></select>
+      </div>
+      <select id="optJob" onchange="up()" style="width:100%;margin-top:6px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer">
+        <option value="">👔 职业不限</option>
+        <option value="warrior">⚔️ 战士</option><option value="mage">🔮 法师</option><option value="assassin">🗡️ 刺客</option><option value="hunter">🏹 猎人</option><option value="priest">✝️ 牧师</option>
+        <option value="knight">🛡️ 骑士</option><option value="samurai">⛩️ 武士</option><option value="ninja">🥷 忍者</option><option value="pirate">🏴‍☠️ 海盗</option><option value="cowboy">🤠 牛仔</option>
+        <option value="detective">🔍 侦探</option><option value="doctor">🩺 医生</option><option value="soldier">🎖️ 士兵</option><option value="pilot">✈️ 飞行员</option><option value="chef">👨‍🍳 厨师</option>
+        <option value="artist">🎨 画家</option><option value="musician">🎵 音乐家</option><option value="scientist">🔬 科学家</option><option value="astronaut">🚀 宇航员</option><option value="explorer">🗺️ 探险家</option>
+        <option value="monk">🧘 武僧</option><option value="vampire">🧛 吸血鬼</option><option value="werewolf">🐺 狼人</option><option value="elf_archer">🧝 精灵射手</option><option value="dwarf">⛏️ 矮人</option>
+        <option value="robot">🤖 机器人</option><option value="angel">👼 天使</option><option value="demon">👿 恶魔</option><option value="dragon_knight">🐉 龙骑士</option><option value="mecha_pilot">🦾 机甲驾驶员</option>
+      </select>
+      <select id="optEra" onchange="up()" style="width:100%;margin-top:6px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer">
+        <option value="">⏳ 年代不限</option>
+        <option value="Stone Age prehistoric era">🪨 远古石器</option><option value="Ancient Egypt, pharaoh era">🏛️ 古埃及</option><option value="Ancient Greece, toga and temple">🏺 古希腊</option><option value="Ancient Rome, gladiator and empire">⚔️ 古罗马</option><option value="Medieval Europe, castle and knight">🏰 中世纪</option>
+        <option value="Renaissance Europe, 15th-16th century">🎭 文艺复兴</option><option value="Viking Age, Norse era">🪓 维京时代</option><option value="Sengoku period, feudal Japan">⛩️ 日本战国</option><option value="Tang Dynasty, ancient China">🐉 大唐盛世</option><option value="Ancient Chinese martial arts, wuxia era">🥋 江湖武侠</option>
+        <option value="Victorian era, 19th century London">🎩 维多利亚</option><option value="American Wild West, frontier era">🌵 西部拓荒</option><option value="1920s Shanghai, Art Deco era">🌃 1920s上海滩</option><option value="World War II era, 1940s">🪖 二战时期</option><option value="1950s America, post-war era">🍔 1950s美国</option>
+        <option value="1960s hippie counterculture era">☮️ 1960s嬉皮</option><option value="1980s retro synthwave era">📼 1980s复古</option><option value="Cyberpunk dystopian future">🌆 赛博时代</option><option value="Post-apocalyptic wasteland future">🏜️ 末日废土</option><option value="Space age sci-fi interstellar future">🛸 太空科幻</option>
+      </select>
+      </div>
+      <div class="card">
+        <div class="card-t">🖼️ 参考图</div>
+        <div class="upload-row" id="uploadRow"></div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+      </div>
+      <div class="card"><div class="card-t">📜 生成历史</div>
+      <button class="preview-btn" id="selToggle" onclick="toggleSelect()" style="margin-bottom:4px">☐ 多选</button>
+      <div class="sel-toolbar" id="selToolbar">
+        <span class="sel-count" id="selCount">已选 0 项</span>
+        <button onclick="selectAll()">☑ 全选</button>
+        <button onclick="batchDelete()">🗑 删除选中</button>
+        <button onclick="batchDownload()">⬇️ 下载选中</button>
+        <button onclick="toggleSelect()">✕ 取消</button>
+      </div>
+      <div class="history-masonry" id="historyMasonry"><span style="color:#555;font-size:11px">暂无</span></div></div>
+      
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const APP_VERSION="20260520.7";
+(function(){
+  var storedVer=localStorage.getItem('ds_ver');
+  // Auto-check server version and force reload if needed
+  fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
+    sv=sv.trim();
+    if(storedVer!==sv){
+      localStorage.setItem('ds_ver',sv);
+      if(storedVer){location.reload(true);return;}
+    }
+  }).catch(function(){});
+  if(storedVer&&storedVer!==APP_VERSION){
+    var bar=document.createElement('div');
+    bar.className='update-bar show';
+    bar.innerHTML='🔄 页面已更新 <button class="update-btn" onclick="location.reload(true)">刷新页面</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
+    document.body.appendChild(bar);
+    setTimeout(function(){bar.style.display='none';},5000);
+  }
+})();
+var LAYOUTS=[],STYLES=[],ART_STYLES=[],DIR_STYLES=[];
+const RES_MAP = {
+  '9:16':{'1k':'941x1672','2k':'1152x2048','4k':'2160x3840'},
+  '16:9':{'1k':'1280x720','2k':'2048x1152','4k':'3840x2160'},
+  '1:1':{'1k':'1024x1024','2k':'2048x2048','4k':'2880x2880'},
+  '4:3':{'1k':'1152x864','2k':'2304x1728','4k':'3264x2448'},
+  '3:4':{'1k':'864x1152','2k':'1728x2304','4k':'2448x3264'},
+  '3:2':{'1k':'1536x1024','2k':'2048x1360','4k':'3504x2336'},
+  '2:3':{'1k':'1024x1536','2k':'1360x2048','4k':'2336x3504'},
+  '5:4':{'1k':'1120x896','2k':'2240x1792','4k':'3200x2560'},
+  '4:5':{'1k':'896x1120','2k':'1792x2240','4k':'2560x3200'},
+  '21:9':{'1k':'1456x624','2k':'2912x1248','4k':'3840x1648'},
+  '9:21':{'1k':'624x1456','2k':'1248x2912','4k':'1648x3840'},
+  '2:1':{'1k':'1536x768','2k':'3072x1536','4k':'3840x1920'},
+  '1:2':{'1k':'768x1536','2k':'1536x3072','4k':'1920x3840'},
+  '3:1':{'1k':'2048x688','2k':'3840x1280'},
+  '1:3':{'1k':'688x2048','2k':'1280x3840'}
+};
+
+let selLayout='classic', selStyle='none', selArt='none', selDir='none', uploadedFiles=[], customPresets=[];
+const LAYOUT_RATIO={classic:'9:16',portrait:'9:16',pure:'16:9',face3view:'16:9',side:'16:9',halfbody:'16:9',expression:'4:3'};
+
+function onModelChange(){
+  var vip=document.getElementById('modelType').value==='gpt-image-2-vip';
+  var sel=document.getElementById('resolution');
+  if(vip){
+    sel.innerHTML='<option value="1k">1K (1024px+)</option><option value="2k">2K (2048px+)</option><option value="4k">4K (2880px+)</option>';
+  }else{
+    sel.innerHTML='<option value="1k">1K (自动按比例)</option>';
+  }
+  up();
+}
+
+function renderLayouts(){
+  var merged=LAYOUTS.concat(getMergedStyle('layout'));
+  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')">✕</button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${l.preview.replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div></div>`).join('');
+}
+
+function renderStyles(){
+  var merged=STYLES.concat(getMergedStyle('style'));
+  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')">✕</button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}</div>`).join('');
+}
+
+function renderArtStyles(){
+  var merged=ART_STYLES.concat(getMergedStyle('art'));
+  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')">✕</button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
+}
+
+function renderDirStyles(){
+  var merged=DIR_STYLES.concat(getMergedStyle('dir'));
+  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')">✕</button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div></div>`).join('');
+}
+
+function buildPrompt(){
+  var mergedLayouts=LAYOUTS.concat(getMergedStyle('layout'));
+  var mergedStyles=STYLES.concat(getMergedStyle('style'));
+  var mergedArts=ART_STYLES.concat(getMergedStyle('art'));
+  var mergedDirs=DIR_STYLES.concat(getMergedStyle('dir'));
+  var layout=mergedLayouts.find(function(l){return l.id===selLayout;});
+  var style=mergedStyles.find(function(s){return s.id===selStyle;});
+  var art=mergedArts.find(function(a){return a.id===selArt;});
+  var dir=mergedDirs.find(function(d){return d.id===selDir;});
+  var user=document.getElementById('promptInput').value.trim();
+  var opts='';
+  var g=document.getElementById('optGender').value;
+  var r=document.getElementById('optRace').value;
+  var a=document.getElementById('optAge').value;
+  var h=document.getElementById('optHeight').value;
+  var j=document.getElementById('optJob').value;
+  var e=document.getElementById('optEra').value;
+  if(g||r||a||h||j||e){opts='Person: '+(g?(g==='female'?'a young woman':'a young man'):'a person')+(r?', '+r+' ethnicity':'')+(a?', '+a:'')+(h?', '+h:'')+(j?', dressed as a '+j:'')+(e?', set in '+e:'');}
+  return [user,opts,layout.prompt,style.prompt,art.prompt,dir.prompt,'Consistent seamless background color throughout the entire composition, unified color palette.'].filter(Boolean).join(' ');
+}
+
+function up(){
+  var r=LAYOUT_RATIO[selLayout];
+  if(r)document.getElementById('aspectRatio').value=r;
+  const p=buildPrompt();
+  var el=document.getElementById('promptPreview');
+  el.textContent=p||'选择右侧结构和风格后自动组合...';
+  document.getElementById('promptLen').textContent=p.length;
+  // 提示词变了就清除旧原文
+  if(el.dataset.orig && el.dataset.orig!==p){delete el.dataset.orig;var rb=document.getElementById('restoreBtn');if(rb)rb.remove();}
+}
+
+
+
+
+function changeFontSize(size){
+  document.getElementById('promptInput').style.fontSize=size+'px';
+  document.getElementById('promptPreview').style.fontSize=size+'px';
+  localStorage.setItem('ds_fontSize', size);
+}
+
+function dlImg(url,btn){
+  btn.innerHTML='⏳';
+  fetch(url).then(function(r){return r.blob()}).then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click();
+    btn.innerHTML='⬇️ 下载';
+  }).catch(function(){btn.innerHTML='⬇️ 下载';});
+}
+
+function translatePrompt(btn){
+  var el=document.getElementById('promptPreview');
+  var text=el.textContent;
+  if(!text||text.length<5){t('⚠️ 提示词太短','err');return;}
+  // 用元素上的data属性保存原文，不会被任何其他代码影响
+  if(!el.dataset.orig) el.dataset.orig=text;
+  var lang=document.getElementById('targetLang').value;
+  // 翻回原文语言→直接用原文
+  if(lang==='英文'&&el.dataset.orig){
+    el.textContent=el.dataset.orig;
+    document.getElementById('promptLen').textContent=el.dataset.orig.length;
+    var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
+    btn.textContent='💡 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    return;
+  }
+  btn.innerHTML='⏳';
+  var src=el.dataset.orig||text;
+  fetch('/translate.php?_t='+Date.now(),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:src,lang:lang})
+  }).then(function(r){return r.json()}).then(function(d){
+    if(!d.translation){t('⚠️ '+(d.error||'翻译失败'),'err');return;}
+    el.textContent=d.translation;
+    document.getElementById('promptLen').textContent=d.translation.length;
+    var rb=document.getElementById('restoreBtn');
+    if(!rb){
+      var btns=btn.parentElement;
+      rb=document.createElement('button');
+      rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='↩ 原文';
+      rb.onclick=function(){
+        el.textContent=el.dataset.orig;
+        document.getElementById('promptLen').textContent=el.dataset.orig.length;
+        delete el.dataset.orig;
+        this.remove();
+      };
+      btns.insertBefore(rb, btn.nextSibling);
+    }
+  }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
+  .finally(function(){btn.innerHTML='🌐 翻译';});
+}
+function copyPrompt(){
+  var p=document.getElementById('promptPreview'),r=document.createRange();
+  r.selectNodeContents(p);
+  var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+  try{
+    document.execCommand('copy');
+    var btn=event.target;var txt=btn.textContent;btn.textContent='✅ 已复制';
+    setTimeout(function(){btn.textContent=txt;},1500);
+  }catch(e){
+    // 降级：选中文本让用户手动复制
+    t('⚠️ 请按 Ctrl+C 复制','err');
+  }
+  s.removeAllRanges();
+}
+function downloadPrompt(){
+  var p=document.getElementById('promptPreview').textContent;
+  var a=document.createElement('a');
+  try{a.href=URL.createObjectURL(new Blob([p],{type:'text/plain;charset=utf-8'}));a.download='prompt_'+Date.now()+'.txt';a.click();t('⬇️ 已下载','ok');}catch(e){t('⚠️ 下载失败','err');}
+}
+
+function renderUploads(){
+  let h='';
+  for(let i=0;i<6;i++)
+    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="document.getElementById('fileInput').click()"><img src="${uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="document.getElementById('fileInput').click()">${i===0?'+':''}</div>`;
+  document.getElementById('uploadRow').innerHTML=h;
+}
+
+document.getElementById('fileInput').onchange=function(e){
+  const remaining=6-uploadedFiles.length;
+  Promise.all(Array.from(e.target.files).slice(0,remaining).map(f=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r({data:fr.result});fr.readAsDataURL(f)}))).then(r=>{uploadedFiles.push(...r);renderUploads()});
+  this.value='';
+};
+
+document.getElementById('genBtn').onclick=async function(){
+  var btn=this;
+  if(btn.disabled)return;
+  btn.disabled=true;
+  btn.textContent='⏳';
+  setTimeout(function(){btn.disabled=false;btn.textContent='🎨 生成';},3000);
+  var _start=Date.now();
+  var apiKey=document.getElementById('apiKey').value.trim(),prompt=buildPrompt();
+  var m=document.getElementById('modelType').value,ar=document.getElementById('aspectRatio').value,res=document.getElementById('resolution').value;
+  if(!prompt){t('请填写提示词','err');btn.disabled=false;btn.textContent='🎨 生成';return}
+  if(apiKey)localStorage.setItem('ds_key',apiKey);
+  var av=ar;
+  if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
+  // 插入loading历史
+  var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  var ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  ld.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
+  if(ld.length>30)ld.shift();
+  localStorage.setItem('ds_h',JSON.stringify(ld));
+  renderHistory();
+  var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
+  if(apiKey)body._key=apiKey;
+  if(uploadedFiles.length)body.images=uploadedFiles.map(function(f){return f.data;});
+  try{
+    var r=await fetch('/generate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var d=await r.json();
+    if(d.status==='succeeded'&&d.results?.[0]?.url){
+      var url=d.results[0].url;
+      // 更新loading记录（先显示远程URL）
+      var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:loadId,apiId:d.id,info:m+' '+av,model:m,t:Date.now(),prompt:prompt};break;}}
+      if(_h.length>30)_h.shift();
+      localStorage.setItem('ds_h',JSON.stringify(_h));
+      renderHistory();
+      // 异步保存到本地（用loadId精确匹配更新）
+      var _loadId=loadId;
+      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+        if(d2.original&&d2.thumb){var sh=JSON.parse(localStorage.getItem('ds_h')||'[]');for(var si=sh.length-1;si>=0;si--){if(sh[si].id===_loadId){sh[si].u=d2.original;sh[si].thumb=d2.thumb;sh[si].prompt=sh[si].prompt||prompt;break;}}localStorage.setItem('ds_h',JSON.stringify(sh));renderHistory();}
+      }).catch(function(){});
+      t('✅ 成功','ok');
+      fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
+    }else{
+      // 失败：按loadId精确删除对应的loading记录
+      var fh=JSON.parse(localStorage.getItem('ds_h')||'[]');
+      for(var fi=fh.length-1;fi>=0;fi--){if(fh[fi].id===loadId){fh.splice(fi,1);break;}}
+      localStorage.setItem('ds_h',JSON.stringify(fh));
+      renderHistory();
+      t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
+    }
+  }catch(e){
+    var eh=JSON.parse(localStorage.getItem('ds_h')||'[]');
+    for(var ei=eh.length-1;ei>=0;ei--){if(eh[ei].id===loadId){eh.splice(ei,1);break;}}
+    localStorage.setItem('ds_h',JSON.stringify(eh));
+    renderHistory();
+    t('❌ '+e.message,'err');
+  }
+};;
+
+function renderHistory(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  // 清理超过2分钟的loading记录（页面刷新后无法恢复）
+  var now=Date.now();
+  var cleaned=false;
+  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>120000){h.splice(ci,1);cleaned=true;}}
+  if(cleaned)localStorage.setItem('ds_h',JSON.stringify(h));
+  var out='';
+  var selMode=document.getElementById('historyMasonry').classList.contains('sel-mode');
+  if(h.length){
+    out=h.slice().reverse().map(function(x,i){
+      var idx=h.length-1-i;
+      if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
+      var broken=x.broken?' broken':'';
+      var chk=selMode?'<div class="chk'+(x._sel?' on':'')+'" data-i="'+idx+'" onclick="event.stopPropagation();toggleCheck(this,'+idx+')">'+(x._sel?'✓':'')+'</div>':'';
+      return '<div class="history-item'+broken+'" data-i="'+idx+'" onclick="handleItemClick(event,'+idx+')">'+chk+'<img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';
+    }).join('');
+  }else{out='<span style="color:#555;font-size:11px">暂无</span>';}
+  document.getElementById('historyMasonry').innerHTML=out;
+  var imgs=document.getElementById('historyMasonry').querySelectorAll('img.hs-img');
+  for(var j=0;j<imgs.length;j++){imgs[j].onerror=function(){
+    this.src='/images/placeholder.svg';this.onerror=null;
+    var p=this.parentElement;if(p){p.classList.add('broken');}
+    var di=p?p.getAttribute('data-i'):null;
+    if(di!==null){var hh=JSON.parse(localStorage.getItem('ds_h')||'[]');if(hh[di]){hh[di].broken=true;localStorage.setItem('ds_h',JSON.stringify(hh));}}
+  };}
+}
+
+var selMode=false;
+function toggleSelect(){
+  selMode=!selMode;
+  var m=document.getElementById('historyMasonry');
+  var t=document.getElementById('selToggle');
+  var tb=document.getElementById('selToolbar');
+  if(selMode){m.classList.add('sel-mode');t.textContent='☑ 取消多选';tb.classList.add('show');upSelCount();
+  }else{m.classList.remove('sel-mode');t.textContent='☐ 多选';tb.classList.remove('show');}
+  renderHistory();
+}
+function handleItemClick(e,idx){
+  if(selMode){toggleCheck(null,idx);return;}
+  viewH(idx);
+}
+function toggleCheck(el,idx){
+  if(!selMode)return;
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
+  if(!x||x.loading||x.broken)return;
+  x._sel=!x._sel;
+  localStorage.setItem('ds_h',JSON.stringify(h));
+  var d=document.querySelector('.history-item[data-i="'+idx+'"] .chk');
+  if(d){d.classList.toggle('on',x._sel);d.textContent=x._sel?'✓':'';}
+  upSelCount();
+}
+function upSelCount(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var n=h.filter(function(x){return x._sel&&!x.broken;}).length;
+  document.getElementById('selCount').textContent='已选 '+n+' 项';
+}
+function getSelected(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  return h.map(function(x,i){return x._sel&&!x.broken?i:-1;}).filter(function(i){return i>=0;});
+}
+function selectAll(){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var allSel=h.filter(function(x){return !x.loading&&!x.broken&&x._sel;}).length;
+  var total=h.filter(function(x){return !x.loading&&!x.broken;}).length;
+  var set=allSel<total;
+  h.forEach(function(x){if(!x.loading&&!x.broken)x._sel=set;});
+  localStorage.setItem('ds_h',JSON.stringify(h));
+  renderHistory();
+  upSelCount();
+}
+function batchDelete(){
+  var ids=getSelected();
+  if(!ids.length){t('请先选择历史记录','err');return;}
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  for(var i=ids.length-1;i>=0;i--){h.splice(ids[i],1);}
+  localStorage.setItem('ds_h',JSON.stringify(h));
+  toggleSelect();
+  renderHistory();
+  t('已删除 '+ids.length+' 项','ok');
+}
+async function batchDownload(){
+  var ids=getSelected();
+  if(!ids.length){t('请先选择历史记录','err');return;}
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
+  var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
+  if(!urls.length){t('没有可下载的图片','err');return;}
+  // 单张直接下载（走代理避免跨域预览）
+  if(urls.length===1){window.location.href='/dl.php?url='+encodeURIComponent(urls[0]);return;}
+  t('正在打包 '+urls.length+' 张图片...','ok');
+  try{
+    var r=await fetch('/zip.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})});
+    var d=await r.json();
+    if(d.ok){window.location.href=d.url;}
+    else{t('⚠️ 打包失败','err');}
+  }catch(e){t('⚠️ 下载出错','err');}
+}
+
+function _viewH(idx){
+  const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
+  document.getElementById('resultArea').innerHTML=`<div><img src="${x.u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${x.u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
+}
+
+function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
+
+// Init
+// 自动清理旧默认Key，只保留用户自己的Key
+var savedKey=localStorage.getItem('ds_key');
+if(savedKey==='sk-848e99d4f23f4599b2690249164c70d7'||savedKey==='sk-9dbaa91bdf764459812856da0ae5a7e4'){localStorage.removeItem('ds_key');savedKey='';}
+document.getElementById('apiKey').value=savedKey||'';
+// Load templates from API (not exposed in source)
+fetch('/api/templates.php').then(function(r){return r.json()}).then(function(d){
+  LAYOUTS=d.layouts;STYLES=d.styles;ART_STYLES=d.art_styles;DIR_STYLES=d.dir_styles;
+  renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
+}).catch(function(){renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();});
+var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
+document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
+
+// 浮层查看器
+let vs=1,vx=0,vy=0,isD=false,sx=0,sy=0;
+var viewerPrompt='';
+function openViewer(url,info,prompt){
+  viewerPrompt=prompt||'';
+  document.getElementById('viewerOverlay').style.display='flex';
+  document.getElementById('viewerImg').src=url;
+  document.getElementById('viewerInfo').textContent=info||'';
+  document.getElementById('viewerPromptBox').style.display=viewerPrompt?'flex':'none';
+  document.getElementById('viewerPromptText').textContent=viewerPrompt;
+  _viewerOrigPrompt=viewerPrompt;
+  document.getElementById('viewerRestoreBtn').style.display='none';
+  vs=1;vx=0;vy=0;
+  document.getElementById('viewerImg').style.transform='translate(0,0) scale(1)';
+  document.getElementById('viewerZoom').textContent='🔄 滚轮缩放·拖动查看';
+  document.body.style.overflow='hidden';
+  // 图片加载后自动获取完整信息
+  document.getElementById('viewerImg').onload=function(){
+    var w=this.naturalWidth,h=this.naturalHeight;
+    var lb={'0.56':'9:16','0.75':'3:4','1.33':'4:3','1.50':'3:2','1.78':'16:9'}[(w/h).toFixed(2)]||w+':'+h;
+    var base=info||'';
+    fetch(url).then(function(r){return r.blob()}).then(function(b){
+      var fs=b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+' | '+fs;
+    }).catch(function(){
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h;
+    });
+  };
+}
+function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';_viewerOrigPrompt='';}
+document.getElementById('viewerOverlay').addEventListener('wheel',function(e){if(e.target.closest('#viewerContainer')){e.preventDefault();var d=e.deltaY>0?-0.1:0.1;vs=Math.max(.5,Math.min(10,vs+d));document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}},{passive:false});
+document.getElementById('viewerOverlay').addEventListener('mousedown',function(e){if(e.target.closest('#viewerContainer')&&e.button===0){isD=true;sx=e.clientX-vx;sy=e.clientY-vy;this.style.cursor='grabbing';}});
+document.addEventListener('mousemove',function(e){if(isD){vx=e.clientX-sx;vy=e.clientY-sy;document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}});
+document.addEventListener('mouseup',function(){if(isD){isD=false;document.getElementById('viewerOverlay').style.cursor='grab';}});
+function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('提示词已复制','ok');}
+function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
+var _viewerOrigPrompt='';
+function translateViewerPrompt(btn){
+  if(!_viewerOrigPrompt||_viewerOrigPrompt.length<5){t('⚠️ 提示词太短','err');return;}
+  var lang=document.getElementById('viewerTargetLang').value;
+  // 翻回原文语言→直接显示原文，不调API
+  if(lang==='英文'){
+    document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
+    document.getElementById('viewerRestoreBtn').style.display='none';
+    btn.textContent='💡 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    return;
+  }
+  btn.innerHTML='⏳';btn.disabled=true;
+  fetch('/translate.php?_t='+Date.now(),{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:_viewerOrigPrompt,lang:lang})
+  }).then(function(r){return r.json()}).then(function(d){
+    if(d.translation){
+      var same=d.translation.trim()===_viewerOrigPrompt.trim();
+      document.getElementById('viewerPromptText').textContent=d.translation;
+      document.getElementById('viewerRestoreBtn').style.display=same?'none':'inline-block';
+      btn.textContent=same?'💡 原文':'✓ 已翻译';btn.style.color='#22c55e';
+      setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
+  }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
+  .finally(function(){btn.disabled=false;});
+}
+function restoreViewerPrompt(){
+  document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
+  document.getElementById('viewerRestoreBtn').style.display='none';
+}
+async function downloadViewer(){var url=document.getElementById('viewerImg').src;try{var r=await fetch(url);var b=await r.blob();var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click()}catch(e){window.open(url,'_blank')}}
+function viewH(idx){
+  var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
+  if(!x) return;
+  openViewer(x.u, x.model||'', x.prompt||'');
+}
+
+
+// ====== AUTH ======
+var AUTH_TOKEN = localStorage.getItem('sanshitu_token') || '';
+var AUTH_USER = JSON.parse(localStorage.getItem('sanshitu_user') || 'null');
+var authMode = 'login';
+
+function showLoginModal(){
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authModal').classList.add('show');
+  setAuthMode('login');
+}
+
+function closeLoginModal(){
+  document.getElementById('authModal').classList.remove('show');
+}
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('authTitle').textContent = mode === 'login' ? '🔑 登录' : '📝 注册';
+  document.getElementById('authSubmit').textContent = mode === 'login' ? '登录' : '注册';
+  document.getElementById('authToggleText').textContent = mode === 'login' ? '没有账号？' : '已有账号？';
+  document.getElementById('authToggleLink').textContent = mode === 'login' ? '立即注册' : '去登录';
+  document.getElementById('authError').classList.remove('show');
+}
+
+function toggleAuthMode(){
+  setAuthMode(authMode === 'login' ? 'register' : 'login');
+}
+
+async function handleAuth(){
+  var email = document.getElementById('authEmail').value.trim();
+  var password = document.getElementById('authPassword').value;
+  var errEl = document.getElementById('authError');
+
+  if (!email || !password) { errEl.textContent = '请填写邮箱和密码'; errEl.classList.add('show'); return; }
+
+  var endpoint = authMode === 'login' ? '/api/auth/login.php' : '/api/auth/register.php';
+  try {
+    var r = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, password: password})
+    });
+    var d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error || '操作失败'; errEl.classList.add('show'); return; }
+
+    AUTH_TOKEN = d.token;
+    AUTH_USER = d.user;
+    localStorage.setItem('sanshitu_token', d.token);
+    localStorage.setItem('sanshitu_user', JSON.stringify(d.user));
+    updateAuthUI();
+    closeLoginModal();
+    toast('登录成功', 'ok');
+  } catch(e) {
+    errEl.textContent = '网络错误，请重试';
+    errEl.classList.add('show');
+  }
+}
+
+function doLogout(){
+  AUTH_TOKEN = '';
+  AUTH_USER = null;
+  localStorage.removeItem('sanshitu_token');
+  localStorage.removeItem('sanshitu_user');
+  customPresets=[];
+  reRender();
+  updateAuthUI();
+  toast('已退出登录');
+}
+
+// ====== 自定义预设 ======
+var customModalCategory='';
+
+async function loadCustomPresets(){
+  if(!AUTH_TOKEN) return;
+  try {
+    var r=await fetch('/api/user/custom.php',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    if(r.ok){
+      var d=await r.json();
+      customPresets=d.presets||[];
+      reRender();
+    }
+  }catch(e){}
+}
+
+function showCustomModal(cat){
+  if(!AUTH_TOKEN){showLoginModal();return;}
+  customModalCategory=cat;
+  document.getElementById('customError').classList.remove('show');
+  document.getElementById('customTitle').textContent='➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat];
+  document.getElementById('customName').value='';
+  document.getElementById('customLabel').value='';
+  document.getElementById('customPrompt').value='';
+  document.getElementById('customIcon').value='';
+  document.getElementById('customLabelGroup').style.display=cat==='dir'?'block':'none';
+  document.getElementById('customModal').classList.add('show');
+}
+
+async function saveCustomPreset(){
+  var name=document.getElementById('customName').value.trim();
+  var label=document.getElementById('customLabel').value.trim();
+  var prompt=document.getElementById('customPrompt').value.trim();
+  var icon=document.getElementById('customIcon').value.trim();
+  var err=document.getElementById('customError');
+  if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
+  try {
+    var r=await fetch('/api/user/custom.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({category:customModalCategory,name:name,label:label,prompt:prompt})
+    });
+    if(r.ok){
+      document.getElementById('customModal').classList.remove('show');
+      await loadCustomPresets();
+      toast('已保存','ok');
+    }else{
+      var d=await r.json();
+      err.textContent=d.error||'保存失败';err.classList.add('show');
+    }
+  }catch(e){err.textContent='网络错误';err.classList.add('show');}
+}
+
+async function deleteCustomPreset(id){
+  if(!confirm('确定删除？'))return;
+  try {
+    var r=await fetch('/api/user/custom.php',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id:id})
+    });
+    if(r.ok){
+      customPresets=customPresets.filter(function(p){return p.id!==id;});
+      // 如果有选中这个自定义项，重置
+      if(selStyle&&selStyle.startsWith('c_'+id+'_')) selStyle='none';
+      if(selArt&&selArt.startsWith('c_'+id+'_')) selArt='none';
+      if(selDir&&selDir.startsWith('c_'+id+'_')) selDir='none';
+      if(selLayout&&selLayout.startsWith('c_'+id+'_')) selLayout='classic';
+      reRender();up();
+      toast('已删除','ok');
+    }
+  }catch(e){toast('删除失败','err');}
+}
+
+// 合并自定义预设到风格列表
+function getMergedStyle(type){
+  var cats=customPresets.filter(function(p){return p.category===type;});
+  return cats.map(function(p){
+    return {
+      id:'c_'+p.id+'_'+type,
+      name:p.name,
+      label:p.label,
+      prompt:p.prompt,
+      icon:'<div style="width:100%;height:100%;background:#667eea11;display:flex;align-items:center;justify-content:center;font-size:16px">✨</div>',
+      desc:'自定义',
+      _custom:true,
+      _id:p.id
+    };
+  });
+}
+
+function updateAuthUI(){
+  var loggedIn = !!(AUTH_TOKEN && AUTH_USER);
+  document.getElementById('loginBtn').style.display = loggedIn ? 'none' : 'inline-block';
+  document.getElementById('userBadge').style.display = loggedIn ? 'flex' : 'none';
+  if (loggedIn) {
+    document.getElementById('userEmail').textContent = AUTH_USER.email;
+    loadCustomPresets();
+  } else {
+    customPresets=[];
+    reRender();
+  }
+  }
+
+async function saveConfig(){
+  if (!AUTH_TOKEN) { showLoginModal(); return; }
+  var cfg = {
+    selLayout: selLayout, selStyle: selStyle, selArt: selArt, selDir: selDir,
+    optGender: document.getElementById('optGender').value,
+    optRace: document.getElementById('optRace').value,
+    optAge: document.getElementById('optAge').value,
+    optHeight: document.getElementById('optHeight').value,
+    optJob: document.getElementById('optJob').value,
+    optEra: document.getElementById('optEra').value,
+    modelType: document.getElementById('modelType').value,
+    resolution: document.getElementById('resolution').value,
+    aspectRatio: document.getElementById('aspectRatio').value
+  };
+  try {
+    var r = await fetch('/api/user/config.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN},
+      body: JSON.stringify({key: 'preset', data: cfg})
+    });
+    if (r.ok) { toast('配置已保存', 'ok'); }
+    else { var d = await r.json(); toast(d.error || '保存失败', 'err'); if (r.status === 401) doLogout(); }
+  } catch(e) { toast('网络错误', 'err'); }
+}
+
+async function loadConfig(){
+  if (!AUTH_TOKEN) { showLoginModal(); return; }
+  try {
+    var r = await fetch('/api/user/config.php?key=preset', {
+      headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}
+    });
+    if (r.ok) {
+      var d = await r.json();
+      if (d.config) {
+        var c = d.config;
+        if (c.selLayout) selLayout = c.selLayout;
+        if (c.selStyle) selStyle = c.selStyle;
+        if (c.selArt) selArt = c.selArt;
+        if (c.selDir) selDir = c.selDir;
+        setVal('optGender', c.optGender);
+        setVal('optRace', c.optRace);
+        setVal('optAge', c.optAge);
+        setVal('optHeight', c.optHeight);
+        setVal('optJob', c.optJob);
+        setVal('optEra', c.optEra);
+        setVal('modelType', c.modelType);
+        setVal('resolution', c.resolution);
+        setVal('aspectRatio', c.aspectRatio);
+        reRender();
+        onModelChange();
+        up();
+        toast('配置已加载', 'ok');
+      } else {
+        toast('暂无保存的配置');
+      }
+    } else {
+      var d2 = await r.json();
+      toast(d2.error || '加载失败', 'err');
+      if (r.status === 401) doLogout();
+    }
+  } catch(e) { toast('网络错误', 'err'); }
+}
+
+function setVal(id, val){
+  if (val !== undefined && val !== null && val !== '') {
+    var el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+}
+
+function reRender(){
+  renderLayouts();
+  renderStyles();
+  renderArtStyles();
+  renderDirStyles();
+}
+
+updateAuthUI();
+
+</script>
+<!-- 浮层查看器 -->
+<div id="viewerOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center;cursor:grab" onclick="closeViewer(event)">
+<div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center;max-width:90vw">
+<span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
+<button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
+<button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer">✕</button></div>
+<div style="display:flex;gap:12px;align-items:flex-start;max-width:90vw;max-height:85vh" onclick="event.stopPropagation()">
+<div id="viewerContainer" style="position:relative;overflow:hidden;border-radius:8px;flex-shrink:0">
+<img id="viewerImg" src="" style="display:block;max-width:64vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
+<div id="viewerPromptBox" style="display:none;flex-direction:column;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;max-height:85vh;max-width:340px;min-width:200px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
+<span style="color:#888;font-size:10px;flex:1">📝 提示词</span>
+<button class="preview-btn" onclick="copyViewerPrompt(this)" style="font-size:9px;padding:2px 6px">📋 复制</button>
+<button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px">🌐 翻译</button>
+<select id="viewerTargetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:1px 2px;cursor:pointer"><option value="中文">中文</option><option value="英文">English</option><option value="日文">日本語</option><option value="韩文">한국어</option><option value="法文">Français</option><option value="西班牙文">Español</option></select>
+<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button>
+<button class="preview-btn" id="viewerRestoreBtn" onclick="restoreViewerPrompt()" style="display:none;font-size:9px;padding:2px 6px">↩ 原文</button></div>
+<div style="padding:10px;overflow-y:auto;flex:1">
+<pre id="viewerPromptText" style="color:#bbb;font-size:11px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.5"></pre></div></div></div>
+<div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;background:#1a1a20cc;padding:4px 14px;border-radius:12px" id="viewerZoom">🔄 滚轮缩放·拖动查看</div></div>
+
+<!-- 登录弹窗 -->
+<div class="modal-overlay" id="authModal">
+<div style="position:relative">
+<div class="modal-box">
+<button class="modal-close" onclick="closeLoginModal()">✕</button>
+<h2 id="authTitle">🔑 登录</h2>
+<div id="authError" class="error"></div>
+<div class="form-group"><input type="email" id="authEmail" placeholder="邮箱" autocomplete="email"></div>
+<div class="form-group"><input type="password" id="authPassword" placeholder="密码" autocomplete="current-password"></div>
+<button class="btn-primary" id="authSubmit" onclick="handleAuth()">登录</button>
+<div class="toggle-link"><span id="authToggleText">没有账号？</span> <a id="authToggleLink" onclick="toggleAuthMode()">立即注册</a></div>
+</div></div></div>
+
+
+<!-- 自定义预设弹窗 -->
+<div class="modal-overlay" id="customModal">
+<div style="position:relative">
+<div class="modal-box">
+<button class="modal-close" onclick="document.getElementById('customModal').classList.remove('show')">✕</button>
+<h2 id="customTitle">➕ 自定义预设</h2>
+<div id="customError" class="error"></div>
+<div class="form-group"><label style="color:#888;font-size:10px">名称</label><input id="customName" placeholder="显示名称"></div>
+<div class="form-group" id="customLabelGroup" style="display:none"><label style="color:#888;font-size:10px">代表作</label><input id="customLabel" placeholder="代表作名称（如 重庆森林）"></div>
+<div class="form-group"><label style="color:#888;font-size:10px">提示词（英文）</label><textarea id="customPrompt" rows="4" placeholder="描述视觉风格的英文提示词..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e8e8ed;font-size:12px;font-family:monospace;resize:vertical"></textarea></div>
+<div class="form-group"><label style="color:#888;font-size:10px">图标URL（可选，人物风格/艺术风格）</label><input id="customIcon" placeholder="留空则使用默认图标"></div>
+<button class="btn-primary" onclick="saveCustomPreset()">💾 保存</button>
+</div></div></div>
+
+</body>
+</html>
