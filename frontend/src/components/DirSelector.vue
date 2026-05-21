@@ -32,5 +32,5 @@ const defaults = [
   { id:'kubrick', name:'库布里克', label:'2001太空漫游' }, { id:'burton', name:'蒂姆·伯顿', label:'圣诞夜惊魂' },
   { id:'kurosawa', name:'黑泽明', label:'七武士' }
 ]
-const items = computed(() => [...defaults, ...(props.customPresets||[])])
+const items = computed(() => (props.customPresets && props.customPresets.length) ? props.customPresets : defaults)
 </script>

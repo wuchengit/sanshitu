@@ -39,5 +39,5 @@ const defaults = [
   { id:'jp', name:'日系校园', desc:'明亮·青春' }, { id:'victorian', name:'维多利亚', desc:'暗金·复古' },
   { id:'zen', name:'极简禅意', desc:'素白·极简' }
 ]
-const items = computed(() => [...defaults, ...(props.customPresets||[])])
+const items = computed(() => (props.customPresets && props.customPresets.length) ? props.customPresets : defaults)
 </script>

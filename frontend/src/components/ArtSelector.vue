@@ -32,5 +32,5 @@ const defaults = [
   { id:'oil', name:'油画' }, { id:'water', name:'水彩' }, { id:'sketch', name:'素描' },
   { id:'pixel', name:'像素风' }, { id:'clay', name:'黏土' }, { id:'ink', name:'水墨' }
 ]
-const items = computed(() => [...defaults, ...(props.customPresets||[])])
+const items = computed(() => (props.customPresets && props.customPresets.length) ? props.customPresets : defaults)
 </script>
