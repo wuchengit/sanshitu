@@ -867,7 +867,7 @@ async function saveCustomPreset(){
     var base=name;
     var existing=getMergedStyle(customModalCategory);
     var usedNames=existing.map(function(x){return x.name;});
-    var n=2;
+    var n=1;
     while(usedNames.indexOf(base+' '+n)>=0) n++;
     name=base+' '+n;
     document.getElementById('customName').value=name;
