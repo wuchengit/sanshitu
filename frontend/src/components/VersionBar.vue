@@ -11,7 +11,7 @@ const props = defineProps({ version: String })
 const newVersion = ref(null)
 onMounted(async () => {
   try {
-    const r = await fetch('/version.txt?v='+Date.now())
+    return // version check disabled
     if (r.ok) {
       const v = (await r.text()).trim()
       if (v && v !== props.version) newVersion.value = v

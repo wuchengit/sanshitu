@@ -92,8 +92,8 @@ async function loadTemplates() {
       const d = await r.json()
       layouts.value = d.layouts || []
       styles.value = d.styles || []
-      arts.value = d.art || []
-      dirs.value = d.dir || []
+      arts.value = d.art_styles || []
+      dirs.value = d.dir_styles || []
     }
   } catch(e) { console.warn('load templates:', e) }
 }

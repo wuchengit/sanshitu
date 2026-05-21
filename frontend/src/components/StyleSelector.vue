@@ -14,7 +14,7 @@
         <button v-if="s._custom && user" @click.stop="$emit('delete', s._id)" class="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-[#ef444488] rounded-full text-white text-[7px] hidden group-hover:flex items-center justify-center z-10">✕</button>
         <button v-if="user" @click.stop="$emit('edit', s)" class="absolute top-0.5 right-0.5 w-4 h-4 bg-transparent text-[#666] text-[9px] hidden group-hover:flex items-center justify-center rounded hover:text-[#667eea] hover:bg-[#667eea22] z-10" :style="s._custom?'right-5':''">✏️</button>
         <div class="w-full aspect-square rounded overflow-hidden mb-0.5">
-          <img v-if="s.icon && !s.icon.startsWith('<')" :src="s.icon" class="w-full h-full object-cover" />
+          <img v-if="s.icon" :src="extractIconSrc(s.icon)" class="w-full h-full object-cover" />
           <div v-else class="w-full h-full bg-[#222] flex items-center justify-center text-lg">🎨</div>
         </div>
         <div class="text-[9px] font-semibold text-[#ccc]">{{ s.name }}</div>
@@ -25,6 +25,7 @@
 </template>
 <script setup>
 import { computed } from 'vue'
+function extractIconSrc(icon) { if (typeof icon !== 'string') return ''; var m = icon.match(/src="([^"]+)"/); return m ? m[1].replace('___V___', '20260521') : icon }
 const props = defineProps({ modelValue: String, customPresets: Array, user: Object })
 defineEmits(['update:modelValue', 'edit', 'delete'])
 const defaults = [
