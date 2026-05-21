@@ -831,6 +831,8 @@ function showCustomModal(cat,presetData,fromPreset){
   customModalCategory=cat;
   document.getElementById('customError').classList.remove('show');
   document.getElementById('customTitle').textContent=(presetData?(fromPreset?'✏️ 新建自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]:'✏️ 编辑自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]):'➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]);
+  document.getElementById('customSaveBtn').textContent=fromPreset?'➕ 新增':'💾 保存';
+  document.getElementById('customSaveAsBtn').style.display=fromPreset?'none':'inline-block';
   document.getElementById('customName').value=presetData?presetData.name:'';
   document.getElementById('customLabel').value=presetData?presetData.label||'':'';
   document.getElementById('customPrompt').value=presetData?presetData.prompt:'';
@@ -849,21 +851,22 @@ function editPresetItem(cat,item){
     // 编辑自定义项 → 更新
     showCustomModal(cat,{name:item.name,label:item.label||'',prompt:item.prompt||''},false);
     editPresetId=item._id;
+    editPresetOrigName=item.name;
   }else{
     // 从预设新建 → 创建新自定义项
     showCustomModal(cat,{name:item.name,label:item.label||item.desc||'',prompt:item.prompt||item.desc||''},true);
   }
 }
 
-async function saveCustomPreset(){
+async function saveCustomPreset(saveAs){
   var name=document.getElementById('customName').value.trim();
   var label=document.getElementById('customLabel').value.trim();
   var prompt=document.getElementById('customPrompt').value.trim();
   var icon=document.getElementById('customIcon').value.trim();
   var err=document.getElementById('customError');
   if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
-  // 从预设新建时，名字等于原始预设名则自动加序号
-  if(editPresetFrom==='preset' && name===editPresetOrigName){
+  // 从预设新建 或 另存时，名字没变则自动加序号
+  if((editPresetFrom==='preset'||saveAs) && name===editPresetOrigName){
     var base=name;
     var existing=getMergedStyle(customModalCategory);
     var usedNames=existing.map(function(x){return x.name;});
@@ -873,7 +876,7 @@ async function saveCustomPreset(){
     document.getElementById('customName').value=name;
   }
   try {
-    var method=editPresetId?'PUT':'POST';
+    var method=(editPresetId&&!saveAs)?'PUT':'POST';
     var body={category:customModalCategory,name:name,label:label,prompt:prompt};
     if(editPresetId) body.id=editPresetId;
     var r=await fetch('/api/user/custom.php',{
@@ -1074,7 +1077,7 @@ updateAuthUI();
 <div class="form-group" id="customLabelGroup" style="display:none"><label style="color:#888;font-size:10px">代表作</label><input id="customLabel" placeholder="代表作名称（如 重庆森林）"></div>
 <div class="form-group"><label style="color:#888;font-size:10px">提示词（英文）</label><textarea id="customPrompt" rows="4" placeholder="描述视觉风格的英文提示词..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e8e8ed;font-size:12px;font-family:monospace;resize:vertical"></textarea></div>
 <div class="form-group"><label style="color:#888;font-size:10px">图标URL（可选，人物风格/艺术风格）</label><input id="customIcon" placeholder="留空则使用默认图标"></div>
-<button class="btn-primary" onclick="saveCustomPreset()">💾 保存</button>
+<div style="display:flex;gap:8px"><button class="btn-primary" id="customSaveBtn" onclick="saveCustomPreset(false)" style="flex:1">💾 保存</button><button class="btn-primary" id="customSaveAsBtn" onclick="saveCustomPreset(true)" style="flex:1;background:#333;display:none">📋 另存</button></div>
 </div></div></div>
 
 </body>
