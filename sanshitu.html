@@ -75,6 +75,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast.err{border-color:#ef4444;color:#ef4444}
 .toast.ok{border-color:#22c55e;color:#22c55e}
 @keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.edit-preset-btn{position:absolute;top:1px;right:1px;width:16px;height:16px;background:transparent;border:none;color:#666;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;border-radius:3px;z-index:2;line-height:16px}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn{display:flex}.edit-preset-btn:hover{color:#667eea;background:#667eea22}
 /* 登录 */
 .login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
 .login-btn:hover{opacity:.85}
@@ -102,11 +103,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </style>
 </head>
 <body>
+<script>
+(function(){
+  function authLog(event, data){
+    try{
+      var body=JSON.stringify(Object.assign({event:event,status:'auth',path:location.pathname},data||{}));
+      if(navigator.sendBeacon){
+        navigator.sendBeacon('/log.php', new Blob([body],{type:'application/json'}));
+      }else{
+        fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:body}).catch(function(){});
+      }
+    }catch(e){}
+  }
+  try{
+    if(location.hash&&location.hash.indexOf('login_token=')!==-1){
+      var hash=new URLSearchParams(location.hash.slice(1));
+      var token=hash.get('login_token')||'';
+      var user=hash.get('login_user')||'';
+      if(token){
+        window.__SANSHITU_AUTH_TOKEN=token;
+        window.__SANSHITU_AUTH_USER=user;
+        try{localStorage.setItem('sanshitu_token',token);}catch(e){}
+        try{sessionStorage.setItem('sanshitu_token',token);}catch(e){}
+        if(user){
+          try{localStorage.setItem('sanshitu_user',user);}catch(e){}
+          try{sessionStorage.setItem('sanshitu_user',user);}catch(e){}
+        }
+        history.replaceState(null,document.title,location.pathname+location.search);
+        var sub='';
+        try{sub=JSON.parse(user||'{}').sub||'';}catch(e){}
+        authLog('login_hash_consumed',{ok:true,sub:sub,tokenLength:token.length});
+      }else{
+        authLog('login_hash_missing_token',{ok:false});
+      }
+    }
+  }catch(e){
+    authLog('login_hash_error',{ok:false,error:e.message});
+  }
+  window.addEventListener('error',function(e){
+    authLog('client_js_error',{ok:false,error:e.message,line:e.lineno});
+  });
+})();
+</script>
 <div class="container">
   <div class="header">
     <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">SD-API</span></h1>
     <p>高度人物面部一致性 · 专业三视图 · 适合集成 SD-API 平台</p>
-    <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.aiwuuw.com/callback'">🔑 登录</button>
+    <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
   </div>
   <div class="main-grid">
@@ -203,7 +246,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260520.7";
+const APP_VERSION="20260521.5";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -257,7 +300,7 @@ function onModelChange(){
 
 function renderLayouts(){
   var merged=LAYOUTS.concat(getMergedStyle('layout'));
-  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')">✕</button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${l.preview.replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div></div>`).join('');
+  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')">✕</button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${l.preview.replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'layout\','+JSON.stringify(l).replace(/"/g,'&quot;')+')\" title=\"编辑\">✏️</button>':''}</div>`).join('');
 }
 
 function renderStyles(){
@@ -267,12 +310,12 @@ function renderStyles(){
 
 function renderArtStyles(){
   var merged=ART_STYLES.concat(getMergedStyle('art'));
-  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')">✕</button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div></div>`).join('');
+  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')">✕</button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'art\','+JSON.stringify(a).replace(/"/g,'&quot;')+')\" title=\"编辑\">✏️</button>':''}</div>`).join('');
 }
 
 function renderDirStyles(){
   var merged=DIR_STYLES.concat(getMergedStyle('dir'));
-  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')">✕</button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div></div>`).join('');
+  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')">✕</button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'dir\','+JSON.stringify(d).replace(/"/g,'&quot;')+')\" title=\"编辑\">✏️</button>':''}</div>`).join('');
 }
 
 function buildPrompt(){
@@ -605,10 +648,16 @@ function openViewer(url,info,prompt){
   };
 }
 function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';_viewerOrigPrompt='';}
-document.getElementById('viewerOverlay').addEventListener('wheel',function(e){if(e.target.closest('#viewerContainer')){e.preventDefault();var d=e.deltaY>0?-0.1:0.1;vs=Math.max(.5,Math.min(10,vs+d));document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}},{passive:false});
-document.getElementById('viewerOverlay').addEventListener('mousedown',function(e){if(e.target.closest('#viewerContainer')&&e.button===0){isD=true;sx=e.clientX-vx;sy=e.clientY-vy;this.style.cursor='grabbing';}});
-document.addEventListener('mousemove',function(e){if(isD){vx=e.clientX-sx;vy=e.clientY-sy;document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}});
-document.addEventListener('mouseup',function(){if(isD){isD=false;document.getElementById('viewerOverlay').style.cursor='grab';}});
+function bindViewerEvents(){
+  var overlay=document.getElementById('viewerOverlay');
+  if(!overlay||overlay.dataset.bound)return;
+  overlay.dataset.bound='1';
+  overlay.addEventListener('wheel',function(e){if(e.target.closest('#viewerContainer')){e.preventDefault();var d=e.deltaY>0?-0.1:0.1;vs=Math.max(.5,Math.min(10,vs+d));document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}},{passive:false});
+  overlay.addEventListener('mousedown',function(e){if(e.target.closest('#viewerContainer')&&e.button===0){isD=true;sx=e.clientX-vx;sy=e.clientY-vy;this.style.cursor='grabbing';}});
+  document.addEventListener('mousemove',function(e){if(isD){vx=e.clientX-sx;vy=e.clientY-sy;document.getElementById('viewerImg').style.transform='translate('+vx+'px,'+vy+'px) scale('+vs+')';}});
+  document.addEventListener('mouseup',function(){if(isD){isD=false;overlay.style.cursor='grab';}});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindViewerEvents);else bindViewerEvents();
 function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('提示词已复制','ok');}
 function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
 var _viewerOrigPrompt='';
@@ -651,16 +700,54 @@ function viewH(idx){
 
 
 // ====== AUTH ======
-var AUTH_TOKEN = localStorage.getItem('sanshitu_token') || '';
-var AUTH_USER = JSON.parse(localStorage.getItem('sanshitu_user') || 'null');
+consumeLoginHash();
+var AUTH_TOKEN = authGet('sanshitu_token') || window.__SANSHITU_AUTH_TOKEN || '';
+var AUTH_USER = getStoredUser();
 var authMode = 'login';
 
+function consumeLoginHash(){
+  if (!location.hash || location.hash.indexOf('login_token=') === -1) return;
+  var hash = new URLSearchParams(location.hash.slice(1));
+  var token = hash.get('login_token') || '';
+  var user = hash.get('login_user') || '';
+  if (token) authSet('sanshitu_token', token);
+  if (user) {
+    try { authSet('sanshitu_user', user); }
+    catch(e) { authSet('sanshitu_user', JSON.stringify({username:'已登录'})); }
+  }
+  history.replaceState(null, document.title, location.pathname + location.search);
+}
+
+function authGet(key){
+  try { var v=localStorage.getItem(key); if(v)return v; } catch(e) {}
+  try { var s=sessionStorage.getItem(key); if(s)return s; } catch(e) {}
+  return '';
+}
+
+function authSet(key,value){
+  try { localStorage.setItem(key,value); } catch(e) {}
+  try { sessionStorage.setItem(key,value); } catch(e) {}
+}
+
+function authRemove(key){
+  try { localStorage.removeItem(key); } catch(e) {}
+  try { sessionStorage.removeItem(key); } catch(e) {}
+}
+
+function getStoredUser(){
+  if(window.__SANSHITU_AUTH_USER){
+    try { return JSON.parse(window.__SANSHITU_AUTH_USER); } catch(e) {}
+  }
+  try { return JSON.parse(authGet('sanshitu_user') || 'null'); }
+  catch(e) { return null; }
+}
+
+function loginWithLogto(){
+  window.location.href='https://www.aiwuuw.com/callback';
+}
+
 function showLoginModal(){
-  document.getElementById('authError').classList.remove('show');
-  document.getElementById('authEmail').value = '';
-  document.getElementById('authPassword').value = '';
-  document.getElementById('authModal').classList.add('show');
-  setAuthMode('login');
+  loginWithLogto();
 }
 
 function closeLoginModal(){
@@ -699,8 +786,8 @@ async function handleAuth(){
 
     AUTH_TOKEN = d.token;
     AUTH_USER = d.user;
-    localStorage.setItem('sanshitu_token', d.token);
-    localStorage.setItem('sanshitu_user', JSON.stringify(d.user));
+    authSet('sanshitu_token', d.token);
+    authSet('sanshitu_user', JSON.stringify(d.user));
     updateAuthUI();
     closeLoginModal();
     toast('登录成功', 'ok');
@@ -713,8 +800,10 @@ async function handleAuth(){
 function doLogout(){
   AUTH_TOKEN = '';
   AUTH_USER = null;
-  localStorage.removeItem('sanshitu_token');
-  localStorage.removeItem('sanshitu_user');
+  window.__SANSHITU_AUTH_TOKEN='';
+  window.__SANSHITU_AUTH_USER='';
+  authRemove('sanshitu_token');
+  authRemove('sanshitu_user');
   customPresets=[];
   reRender();
   updateAuthUI();
@@ -736,17 +825,33 @@ async function loadCustomPresets(){
   }catch(e){}
 }
 
-function showCustomModal(cat){
+var editPresetId=null,editPresetFrom='';
+function showCustomModal(cat,presetData,fromPreset){
   if(!AUTH_TOKEN){showLoginModal();return;}
   customModalCategory=cat;
   document.getElementById('customError').classList.remove('show');
-  document.getElementById('customTitle').textContent='➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat];
-  document.getElementById('customName').value='';
-  document.getElementById('customLabel').value='';
-  document.getElementById('customPrompt').value='';
+  document.getElementById('customTitle').textContent=(presetData?(fromPreset?'✏️ 新建自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]:'✏️ 编辑自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]):'➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]);
+  document.getElementById('customName').value=presetData?presetData.name:'';
+  document.getElementById('customLabel').value=presetData?presetData.label||'':'';
+  document.getElementById('customPrompt').value=presetData?presetData.prompt:'';
   document.getElementById('customIcon').value='';
   document.getElementById('customLabelGroup').style.display=cat==='dir'?'block':'none';
+  editPresetId=presetData&&!fromPreset?presetData._id:null;
+  editPresetFrom=fromPreset?'preset':'';
   document.getElementById('customModal').classList.add('show');
+}
+
+
+function editPresetItem(cat,item){
+  if(!AUTH_TOKEN){showLoginModal();return;}
+  if(item._custom){
+    // 编辑自定义项 → 更新
+    showCustomModal(cat,{name:item.name,label:item.label||'',prompt:item.prompt||''},false);
+    editPresetId=item._id;
+  }else{
+    // 从预设新建 → 创建新自定义项
+    showCustomModal(cat,{name:item.name,label:item.label||item.desc||'',prompt:item.prompt||item.desc||''},true);
+  }
 }
 
 async function saveCustomPreset(){
@@ -757,15 +862,20 @@ async function saveCustomPreset(){
   var err=document.getElementById('customError');
   if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
   try {
+    var method=editPresetId?'PUT':'POST';
+    var body={category:customModalCategory,name:name,label:label,prompt:prompt};
+    if(editPresetId) body.id=editPresetId;
     var r=await fetch('/api/user/custom.php',{
-      method:'POST',
+      method:method,
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
-      body:JSON.stringify({category:customModalCategory,name:name,label:label,prompt:prompt})
+      body:JSON.stringify(body)
     });
     if(r.ok){
+      var wasEdit=!!editPresetId;
       document.getElementById('customModal').classList.remove('show');
+      editPresetId=null;editPresetFrom='';
       await loadCustomPresets();
-      toast('已保存','ok');
+      toast(wasEdit?'已更新':'已保存','ok');
     }else{
       var d=await r.json();
       err.textContent=d.error||'保存失败';err.classList.add('show');
@@ -812,11 +922,14 @@ function getMergedStyle(type){
 }
 
 function updateAuthUI(){
-  var loggedIn = !!(AUTH_TOKEN && AUTH_USER);
+  AUTH_TOKEN = authGet('sanshitu_token') || window.__SANSHITU_AUTH_TOKEN || '';
+  AUTH_USER = getStoredUser();
+  var loggedIn = !!AUTH_TOKEN;
   document.getElementById('loginBtn').style.display = loggedIn ? 'none' : 'inline-block';
   document.getElementById('userBadge').style.display = loggedIn ? 'flex' : 'none';
   if (loggedIn) {
-    document.getElementById('userEmail').textContent = AUTH_USER.email;
+    var name = (AUTH_USER && (AUTH_USER.email || AUTH_USER.username || AUTH_USER.sub)) || '已登录';
+    document.getElementById('userEmail').textContent = name;
     loadCustomPresets();
   } else {
     customPresets=[];
