@@ -4,3 +4,4 @@ logs/
 images/
 cache/
 *.log
+frontend/node_modules/\nfrontend/dist/
