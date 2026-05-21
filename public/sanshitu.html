@@ -825,7 +825,7 @@ async function loadCustomPresets(){
   }catch(e){}
 }
 
-var editPresetId=null,editPresetFrom='';
+var editPresetId=null,editPresetFrom='',editPresetOrigName='';
 function showCustomModal(cat,presetData,fromPreset){
   if(!AUTH_TOKEN){showLoginModal();return;}
   customModalCategory=cat;
@@ -838,6 +838,7 @@ function showCustomModal(cat,presetData,fromPreset){
   document.getElementById('customLabelGroup').style.display=cat==='dir'?'block':'none';
   editPresetId=presetData&&!fromPreset?presetData._id:null;
   editPresetFrom=fromPreset?'preset':'';
+  editPresetOrigName=fromPreset?presetData.name:'';
   document.getElementById('customModal').classList.add('show');
 }
 
@@ -861,17 +862,15 @@ async function saveCustomPreset(){
   var icon=document.getElementById('customIcon').value.trim();
   var err=document.getElementById('customError');
   if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
-  // 从预设新建时，如果名字没改，自动加序号
-  if(editPresetFrom==='preset'){
+  // 从预设新建时，名字等于原始预设名则自动加序号
+  if(editPresetFrom==='preset' && name===editPresetOrigName){
     var base=name;
     var existing=getMergedStyle(customModalCategory);
     var usedNames=existing.map(function(x){return x.name;});
-    if(usedNames.indexOf(name)>=0){
-      var n=2;
-      while(usedNames.indexOf(base+' '+n)>=0) n++;
-      name=base+' '+n;
-      document.getElementById('customName').value=name;
-    }
+    var n=2;
+    while(usedNames.indexOf(base+' '+n)>=0) n++;
+    name=base+' '+n;
+    document.getElementById('customName').value=name;
   }
   try {
     var method=editPresetId?'PUT':'POST';
