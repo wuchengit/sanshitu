@@ -867,7 +867,8 @@ async function saveCustomPreset(saveAs){
   if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
   // 从预设新建 或 另存时，名字没变则自动加序号
   if((editPresetFrom==='preset'||saveAs) && name===editPresetOrigName){
-    var base=name;
+    // 如果名字已经带数字后缀(如"黏土 2")，剥掉取基础名
+    var base=name.replace(/ \d+$/,'');
     var existing=getMergedStyle(customModalCategory);
     var usedNames=existing.map(function(x){return x.name;});
     var n=1;
