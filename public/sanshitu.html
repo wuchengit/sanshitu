@@ -861,6 +861,18 @@ async function saveCustomPreset(){
   var icon=document.getElementById('customIcon').value.trim();
   var err=document.getElementById('customError');
   if(!name||!prompt){err.textContent='名称和提示词必填';err.classList.add('show');return;}
+  // 从预设新建时，如果名字没改，自动加序号
+  if(editPresetFrom==='preset'){
+    var base=name;
+    var existing=getMergedStyle(customModalCategory);
+    var usedNames=existing.map(function(x){return x.name;});
+    if(usedNames.indexOf(name)>=0){
+      var n=2;
+      while(usedNames.indexOf(base+' '+n)>=0) n++;
+      name=base+' '+n;
+      document.getElementById('customName').value=name;
+    }
+  }
   try {
     var method=editPresetId?'PUT':'POST';
     var body={category:customModalCategory,name:name,label:label,prompt:prompt};
