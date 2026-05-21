@@ -50,6 +50,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
   echo json_encode(['ok' => true, 'id' => $id, 'name' => $name, 'category' => $category]);
 
+} elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+  $input = json_decode(file_get_contents('php://input'), true);
+  $id = (int)($input['id'] ?? 0);
+  if (!$id) {
+    http_response_code(400);
+    echo json_encode(['error' => 'id required for update']);
+    exit;
+  }
+  $category = $input['category'] ?? '';
+  $name = trim($input['name'] ?? '');
+  $label = trim($input['label'] ?? '');
+  $prompt = trim($input['prompt'] ?? '');
+  if (!$category || !$name || !$prompt) {
+    http_response_code(400);
+    echo json_encode(['error' => 'category, name, prompt required']);
+    exit;
+  }
+  $encrypted = encrypt($prompt);
+  $stmt = $pdo->prepare('UPDATE custom_presets SET category = ?, name = ?, label = ?, prompt = ? WHERE id = ? AND user_id = ?');
+  $stmt->execute([$category, $name, $label, $encrypted, $id, $userId]);
+  if ($stmt->rowCount() > 0) {
+    echo json_encode(['ok' => true, 'id' => $id, 'name' => $name, 'category' => $category]);
+  } else {
+    http_response_code(404);
+    echo json_encode(['error' => 'Preset not found or not yours']);
+  }
+
 } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
   $input = json_decode(file_get_contents('php://input'), true);
   $id = (int)($input['id'] ?? 0);
