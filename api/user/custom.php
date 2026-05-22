@@ -15,7 +15,8 @@ $pdo = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $category = $_GET['category'] ?? '';
-  $sql = 'SELECT id, category, name, label, prompt, sort_order FROM custom_presets WHERE user_id = ?';
+  $table = tableName('custom_presets');
+  $sql = "SELECT id, category, name, label, prompt, sort_order FROM {$table} WHERE user_id = ?";
   $params = [$userId];
   if ($category) { $sql .= ' AND category = ?'; $params[] = $category; }
   $sql .= ' ORDER BY sort_order, id';
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
   $encrypted = encrypt($prompt);
   $stmt = $pdo->prepare(
-    'INSERT INTO custom_presets (user_id, category, name, label, prompt) VALUES (?, ?, ?, ?, ?)'
+    "INSERT INTO {$table} (user_id, category, name, label, prompt) VALUES (?, ?, ?, ?, ?)"
   );
   $stmt->execute([$userId, $category, $name, $label, $encrypted]);
   $id = (int) $pdo->lastInsertId();
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
   }
   $encrypted = encrypt($prompt);
-  $stmt = $pdo->prepare('UPDATE custom_presets SET category = ?, name = ?, label = ?, prompt = ? WHERE id = ? AND user_id = ?');
+  $stmt = $pdo->prepare("UPDATE {$table} SET category = ?, name = ?, label = ?, prompt = ? WHERE id = ? AND user_id = ?");
   $stmt->execute([$category, $name, $label, $encrypted, $id, $userId]);
   if ($stmt->rowCount() > 0) {
     echo json_encode(['ok' => true, 'id' => $id, 'name' => $name, 'category' => $category]);
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo json_encode(['error' => 'id required']);
     exit;
   }
-  $stmt = $pdo->prepare('DELETE FROM custom_presets WHERE id = ? AND user_id = ?');
+  $stmt = $pdo->prepare("DELETE FROM {$table} WHERE id = ? AND user_id = ?");
   $stmt->execute([$id, $userId]);
   echo json_encode(['ok' => true, 'deleted' => $stmt->rowCount() > 0]);
 } else {
