@@ -31,4 +31,11 @@ dl/batch_*
 *.swp
 *.swo
 *~
+# Environment
+.env
 .DS_Store
+# Logs and cache
+logs/
+images/
+cache/
+*.log
