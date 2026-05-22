@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260522 · 自定义预设增强 · 最后更新 2026-05-22</p>
+  <p class="subtitle">版本 20260523 · 测试环境搭建 · 最后更新 2026-05-23</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -145,14 +145,22 @@ const DOCS = [
 
 <h3>2.6 用户系统</h3>
 <ul>
-<li><strong>登录系统</strong>: Logto OIDC 登录，用户认证迁移到 Logto，前端通过 OIDC 流程登录，后端通过 <code>/oidc/me</code> 校验 access token，用户标识使用 Logto <code>sub</code></li>
+<li><strong>登录系统</strong>: Logto OIDC 登录，前端直连 OIDC 登录（不走 callback 中转），后端通过 <code>/oidc/me</code> 校验 access token，用户标识使用 Logto <code>sub</code></li>
 <li><strong>callback 处理页</strong>: 新增 <code>callback.html</code> 处理 Logto 登录回调，携带一次性登录 hash 跳转回主页面</li>
 <li><strong>云端存储</strong>: 用户配置、自定义预设等加密存储到云端</li>
 <li><strong>数据安全</strong>: AES-256-CBC 加密存储敏感数据，提示词模板后端化不暴露源码</li>
 <li><strong>未登录体验</strong>: 保存/加载/自定义入口始终可见，未登录点击跳转 Logto 登录</li>
 </ul>
 
-<h3>2.7 辅助功能</h3>
+<h3>2.7 测试环境</h3>
+<ul>
+<li><strong>测试数据库</strong>: 独立测试数据库环境，与生产数据完全隔离</li>
+<li><strong>X-Test-Mode</strong>: API 请求通过 <code>X-Test-Mode: true</code> header 自动切换到测试数据库，<code>tableName()</code> 自动加 <code>test_</code> 前缀</li>
+<li><strong>测试平台</strong>: <a href="/tests" style="color:#667eea">tests.html</a> 独立测试页面，可用于开发调试和功能验证</li>
+<li><strong>适用范围</strong>: custom.php、config.php 等用户数据接口均支持测试模式</li>
+</ul>
+
+<h3>2.8 辅助功能</h3>
 <ul>
 <li><strong>参考图上传</strong>: 支持 0-6 张参考图（base64 传给 API）</li>
 <li><strong>模型选择</strong>: gpt-image-2 / gpt-image-2-vip（VIP 可选 1K/2K/4K 分辨率）</li>
@@ -167,6 +175,12 @@ const DOCS = [
 <li><strong>版本更新提示</strong>: 自动检测版本 + 硬刷新弹窗</li>
 </ul>
 
+<h3>2.9 项目文档页面</h3>
+<ul>
+<li><strong>在线文档</strong>: <a href="/docs.html" style="color:#667eea">docs.html</a> 密码保护的三 tab 文档页面（产品文档 / Bug修复 / 提交记录 + 测试平台链接）</li>
+<li><strong>每日自动更新</strong>: 每日凌晨 cron 自动从 git log 提取提交并同步更新所有文档</li>
+</ul>
+
 <h2>三、技术架构</h2>
 
 <h3>3.1 技术栈</h3>
@@ -176,8 +190,9 @@ const DOCS = [
 <li><strong>图片生成 API</strong>: grsai.dakka.com.cn（国内节点）</li>
 <li><strong>翻译 API</strong>: DeepSeek API（PHP 代理中转 + 本地文件缓存）</li>
 <li><strong>存储</strong>: localStorage + API Key / 提示词模板服务端化</li>
-<li><strong>认证</strong>: Logto OIDC，前端回调写入登录态，后端通过 <code>/oidc/me</code> 校验 access token</li>
+<li><strong>认证</strong>: Logto OIDC，前端直连 OIDC 登录，后端通过 <code>/oidc/me</code> 校验 access token</li>
 <li><strong>加密</strong>: AES-256-CBC（用户敏感数据）</li>
+<li><strong>数据库</strong>: MySQL，支持双模式（生产/测试）通过 <code>X-Test-Mode</code> header 隔离</li>
 <li><strong>部署</strong>: Nginx + 腾讯云服务器</li>
 </ul>
 
@@ -217,7 +232,30 @@ const DOCS = [
 </ol>`,
 
 // Tab 1: Bug修复列表
-`<h2>2026-05-21 修复</h2>
+`<h2>2026-05-22 修复</h2>
+
+<h3>sanshitu.html 登录走 callback 中转导致状态丢失</h3>
+<table>
+<tr><th>问题</th><td>sanshitu.html 登录流程走 callback.html 中转，回调过程中登录状态不稳定，返回主页面后仍显示"未登录"</td></tr>
+<tr><th>修复</th><td>sanshitu.html 直接跳过 callback 中转，直连 Logto OIDC 完成登录流程</td></tr>
+<tr><th>提交</th><td><code>f6caebf</code></td></tr>
+</table>
+
+<h3>OIDC client_id 过期/不匹配</h3>
+<table>
+<tr><th>问题</th><td>旧的 OIDC client_id 失效，导致 Logto 登录流程中断</td></tr>
+<tr><th>修复</th><td>更新 callback.html 和 public/callback.html 的 client_id 为 Logto 新建的 Sanshitu 应用</td></tr>
+<tr><th>提交</th><td><code>6950de1</code></td></tr>
+</table>
+
+<h3>custom.php 测试模式下表名不一致</h3>
+<table>
+<tr><th>问题</th><td>custom.php 表名硬编码为生产表，开启 X-Test-Mode 后读写仍走生产数据库</td></tr>
+<tr><th>修复</th><td>表名改用 <code>tableName()</code> 包装，自动根据测试模式切换 test_ 前缀</td></tr>
+<tr><th>提交</th><td><code>91f4fc3</code></td></tr>
+</table>
+
+<h2>2026-05-21 修复</h2>
 
 <h3>自定义预设 PUT handler 缺失</h3>
 <table>
@@ -456,7 +494,23 @@ const DOCS = [
 </table>`,
 
 // Tab 2: 提交记录
-`<h2>2026-05-21（8 个提交）</h2>
+`<h2>2026-05-22（11 个提交）</h2>
+<table>
+<tr><th>提交</th><th>时间</th><th>说明</th></tr>
+<tr><td><code>b7a4fd3</code></td><td>18:58</td><td>chore: 清理无用文件（备份/调试/旧版server&public目录）</td></tr>
+<tr><td><code>f6caebf</code></td><td>18:46</td><td>fix: sanshitu.html登录直连Logto OIDC，不走callback中转</td></tr>
+<tr><td><code>6950de1</code></td><td>18:33</td><td>fix: 更新OIDC client_id为Logto新建的Sanshitu应用</td></tr>
+<tr><td><code>833b096</code></td><td>16:47</td><td>feat: docs.html增加测试平台tab链接</td></tr>
+<tr><td><code>91f4fc3</code></td><td>16:24</td><td>fix: custom.php表名改用tableName()，支持测试模式切换</td></tr>
+<tr><td><code>d694281</code></td><td>16:23</td><td>feat: 搭建测试数据库环境，API支持X-Test-Mode header</td></tr>
+<tr><td><code>45b9865</code></td><td>16:11</td><td>feat: 创建测试页面 tests.html</td></tr>
+<tr><td><code>fcde446</code></td><td>15:48</td><td>docs: 更新README和DEPLOY文档，对齐当前功能</td></tr>
+<tr><td><code>f9a0074</code></td><td>12:14</td><td>refactor: 架构整理 - 用户数据分离、Git瘦身</td></tr>
+<tr><td><code>cc650e2</code></td><td>10:28</td><td>merge: 合并远程 gitee/master，解决 .gitignore 冲突</td></tr>
+<tr><td><code>164ba5d</code></td><td>04:05</td><td>docs: 同步更新项目文档（+5/21 8条提交/自定义预设修复/OIDC登录产品文档更新）</td></tr>
+</table>
+
+<h2>2026-05-21（8 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>7ce5bef</code></td><td>18:05</td><td>fix: 补上 PUT handler for custom.php</td></tr>
@@ -603,7 +657,8 @@ const DOCS = [
 
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 173</li>
+<li><strong>总提交数</strong>: 184</li>
+<li><strong>2026-05-22</strong>: 11 个提交（全天）</li>
 <li><strong>2026-05-21</strong>: 8 个提交（下午）</li>
 <li><strong>2026-05-20</strong>: 28 个提交（全天）</li>
 <li><strong>2026-05-19</strong>: 49 个提交（全天）</li>
