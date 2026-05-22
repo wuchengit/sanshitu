@@ -15,8 +15,9 @@ $pdo = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $key = $_GET['key'] ?? 'default';
+  $table = tableName('user_configs');
   $stmt = $pdo->prepare(
-    'SELECT config_data FROM user_configs WHERE user_id = ? AND config_key = ?'
+    "SELECT config_data FROM {$table} WHERE user_id = ? AND config_key = ?"
   );
   $stmt->execute([$userId, $key]);
   $row = $stmt->fetch();
@@ -41,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
   $encrypted = encrypt(json_encode($data));
   $pdo->prepare(
-    'INSERT INTO user_configs (user_id, config_key, config_data)
+    "INSERT INTO {$table} (user_id, config_key, config_data)
      VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE config_data = VALUES(config_data)'
+     ON DUPLICATE KEY UPDATE config_data = VALUES(config_data)"
   )->execute([$userId, $key, $encrypted]);
 
   echo json_encode(['ok' => true, 'key' => $key]);

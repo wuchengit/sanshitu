@@ -22,8 +22,9 @@ if (!$email || !$password) {
 
 // Lookup by email hash
 $hash = email_lookup_hash($email);
+$table = tableName('users');
 $row = db()->prepare(
-  'SELECT id, email_enc, password_hash FROM users WHERE email_hash = ?'
+  "SELECT id, email_enc, password_hash FROM {$table} WHERE email_hash = ?"
 );
 $row->execute([$hash]);
 $user = $row->fetch();

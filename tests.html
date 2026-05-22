@@ -65,7 +65,7 @@ h1 { font-size: 1.6em; margin-bottom: 4px; color: var(--accent); }
 </head>
 <body>
 <h1>🧪 三视图生成器 - 测试平台</h1>
-<p class="subtitle">共 <span id="total-count">28</span> 条用例 · 状态保存到 localStorage</p>
+<p class="subtitle">共 <span id="total-count">28</span> 条用例 · 状态保存到 localStorage · <span style="color:var(--accent);font-weight:600">🧪 测试模式：API 请求携带 X-Test-Mode: 1，数据隔离到 test_ 表</span></p>
 
 <div class="progress-bar-wrap">
   <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
@@ -129,6 +129,16 @@ var TEST_CASES = [
 
 var MODULE_NAMES = { smoke: '🔥 冒烟测试', func: '📋 功能测试', edge: '⚠️ 边界测试' };
 var STORAGE_KEY = 'sanshitu_test_results';
+
+// ====== 测试模式 API ======
+// 所有通过 testFetch() 发出的请求自动携带 X-Test-Mode: 1
+// 后端 api/lib/db.php 检测此 header，自动切换到 test_ 前缀表
+function testFetch(url, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers['X-Test-Mode'] = '1';
+  return fetch(url, options);
+}
 
 // ====== 状态管理 ======
 function loadState() {

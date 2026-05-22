@@ -27,7 +27,8 @@ if (strlen($password) < 6) {
 
 // Check existing by email hash
 $hash = email_lookup_hash($email);
-$stmt = db()->prepare('SELECT id FROM users WHERE email_hash = ?');
+$table = tableName('users');
+$stmt = db()->prepare("SELECT id FROM {$table} WHERE email_hash = ?");
 $stmt->execute([$hash]);
 if ($stmt->fetch()) {
   http_response_code(409);
@@ -39,7 +40,7 @@ if ($stmt->fetch()) {
 $emailEnc = encrypt($email);
 $pwdHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
 db()->prepare(
-  'INSERT INTO users (email_hash, email_enc, password_hash) VALUES (?, ?, ?)'
+  "INSERT INTO {$table} (email_hash, email_enc, password_hash) VALUES (?, ?, ?)"
 )->execute([$hash, $emailEnc, $pwdHash]);
 $userId = (int) db()->lastInsertId();
 
