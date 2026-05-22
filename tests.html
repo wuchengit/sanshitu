@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三视图生成器 - 测试平台</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --text: #e0e0e0;
+  --text2: #a0a0b0;
+  --accent: #4e8cff;
+  --pass: #2ecc71;
+  --fail: #e74c3c;
+  --skip: #7f8c8d;
+  --border: #2a2a4a;
+  --radius: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+h1 { font-size: 1.6em; margin-bottom: 4px; color: var(--accent); }
+.subtitle { color: var(--text2); font-size: 0.9em; margin-bottom: 20px; }
+.progress-bar-wrap { background: var(--surface); border-radius: var(--radius); height: 32px; margin-bottom: 16px; position: relative; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--pass), var(--accent)); transition: width 0.3s; border-radius: var(--radius); }
+.progress-bar-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 0.85em; font-weight: 600; white-space: nowrap; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.toolbar button, .toolbar select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.85em; transition: background 0.2s; }
+.toolbar button:hover, .toolbar select:hover { background: var(--surface2); }
+.toolbar .btn-export { background: var(--accent); color: #fff; border: none; }
+.module { margin-bottom: 8px; }
+.module-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; user-select: none; transition: background 0.2s; }
+.module-header:hover { background: var(--surface2); }
+.module-header .arrow { transition: transform 0.2s; font-size: 0.8em; }
+.module-header.open .arrow { transform: rotate(90deg); }
+.module-header .badge { margin-left: auto; font-size: 0.78em; padding: 2px 8px; border-radius: 10px; background: var(--surface2); }
+.module-body { display: none; }
+.module-body.open { display: block; }
+.test-item { background: var(--surface); border: 1px solid var(--border); border-top: none; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; transition: border-color 0.2s; }
+.test-item:first-of-type { border-top: 1px solid var(--border); }
+.test-item.pass { border-left: 4px solid var(--pass); }
+.test-item.fail { border-left: 4px solid var(--fail); }
+.test-item.skip { border-left: 4px solid var(--skip); }
+.test-id { font-family: monospace; font-size: 0.8em; color: var(--accent); min-width: 70px; padding-top: 2px; }
+.test-body { flex: 1; min-width: 0; }
+.test-name { font-weight: 600; margin-bottom: 4px; }
+.test-detail { font-size: 0.82em; color: var(--text2); line-height: 1.5; }
+.test-detail .label { color: var(--text); font-weight: 600; }
+.test-actions { display: flex; gap: 6px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
+.test-actions button { border: 1px solid var(--border); border-radius: 5px; padding: 4px 12px; cursor: pointer; font-size: 0.8em; background: var(--bg); color: var(--text); transition: all 0.2s; }
+.test-actions button.btn-pass:hover { background: var(--pass); color: #fff; border-color: var(--pass); }
+.test-actions button.btn-pass.active { background: var(--pass); color: #fff; border-color: var(--pass); }
+.test-actions button.btn-fail:hover { background: var(--fail); color: #fff; border-color: var(--fail); }
+.test-actions button.btn-fail.active { background: var(--fail); color: #fff; border-color: var(--fail); }
+.test-actions button.btn-skip:hover { background: var(--skip); color: #fff; border-color: var(--skip); }
+.test-actions button.btn-skip.active { background: var(--skip); color: #fff; border-color: var(--skip); }
+.actual-input { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 4px 8px; font-size: 0.8em; width: 240px; display: none; }
+.actual-input.show { display: inline-block; }
+.actual-text { font-size: 0.82em; color: var(--fail); margin-top: 4px; }
+.stats { display: flex; gap: 16px; font-size: 0.85em; }
+.stats .stat { display: flex; align-items: center; gap: 4px; }
+.stats .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<h1>🧪 三视图生成器 - 测试平台</h1>
+<p class="subtitle">共 <span id="total-count">28</span> 条用例 · 状态保存到 localStorage</p>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  <div class="progress-bar-text" id="progress-text">0 / 28 完成</div>
+</div>
+
+<div class="toolbar">
+  <select id="filter-select">
+    <option value="all">全部</option>
+    <option value="pass">✅ 通过</option>
+    <option value="fail">❌ 失败</option>
+    <option value="skip">⏭️ 跳过</option>
+    <option value="pending">⏳ 待测</option>
+  </select>
+  <button onclick="resetAll()">🔄 全部重置</button>
+  <button class="btn-export" onclick="exportReport()">📥 导出报告</button>
+  <div class="stats" id="stats-bar">
+    <span class="stat"><span class="dot" style="background:var(--pass)"></span> 通过: <b id="stat-pass">0</b></span>
+    <span class="stat"><span class="dot" style="background:var(--fail)"></span> 失败: <b id="stat-fail">0</b></span>
+    <span class="stat"><span class="dot" style="background:var(--skip)"></span> 跳过: <b id="stat-skip">0</b></span>
+  </div>
+</div>
+
+<div id="modules"></div>
+
+<script>
+// ====== 测试用例数据 ======
+var TEST_CASES = [
+  // 冒烟测试
+  { id: 'SMOKE-01', module: 'smoke', name: '页面加载', steps: '1. 访问页面\n2. 观察控制台有无 JS 报错', expected: '所有模块渲染完整，无白屏，控制台无报错' },
+  { id: 'SMOKE-02', module: 'smoke', name: '资产结构切换', steps: '1. 依次点击7种资产结构卡片\n2. 观察提示词预览变化', expected: '每次点击选中态切换（蓝色边框），提示词实时更新为对应结构' },
+  { id: 'SMOKE-03', module: 'smoke', name: '风格组合', steps: '1. 选一个资产结构\n2. 选人物风格（非"通用"）\n3. 选艺术风格（非"无"）\n4. 选导演风格（非"无"）', expected: '提示词正确拼接各风格模板，无重复或冲突' },
+  { id: 'SMOKE-04', module: 'smoke', name: '人物属性', steps: '1. 设置性别、人种、年龄、身高\n2. 选一个职业\n3. 选一个年代', expected: '提示词中正确包含所选属性描述' },
+  { id: 'SMOKE-05', module: 'smoke', name: '提示词工具', steps: '1. 点击「复制」\n2. 点击「下载」\n3. 点击「翻译」', expected: '复制成功（剪贴板有内容），下载触发文件保存，翻译返回目标语言' },
+  { id: 'SMOKE-06', module: 'smoke', name: '生成按钮', steps: '1. 点击「🎨 生成图片」', expected: '按钮变为 loading 状态，发起 API 请求' },
+  // 功能测试
+  { id: 'FUNC-01', module: 'func', name: '资产结构 - 7种全覆盖', steps: '分别选中 classic/portrait/pure/face3view/side/halfbody/expression 这7种结构，验证提示词和预览图', expected: '每种结构提示词不同，预览图符合描述，prompt length 合理' },
+  { id: 'FUNC-02', module: 'func', name: '人物风格 - 18种切换', steps: '固定资产结构为「经典三视图」，遍历18种人物风格', expected: '每种风格追加对应的光影/色调/氛围描述' },
+  { id: 'FUNC-03', module: 'func', name: '艺术风格 - 12种切换', steps: '结构+风格固定，遍历12种艺术风格', expected: '每种风格正确追加材质/渲染风格描述，选「无」时不影响' },
+  { id: 'FUNC-04', module: 'func', name: '导演风格 - 11位切换', steps: '结构+人物+艺术固定，遍历11位导演风格', expected: '正确追加导演代表作参考描述' },
+  { id: 'FUNC-05', module: 'func', name: '人物属性设置', steps: '1. 性别：女/男/不限\n2. 人种：7种各选一次\n3. 年龄：5种各选一次\n4. 身高：3种各选一次', expected: '提示词正确包含对应属性，不限时无影响' },
+  { id: 'FUNC-06', module: 'func', name: '职业 - 30种', steps: '遍历职业下拉框所有选项', expected: '每种职业在提示词中追加对应的服装/装备描述' },
+  { id: 'FUNC-07', module: 'func', name: '年代 - 20种', steps: '遍历年代下拉框所有选项', expected: '每种年代在提示词中追加对应的时代背景描述' },
+  { id: 'FUNC-08', module: 'func', name: '模型/比例/分辨率', steps: '1. 切换模型 gpt-image-2/vip\n2. 切换15种比例\n3. 切换分辨率 1K/2K/4K', expected: '比例选择影响宽高比，分辨率影响生成质量参数' },
+  { id: 'FUNC-09', module: 'func', name: '参考图上传', steps: '1. 上传1张图\n2. 继续上传到6张上限\n3. 悬停查看删除按钮\n4. 删除某张\n5. 替换已上传', expected: '上传框上限6个，到上限后「＋」消失，删除后恢复空位' },
+  { id: 'FUNC-10', module: 'func', name: '翻译功能', steps: '1. 选择目标语言（6种）\n2. 点击「翻译」\n3. 再次点击同一语言', expected: '第一次正常翻译，第二次从缓存读取' },
+  { id: 'FUNC-11', module: 'func', name: '生成图片', steps: '1. 填入 API Key\n2. 配置所有参数\n3. 点击生成\n4. 等待完成', expected: '显示 loading，结果展示在历史区域，缩略图可点击查看大图' },
+  { id: 'FUNC-12', module: 'func', name: '历史记录', steps: '1. 点击缩略图查看大图\n2. 滚轮缩放/拖动\n3. 点击「多选」\n4. 批量操作', expected: '浮层查看器正常，多选可批量删除/下载' },
+  { id: 'FUNC-13', module: 'func', name: '自定义预设', steps: '1. 点击「＋」新增\n2. 填写名称/描述/提示词\n3. 保存\n4. 编辑/删除', expected: '自定义项带"我的"标记，可正常选中/编辑/删除' },
+  { id: 'FUNC-14', module: 'func', name: '登录/登出', steps: '1. 点击「登录」\n2. Logto 登录\n3. 回到页面\n4. 退出', expected: 'OIDC 流程完整，登录后显示用户邮箱，退出后清除 token' },
+  { id: 'FUNC-15', module: 'func', name: '配置云端同步', steps: '1. 保存配置\n2. 刷新页面\n3. 重新登录', expected: '配置正确保存到云端，刷新后登录自动恢复' },
+  // 边界测试
+  { id: 'EDGE-01', module: 'edge', name: '空 API Key 生成', steps: 'API Key 留空，点击生成', expected: '提示用户输入 API Key，不发起请求' },
+  { id: 'EDGE-02', module: 'edge', name: '空提示词生成', steps: '清除所有提示词，点击生成', expected: '提示"请输入提示词"' },
+  { id: 'EDGE-03', module: 'edge', name: '超大提示词', steps: '输入超长提示词（>5000字），点击生成', expected: '截断或提醒超出限制' },
+  { id: 'EDGE-04', module: 'edge', name: '非法图片上传', steps: '选择非图片文件（.txt/.pdf），尝试上传', expected: '过滤非法格式，不上传' },
+  { id: 'EDGE-05', module: 'edge', name: '网络断开', steps: '断网状态下点击生成', expected: '友好提示网络错误，不白屏' },
+  { id: 'EDGE-06', module: 'edge', name: '浏览器缩放', steps: '浏览器缩放至 50% 和 200%', expected: '布局不崩，所有元素可交互' },
+  { id: 'EDGE-07', module: 'edge', name: 'localStorage 满', steps: '存储30条历史后，再生成一张', expected: '自动移除最旧记录，保留最新30条' }
+];
+
+var MODULE_NAMES = { smoke: '🔥 冒烟测试', func: '📋 功能测试', edge: '⚠️ 边界测试' };
+var STORAGE_KEY = 'sanshitu_test_results';
+
+// ====== 状态管理 ======
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch(e) { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ====== 渲染 ======
+function renderAll() {
+  var state = loadState();
+  var container = document.getElementById('modules');
+  var modules = ['smoke', 'func', 'edge'];
+  var html = '';
+
+  for (var m = 0; m < modules.length; m++) {
+    var mod = modules[m];
+    var cases = TEST_CASES.filter(function(c) { return c.module === mod; });
+    var open = state['_open_' + mod] !== false;
+    html += '<div class="module">';
+    html += '<div class="module-header' + (open ? ' open' : '') + '" onclick="toggleModule(\'' + mod + '\')">';
+    html += '<span class="arrow">▶</span>';
+    html += '<span>' + MODULE_NAMES[mod] + '</span>';
+    html += '<span class="badge">' + cases.length + ' 条</span>';
+    html += '</div>';
+    html += '<div class="module-body' + (open ? ' open' : '') + '">';
+    for (var i = 0; i < cases.length; i++) {
+      var tc = cases[i];
+      var r = state[tc.id] || { status: 'pending', actual: '' };
+      html += '<div class="test-item ' + r.status + '" id="item-' + tc.id + '">';
+      html += '<div class="test-id">' + tc.id + '</div>';
+      html += '<div class="test-body">';
+      html += '<div class="test-name">' + tc.name + '</div>';
+      html += '<div class="test-detail"><span class="label">步骤：</span>' + escapeHtml(tc.steps.replace(/\n/g, '<br>')) + '</div>';
+      html += '<div class="test-detail"><span class="label">预期：</span>' + escapeHtml(tc.expected) + '</div>';
+      if (r.actual) {
+        html += '<div class="actual-text">📝 ' + escapeHtml(r.actual) + '</div>';
+      }
+      html += '<div class="test-actions">';
+      html += '<button class="btn-pass' + (r.status === 'pass' ? ' active' : '') + '" onclick="setStatus(\'' + tc.id + '\',\'pass\')">✅ 通过</button>';
+      html += '<button class="btn-fail' + (r.status === 'fail' ? ' active' : '') + '" onclick="setFail(\'' + tc.id + '\')">❌ 失败</button>';
+      html += '<button class="btn-skip' + (r.status === 'skip' ? ' active' : '') + '" onclick="setStatus(\'' + tc.id + '\',\'skip\')">⏭️ 跳过</button>';
+      html += '<input class="actual-input' + (r.status === 'fail' ? ' show' : '') + '" id="input-' + tc.id + '" placeholder="实际结果..." value="' + escapeHtml(r.actual) + '" onchange="saveActual(\'' + tc.id + '\')">';
+      html += '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+  updateProgress();
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function toggleModule(mod) {
+  var state = loadState();
+  state['_open_' + mod] = state['_open_' + mod] === false;
+  saveState(state);
+  renderAll();
+  var filter = document.getElementById('filter-select').value;
+  applyFilter(filter);
+}
+
+// ====== 操作 ======
+function setStatus(id, status) {
+  var state = loadState();
+  state[id] = { status: status, actual: (state[id] || {}).actual || '' };
+  saveState(state);
+  renderAll();
+  var filter = document.getElementById('filter-select').value;
+  applyFilter(filter);
+  updateProgress();
+}
+
+function setFail(id) {
+  var state = loadState();
+  state[id] = { status: 'fail', actual: (state[id] || {}).actual || '' };
+  saveState(state);
+  renderAll();
+  // Show the input
+  var input = document.getElementById('input-' + id);
+  if (input) {
+    input.classList.add('show');
+    input.focus();
+  }
+  updateProgress();
+}
+
+function saveActual(id) {
+  var input = document.getElementById('input-' + id);
+  if (!input) return;
+  var state = loadState();
+  state[id] = state[id] || { status: 'fail' };
+  state[id].actual = input.value;
+  state[id].status = 'fail';
+  saveState(state);
+  renderAll();
+  updateProgress();
+}
+
+function resetAll() {
+  if (confirm('确定要重置所有测试结果吗？此操作不可撤销。')) {
+    localStorage.removeItem(STORAGE_KEY);
+    renderAll();
+  }
+}
+
+// ====== 进度 ======
+function updateProgress() {
+  var state = loadState();
+  var total = TEST_CASES.length;
+  var pass = 0, fail = 0, skip = 0;
+  for (var i = 0; i < TEST_CASES.length; i++) {
+    var r = state[TEST_CASES[i].id];
+    if (!r) continue;
+    if (r.status === 'pass') pass++;
+    else if (r.status === 'fail') fail++;
+    else if (r.status === 'skip') skip++;
+  }
+  var done = pass + fail + skip;
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = done + ' / ' + total + ' 完成';
+  document.getElementById('stat-pass').textContent = pass;
+  document.getElementById('stat-fail').textContent = fail;
+  document.getElementById('stat-skip').textContent = skip;
+}
+
+// ====== 筛选 ======
+function applyFilter(filter) {
+  var items = document.querySelectorAll('.test-item');
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    if (filter === 'all') {
+      item.style.display = '';
+    } else if (filter === 'pending') {
+      item.style.display = item.classList.contains('pass') || item.classList.contains('fail') || item.classList.contains('skip') ? 'none' : '';
+    } else {
+      item.style.display = item.classList.contains(filter) ? '' : 'none';
+    }
+  }
+}
+
+document.getElementById('filter-select').addEventListener('change', function() {
+  applyFilter(this.value);
+});
+
+// ====== 导出 ======
+function exportReport() {
+  var state = loadState();
+  var report = {
+    title: '三视图生成器 - 测试报告',
+    date: new Date().toISOString(),
+    total: TEST_CASES.length,
+    results: []
+  };
+  var pass = 0, fail = 0, skip = 0;
+  for (var i = 0; i < TEST_CASES.length; i++) {
+    var tc = TEST_CASES[i];
+    var r = state[tc.id] || { status: 'pending', actual: '' };
+    if (r.status === 'pass') pass++;
+    else if (r.status === 'fail') fail++;
+    else if (r.status === 'skip') skip++;
+    report.results.push({
+      id: tc.id,
+      name: tc.name,
+      module: tc.module,
+      status: r.status,
+      actual: r.actual || '',
+      steps: tc.steps,
+      expected: tc.expected
+    });
+  }
+  report.summary = { pass: pass, fail: fail, skip: skip, pending: TEST_CASES.length - pass - fail - skip };
+  var blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'test-report-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+}
+
+// ====== 初始化 ======
+renderAll();
+</script>
+</body>
+</html>
