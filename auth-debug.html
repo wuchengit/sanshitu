@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanshitu Auth Debug</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111;color:#eee;padding:24px;line-height:1.5}
+pre{background:#1d1d24;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
+button{background:#667eea;color:#fff;border:0;border-radius:6px;padding:8px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>Sanshitu Auth Debug</h1>
+<button onclick="localStorage.removeItem('sanshitu_token');localStorage.removeItem('sanshitu_user');location.reload()">清除登录态</button>
+<pre id="out">loading...</pre>
+<script>
+(async function(){
+  var token = localStorage.getItem('sanshitu_token') || '';
+  var user = localStorage.getItem('sanshitu_user') || '';
+  var out = {
+    href: location.href,
+    origin: location.origin,
+    hasToken: !!token,
+    tokenLength: token.length,
+    tokenPrefix: token ? token.slice(0, 12) + '...' : '',
+    user: user
+  };
+  if (token) {
+    try {
+      var r = await fetch('/api/user/config.php?key=preset', {headers:{Authorization:'Bearer '+token}});
+      out.configStatus = r.status;
+      out.configBody = await r.text();
+    } catch(e) {
+      out.configError = e.message;
+    }
+  }
+  document.getElementById('out').textContent = JSON.stringify(out, null, 2);
+})();
+</script>
+</body>
+</html>

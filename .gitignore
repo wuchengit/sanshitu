@@ -34,8 +34,11 @@ dl/batch_*
 # Environment
 .env
 .DS_Store
-# Logs and cache
+# Logs and cache (runtime data)
 logs/
-images/
 cache/
 *.log
+# User-generated images (keep out of git)
+images/20??????_*.png
+images/20??????_*.jpg
+images/thumbs/

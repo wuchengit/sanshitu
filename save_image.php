@@ -10,7 +10,9 @@ if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
     exit;
 }
 
-$baseDir = __DIR__ . '/images';
+// 用户数据独立存储，脱离项目目录
+$dataRoot = '/var/www/sanshitu-data';
+$baseDir = $dataRoot . '/images';
 $thumbDir = $baseDir . '/thumbs';
 if (!is_dir($baseDir)) mkdir($baseDir, 0755, true);
 if (!is_dir($thumbDir)) mkdir($thumbDir, 0755, true);
@@ -63,7 +65,7 @@ $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'ht
 $host = $_SERVER['HTTP_HOST'];
 
 echo json_encode([
-    'original' => "$scheme://$host/images/$filename.png",
-    'thumb' => "$scheme://$host/images/thumbs/$thumbName",
+    'original' => "$scheme://$host/data/images/$filename.png",
+    'thumb' => "$scheme://$host/data/images/thumbs/$thumbName",
     'size' => filesize($filepath)
 ]);
