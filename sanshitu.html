@@ -732,6 +732,34 @@ async function refreshToken(){
   return false;
 }
 
+// JWT过期时间检测 + 提前刷新
+function scheduleTokenRefresh(){
+  if(!AUTH_TOKEN) return;
+  try{
+    var parts=AUTH_TOKEN.split('.');
+    if(parts.length!==3) return;
+    var payload=JSON.parse(atob(parts[1]));
+    if(!payload.exp) return;
+    var expiresIn=payload.exp*1000 - Date.now();
+    var refreshAt=expiresIn - 5*60*1000; // 5 min before expiry
+    if(refreshAt<=0){ refreshToken(); return; }
+    setTimeout(function(){ refreshToken().then(function(ok){ if(ok) scheduleTokenRefresh(); }); }, refreshAt);
+  }catch(e){}
+}
+
+// 30s 轮询版本更新
+setInterval(function(){
+  fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
+    sv=sv.trim();
+    if(sv && sv!==APP_VERSION){
+      var bar=document.createElement('div');
+      bar.className='update-bar show';
+      bar.innerHTML='🔄 有新版本 <button class="update-btn" onclick="location.href=location.pathname+\'?v=\'+sv">更新</button>';
+      document.body.appendChild(bar);
+    }
+  }).catch(function(){});
+},30000);
+
 // 带自动刷新的 fetch
 async function authFetch(url, opts){
   opts = opts || {};
@@ -1019,6 +1047,7 @@ function updateAuthUI(){
     var name = (AUTH_USER && (AUTH_USER.email || AUTH_USER.username || AUTH_USER.sub)) || '已登录';
     document.getElementById('userEmail').textContent = name;
     loadCustomPresets();
+    scheduleTokenRefresh();
   } else {
     customPresets=[];
     reRender();
