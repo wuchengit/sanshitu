@@ -37,8 +37,8 @@
     },
     {
       "id": "expression",
-      "name": "Seedance专用三视图",
-      "desc": "高效通过Seedance平台真人合规",
+      "name": "Seedance专用",
+      "desc": "真人合规模板",
       "preview": "<img src=\"/images/previews/thumb/expression.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
       "prompt": "Split horizontal composition. Left half: full-body front-facing portrait of the complete figure from head to toe, standing naturally. Right half arranged vertically: head and shoulders 3-view reference (front, side, back views) showing the complete head and upper shoulders, stacked top to bottom. Same background. Clean character reference sheet."
     },
