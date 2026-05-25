@@ -148,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.27</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.28</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()"><i data-lucide="log-in"></i> 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -249,7 +249,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.27";
+const APP_VERSION="20260525.28";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Version check - auto reload if server version changed
@@ -920,7 +920,7 @@ function showCustomModal(cat,presetData,fromPreset){
   document.getElementById('customError').classList.remove('show');
   document.getElementById('customTitle').textContent=(presetData?(fromPreset?'✏️ 新建自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]:'✏️ 编辑自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]):'➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]);
   document.getElementById('customSaveBtn').textContent=presetData&&!fromPreset?'💾 保存':'➕ 新增';
-  document.getElementById('customSaveAsBtn').style.display=fromPreset?'none':'inline-block';
+  document.getElementById('customSaveAsBtn').style.display=(presetData&&!fromPreset)?'inline-block':'none';
   document.getElementById('customName').value=presetData?presetData.name:'';
   document.getElementById('customLabel').value=presetData?presetData.label||'':'';
   document.getElementById('customPrompt').value=presetData?presetData.prompt:'';
