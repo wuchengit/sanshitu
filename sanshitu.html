@@ -262,12 +262,9 @@ const APP_VERSION="20260525.12";
     }
     if(!storedVer) localStorage.setItem('ds_ver',sv);
   }).catch(function(){});
-  // APP version mismatch warning
+  // Version check on load - auto reload if outdated
   if(storedVer&&storedVer!==APP_VERSION){
-    var bar=document.createElement('div');
-    bar.className='update-bar show';
-    bar.innerHTML='🔄 有新版本 <button class="update-btn" onclick="location.href=location.pathname+\'?v=\'+APP_VERSION">更新</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
-    document.body.appendChild(bar);
+    location.reload();
   }
 })();
 var LAYOUTS=[],STYLES=[],ART_STYLES=[],DIR_STYLES=[];
@@ -747,15 +744,14 @@ function scheduleTokenRefresh(){
   }catch(e){}
 }
 
-// 30s 轮询版本更新
+// 30s 轮询版本，检测到新版本自动静默刷新
 setInterval(function(){
   fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
     sv=sv.trim();
     if(sv && sv!==APP_VERSION){
-      var bar=document.createElement('div');
-      bar.className='update-bar show';
-      bar.innerHTML='🔄 有新版本 <button class="update-btn" onclick="location.href=location.pathname+\'?v=\'+sv">更新</button>';
-      document.body.appendChild(bar);
+      // 保存当前提示词到localStorage防止丢失
+      try{var pi=document.getElementById('promptInput');if(pi&&pi.value)localStorage.setItem('ds_draft',pi.value);}catch(e){}
+      location.reload();
     }
   }).catch(function(){});
 },30000);
