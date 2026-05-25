@@ -147,7 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.10</span></h1>
+    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.11</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -158,6 +158,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="card" style="display:none">
         <div class="card-t">🔑 API 配置</div>
         <input type="password" id="apiKey" placeholder="自定义Key（可选）" style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px">
+      </div>
+      <div class="card">
+        <div class="card-t">🖼️ 参考图</div>
+        <div class="upload-row" id="uploadRow"></div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
       </div>
       <div class="card">
         <div class="card-t">📝 提示词</div>
@@ -224,11 +229,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <option value="1960s hippie counterculture era">☮️ 1960s嬉皮</option><option value="1980s retro synthwave era">📼 1980s复古</option><option value="Cyberpunk dystopian future">🌆 赛博时代</option><option value="Post-apocalyptic wasteland future">🏜️ 末日废土</option><option value="Space age sci-fi interstellar future">🛸 太空科幻</option>
       </select>
       </div>
-      <div class="card">
-        <div class="card-t">🖼️ 参考图</div>
-        <div class="upload-row" id="uploadRow"></div>
-        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
-      </div>
     </div>
     <!-- ===== HISTORY ===== -->
     <div>
@@ -248,7 +248,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.10";
+const APP_VERSION="20260525.11";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
