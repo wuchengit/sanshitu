@@ -43,6 +43,9 @@
   
   if (d.access_token) {
     localStorage.setItem('sanshitu_token', d.access_token);
+    if (d.refresh_token) {
+      localStorage.setItem('sanshitu_refresh', d.refresh_token);
+    }
     if (d.id_token) {
       var payload = JSON.parse(atob(d.id_token.split('.')[1]));
       localStorage.setItem('sanshitu_user', JSON.stringify({
