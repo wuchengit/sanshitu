@@ -79,7 +79,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 /* 登录 */
 .login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
 .login-btn:hover{opacity:.85}
-.add-custom-btn{padding:2px 6px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:10px;cursor:pointer;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{position:absolute;top:1px;left:1px;font-size:9px;background:#667eea22;color:#667eea;padding:0 3px;border-radius:3px;line-height:1.6;z-index:2;border:1px solid #667eea33}.custom-item .del-custom{position:absolute;top:1px;right:1px;width:18px;height:18px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;z-index:2}.custom-item .del-custom:hover{color:#e74c3c;border-color:#e74c3c;background:transparent}.custom-item:hover .del-custom{display:flex}
+.add-custom-btn{padding:2px 6px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:10px;cursor:pointer;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{position:absolute;top:1px;left:1px;font-size:9px;background:#667eea22;color:#667eea;padding:0 3px;border-radius:3px;line-height:1.6;z-index:2;border:1px solid #667eea33}.custom-item .del-custom{position:absolute;top:1px;right:1px;width:20px;height:20px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;z-index:2}.custom-item .del-custom [data-lucide]{width:14px;height:14px}.custom-item .del-custom:hover{color:#e74c3c;border-color:#e74c3c;background:transparent}.custom-item:hover .del-custom{display:flex}
 .user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
 .user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
 .user-badge .logout:hover{color:#e74c3c}
@@ -149,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.56</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.57</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()"><i data-lucide="log-in"></i> 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -249,7 +249,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.56";
+const APP_VERSION="20260525.57";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Version check - auto reload if server version changed
@@ -306,22 +306,22 @@ function onModelChange(){
 
 function renderLayouts(){
   var merged=LAYOUTS.concat(getMergedStyle('layout'));
-  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')">✕</button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${(l.preview||'<div style="width:100%;height:100%;background:#667eea11;display:flex;align-items:center;justify-content:center"><i data-lucide="sparkles" style="width:20px;height:20px;color:#667eea66"></i></div>').replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'layout\','+JSON.stringify(l).replace(/"/g,'&quot;')+')\" title=\"编辑\">✎</button>':''}</div>`).join('');
+  document.getElementById('layoutStrip').innerHTML=merged.map(l=>`<div class="layout-card ${l.id===selLayout?'active':''} ${l._custom?'custom-item':''}" onclick="${l._custom?'':'selLayout=\''+l.id+'\';renderLayouts();up()'}" style="position:relative">${l._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+l._id+')"><i data-lucide="x"></i></button>':''}<div class="preview" onclick="${l._custom?'selLayout=\''+l.id+'\';renderLayouts();up()':''}">${(l.preview||'<div style="width:100%;height:100%;background:#667eea11;display:flex;align-items:center;justify-content:center"><i data-lucide="sparkles" style="width:20px;height:20px;color:#667eea66"></i></div>').replaceAll('___V___',APP_VERSION)}</div><div class="name">${l.name}</div><div class="desc">${l._custom?'自定义':(l.desc||'')}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'layout\','+JSON.stringify(l).replace(/"/g,'&quot;')+')\" title=\"编辑\"><i data-lucide="pen"></i></button>':''}</div>`).join('');
 }
 
 function renderStyles(){
   var merged=STYLES.concat(getMergedStyle('style'));
-  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')">✕</button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'style\','+JSON.stringify(s).replace(/"/g,'&quot;')+')\" title=\"编辑\">✎</button>':''}</div>`).join('');
+  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')"><i data-lucide="x"></i></button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'style\','+JSON.stringify(s).replace(/"/g,'&quot;')+')\" title=\"编辑\"><i data-lucide="pen"></i></button>':''}</div>`).join('');
 }
 
 function renderArtStyles(){
   var merged=ART_STYLES.concat(getMergedStyle('art'));
-  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')">✕</button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'art\','+JSON.stringify(a).replace(/"/g,'&quot;')+')\" title=\"编辑\">✎</button>':''}</div>`).join('');
+  document.getElementById('artGrid').innerHTML=merged.map(a=>`<div class="style-card art-card ${a.id===selArt?'active':''} ${a._custom?'custom-item':''}" onclick="${a._custom?'':'selArt=\''+a.id+'\';renderArtStyles();up()'}" style="position:relative">${a._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+a._id+')"><i data-lucide="x"></i></button>':''}<div class="icon" onclick="${a._custom?'selArt=\''+a.id+'\';renderArtStyles();up()':''}">${a.icon}</div><div class="name">${a.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'art\','+JSON.stringify(a).replace(/"/g,'&quot;')+')\" title=\"编辑\"><i data-lucide="pen"></i></button>':''}</div>`).join('');
 }
 
 function renderDirStyles(){
   var merged=DIR_STYLES.concat(getMergedStyle('dir'));
-  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')">✕</button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'dir\','+JSON.stringify(d).replace(/"/g,'&quot;')+')\" title=\"编辑\">✎</button>':''}</div>`).join('');
+  document.getElementById('dirGrid').innerHTML=merged.map(d=>`<div class="style-card ${d.id===selDir?'active':''} ${d._custom?'custom-item':''}" onclick="${d._custom?'':'selDir=\''+d.id+'\';renderDirStyles();up()'}" style="position:relative">${d._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+d._id+')"><i data-lucide="x"></i></button>':''}<div class="name" onclick="${d._custom?'selDir=\''+d.id+'\';renderDirStyles();up()':''}">${d.label||d.name}</div><div class="desc">${d._custom?'自定义':d.name}</div>${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'dir\','+JSON.stringify(d).replace(/"/g,'&quot;')+')\" title=\"编辑\"><i data-lucide="pen"></i></button>':''}</div>`).join('');
 }
 
 function buildPrompt(){
@@ -1142,7 +1142,7 @@ updateAuthUI();
 <div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center;max-width:90vw">
 <span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
 <button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
-<button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer">✕</button></div>
+<button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer"><i data-lucide="x"></i></button></div>
 <div style="display:flex;gap:12px;align-items:flex-start;max-width:90vw;max-height:85vh" onclick="event.stopPropagation()">
 <div id="viewerContainer" style="position:relative;overflow:hidden;border-radius:8px;flex-shrink:0">
 <img id="viewerImg" src="" style="display:block;max-width:64vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
@@ -1162,7 +1162,7 @@ updateAuthUI();
 <div class="modal-overlay" id="authModal">
 <div style="position:relative">
 <div class="modal-box">
-<button class="modal-close" onclick="closeLoginModal()">✕</button>
+<button class="modal-close" onclick="closeLoginModal()"><i data-lucide="x"></i></button>
 <h2 id="authTitle"><i data-lucide="log-in"></i> 登录</h2>
 <div id="authError" class="error"></div>
 <div class="form-group"><input type="email" id="authEmail" placeholder="邮箱" autocomplete="email"></div>
@@ -1176,7 +1176,7 @@ updateAuthUI();
 <div class="modal-overlay" id="customModal">
 <div style="position:relative">
 <div class="modal-box">
-<button class="modal-close" onclick="document.getElementById('customModal').classList.remove('show')">✕</button>
+<button class="modal-close" onclick="document.getElementById('customModal').classList.remove('show')"><i data-lucide="x"></i></button>
 <h2 id="customTitle">➕ 自定义预设</h2>
 <div id="customError" class="error"></div>
 <div class="form-group"><label style="color:#888;font-size:10px">名称</label><input id="customName" placeholder="显示名称"></div>
