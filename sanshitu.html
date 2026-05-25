@@ -75,11 +75,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast.err{border-color:#ef4444;color:#ef4444}
 .toast.ok{border-color:#22c55e;color:#22c55e}
 @keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn [data-lucide]{width:12px;height:12px}.edit-preset-btn:hover{color:#667eea}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn:hover{color:#667eea}.custom-item:hover .del-custom{display:flex}
+.edit-preset-btn:hover{color:#667eea}
 /* 登录 */
 .login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
 .login-btn:hover{opacity:.85}
-.add-custom-btn{padding:2px 6px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:10px;cursor:pointer;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{font-size:7px;color:#667eea88;display:block;text-align:center;margin-bottom:2px}.custom-item .del-custom{background:transparent;border:none;color:#aaa;cursor:pointer;padding:2px;display:none}.custom-item .del-custom [data-lucide]{width:12px;height:12px}.custom-item .del-custom:hover{color:#e74c3c}.custom-item:hover .del-custom{display:inline-flex;align-items:center;justify-content:center}.custom-item .del-custom [data-lucide]{width:12px;height:12px}.custom-item .del-custom:hover{color:#e74c3c}.custom-item:hover .del-custom{display:flex}
+.add-custom-btn{padding:2px 6px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:10px;cursor:pointer;line-height:1.4}.add-custom-btn:hover{color:#667eea;border-color:#667eea66}.custom-item{border-color:#667eea44!important;background:#667eea0a!important}.custom-item .badge-custom{font-size:7px;color:#667eea88;display:block;text-align:center;margin-bottom:2px}.custom-item .del-custom [data-lucide]{width:12px;height:12px}.custom-item .del-custom:hover{color:#e74c3c}.custom-item .del-custom [data-lucide]{width:12px;height:12px}.custom-item .del-custom:hover{color:#e74c3c}
 .user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
 .user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
 .user-badge .logout:hover{color:#e74c3c}
@@ -102,15 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header{position:relative;padding-right:120px}
 .lucide{width:14px;height:14px;vertical-align:-2px;stroke-width:2}
 
-.edit-preset-btn{background:transparent;border:none;color:#aaa;cursor:pointer;padding:2px;display:none}.edit-preset-btn [data-lucide]{width:12px;height:12px}.edit-preset-btn:hover{color:#667eea}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn{display:inline-flex;align-items:center;justify-content:center}
-</style>
-</head>
-<body>
-<script>
-(function(){
-  function authLog(event, data){
-    try{
-      var body=JSON.stringify(Object.assign({event:event,status:'auth',path:location.pathname},data||{}));
+.edit-preset-btn [data-lucide]{width:12px;height:12px}.edit-preset-btn:hover{color:#667eea},data||{}));
       if(navigator.sendBeacon){
         navigator.sendBeacon('/log.php', new Blob([body],{type:'application/json'}));
       }else{
@@ -148,6 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   });
 })();
 </script>
+<body>
 <div class="container">
   <div class="header">
     <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.63</span></h1>
