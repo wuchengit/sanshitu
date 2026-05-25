@@ -149,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.47</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.48</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()"><i data-lucide="log-in"></i> 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -183,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="preview-box" id="promptPreview">选择右侧结构和风格后自动组合...</div>
         <div class="preview-tools">
           <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
-          <button class="preview-btn" onclick="downloadPrompt()">⬇️ 下载</button>
+          <button class="preview-btn" onclick="downloadPrompt()"><i data-lucide="download"></i> 下载</button>
           <button class="preview-btn" onclick="translatePrompt(this)">🌐 翻译</button>
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
@@ -235,13 +235,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- ===== HISTORY ===== -->
     <div>
       <div class="card"><div class="card-t"><i data-lucide="clock"></i> 生成历史</div>
-      <button class="preview-btn" id="selToggle" onclick="toggleSelect()" style="margin-bottom:4px">☐ 多选</button>
+      <button class="preview-btn" id="selToggle" onclick="toggleSelect()" style="margin-bottom:4px"><i data-lucide="check-square"></i> 多选</button>
       <div class="sel-toolbar" id="selToolbar">
         <span class="sel-count" id="selCount">已选 0 项</span>
-        <button onclick="selectAll()">☑ 全选</button>
-        <button onclick="batchDelete()">🗑 删除选中</button>
-        <button onclick="batchDownload()">⬇️ 下载选中</button>
-        <button onclick="toggleSelect()">✕ 取消</button>
+        <button onclick="selectAll()"><i data-lucide="check-check"></i> 全选</button>
+        <button onclick="batchDelete()"><i data-lucide="trash-2"></i> 删除选中</button>
+        <button onclick="batchDownload()"><i data-lucide="download"></i> 下载选中</button>
+        <button onclick="toggleSelect()"><i data-lucide="x"></i> 取消</button>
       </div>
       <div class="history-masonry" id="historyMasonry"><span style="color:#555;font-size:11px">暂无</span></div></div>
     </div>
@@ -250,7 +250,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.47";
+const APP_VERSION="20260525.48";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Version check - auto reload if server version changed
