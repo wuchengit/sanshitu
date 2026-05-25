@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260525 · 最后更新 2026-05-25</p>
+  <p class="subtitle">版本 20260525 · 最后更新 2026-05-26</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -175,10 +175,31 @@ const DOCS = [
 <li><strong>版本更新提示</strong>: 自动检测版本 + 硬刷新弹窗</li>
 </ul>
 
-<h3>2.9 项目文档页面</h3>
+<h3>2.9 全链路自动化</h3>
+<ul>
+<li><strong>版本自动刷新</strong>: 30s 轮询 version.txt，检测到新版后自动静默刷新页面（不弹提示条）</li>
+<li><strong>JWT 自动续期</strong>: 过期前 5 分钟自动调用 refresh_token 续期</li>
+<li><strong>缓存清除</strong>: Nginx no-cache + URL 版本 ?v= 参数强刷，文件名变更为 sanshitu_v2.html 彻底杜绝缓存</li>
+<li><strong>token 过期自动登录</strong>: token 过期后强制跳转 Logto 登录页，加 toast 提示</li>
+</ul>
+
+<h3>2.10 UI 统一化</h3>
+<ul>
+<li><strong>Lucide 图标库</strong>: 全部按钮（约 20 种 78 个实例）统一替换为 Lucide 图标，替代旧 emoji</li>
+<li><strong>三列等宽布局</strong>: 人物资产结构 / 风格 / 生成历史 独立三列，等宽分布</li>
+<li><strong>参考图位置</strong>: 移至提示词上方，更符合操作流程</li>
+<li><strong>卡片尺寸</strong>: 缩至 80px，预览自然缩放不错位</li>
+<li><strong>编辑/删除按钮</strong>: 纯文字风格（✎/✕），Lucide 图标辅助（sparkles 等），位置反复优化最终定稿</li>
+<li><strong>暗黑模式</strong>: 按钮对比度提高（#555→#aaa）</li>
+<li><strong>版本号显示</strong>: 副标题更新 SD-API→版本号，API 配置隐藏，纯三视图→全身三视图</li>
+<li><strong>人物资产结构调整</strong>: 重排顺序，经典→面部优先，头像→Seedance专用</li>
+</ul>
+
+<h3>2.11 项目文档页面</h3>
 <ul>
 <li><strong>在线文档</strong>: <a href="/docs.html" style="color:#667eea">docs.html</a> 密码保护的三 tab 文档页面（产品文档 / Bug修复 / 提交记录 + 测试平台链接）</li>
 <li><strong>每日自动更新</strong>: 每日凌晨 cron 自动从 git log 提取提交并同步更新所有文档</li>
+<li><strong>法务页面</strong>: 新增 privacy.html（隐私政策）和 terms.html（服务条款）</li>
 </ul>
 
 <h2>三、技术架构</h2>
@@ -232,7 +253,86 @@ const DOCS = [
 </ol>`,
 
 // Tab 1: Bug修复列表
-`<h2>2026-05-24</h2>
+`<h2>2026-05-25 修复</h2>
+
+<h3>Authorization header 用错导致登录后立刻被登出</h3>
+<table>
+<tr><th>问题</th><td>token 验证时 Authorization header 格式错误（''***''→''Bearer ''），登录成功后立即被 Logto OIDC 校验踢出</td></tr>
+<tr><th>修复</th><td>修正 Authorization header 格式，正确使用 Bearer 前缀</td></tr>
+<tr><th>提交</th><td><code>f25e27b</code></td></tr>
+</table>
+
+<h3>版本号不一致导致页面无限刷新</h3>
+<table>
+<tr><th>问题</th><td>前端 APP_VERSION=20260525.14 与 version.txt=20260525.63 不一致，页面陷入无限刷新循环</td></tr>
+<tr><th>修复</th><td>同步版本号</td></tr>
+<tr><th>提交</th><td><code>69d2870</code></td></tr>
+</table>
+
+<h3>init 验证 auto-logout 导致登录后立即被踢</h3>
+<table>
+<tr><th>问题</th><td>页面初始化时自动验证 token，auto-logout 逻辑过于激进，登录成功立刻触发登出</td></tr>
+<tr><th>修复</th><td>去掉 init 验证中的 auto-logout，改为 token 过期统一处理</td></tr>
+<tr><th>提交</th><td><code>317af96</code></td></tr>
+</table>
+
+<h3>自定义 layout 缺少 preview 字段导致 JS 崩溃</h3>
+<table>
+<tr><th>问题</th><td>自定义 layout 保存数据缺少 preview 字段，renderLayouts() 遍历时访问 undefined 直接 JS 崩溃</td></tr>
+<tr><th>修复</th><td>在 renderLayouts() 中对 preview 做防御性判断</td></tr>
+<tr><th>提交</th><td><code>475bd42</code></td></tr>
+</table>
+
+<h3>PHP $table 未定义 + logto_auth.php 注释破坏 + display_errors</h3>
+<table>
+<tr><th>问题</th><td>custom.php 中 $table 在 POST/PUT/DELETE 分支未定义，PHP 8.3 Warning 混入 JSON；logto_auth.php 注释语法错误导致 500；display_errors 未关闭导致 warning 破坏 JSON 响应</td></tr>
+<tr><th>修复</th><td>初始化 $table 变量；恢复被破坏的注释；关闭 display_errors</td></tr>
+<tr><th>提交</th><td><code>ed62330</code>, <code>fb0be83</code>, <code>15cbeb1</code></td></tr>
+</table>
+
+<h3>自定义保存后本地不立即渲染</h3>
+<table>
+<tr><th>问题</th><td>自定义预设保存后本地页面不立即显示新预设，必须重新加载才能看到</td></tr>
+<tr><th>修复</th><td>保存后本地 renderCustom() 立即渲染，不再依赖服务器 re-fetch</td></tr>
+<tr><th>提交</th><td><code>01658a5</code></td></tr>
+</table>
+
+<h3>token 自动刷新不生效 + callback refresh_token 缺失</h3>
+<table>
+<tr><th>问题</th><td>登录 callback 未保存 refresh_token，token 过期后无法自动续期</td></tr>
+<tr><th>修复</th><td>callback 保存 refresh_token，自定义 API 用 authFetch 统一鉴权</td></tr>
+<tr><th>提交</th><td><code>6fdc3ca</code></td></tr>
+</table>
+
+<h3>fromPreset=undefined 另存为错误</h3>
+<table>
+<tr><th>问题</th><td>从预设新建自定义时 fromPreset 为 undefined，另存为按钮逻辑错误</td></tr>
+<tr><th>修复</th><td>处理 fromPreset=undefined 边缘情况</td></tr>
+<tr><th>提交</th><td><code>4821cd2</code></td></tr>
+</table>
+
+<h3>toast→t 函数名导致 JS 崩溃</h3>
+<table>
+<tr><th>问题</th><td>toast() 简写重命名为 t()，部分引用未同步更新，点击某些按钮时 JS 崩溃</td></tr>
+<tr><th>修复</th><td>全部引用统一为 t()</td></tr>
+<tr><th>提交</th><td><code>77aa7c3</code></td></tr>
+</table>
+
+<h3>版本更新 reload 参数残留</h3>
+<table>
+<tr><th>问题</th><td>location.reload() 时 URL 携带 ?v= 版本参数，参数残留导致下次比对出错</td></tr>
+<tr><th>修复</th><td>版本更新用纯 reload() 不加参数，加载时自动清理 ?v=</td></tr>
+<tr><th>提交</th><td><code>fd5d1cb</code></td></tr>
+</table>
+
+<h3>编辑按钮图标迭代（emoji→Lucide→文字→Lucide→Revert→文字）</h3>
+<ul>
+<li><strong>问题</strong>: 编辑/删除按钮图标经过约 30 次反复迭代和 revert</li>
+<li><strong>最终方案</strong>: 部分用纯文字（编辑/删除），部分用 Lucide（sparkles/toggle），视可视性而定</li>
+<li><strong>相关提交</strong>: 17:14 到 18:49 约 30 个 fix 提交</li>
+</ul>
+
+<h2>2026-05-24</h2>
 <p>无新增 Bug 修复。仅文档同步更新（<code>dd86072</code>）。</p>
 
 <h2>2026-05-23</h2>
@@ -500,7 +600,98 @@ const DOCS = [
 </table>`,
 
 // Tab 2: 提交记录
-`<h2>2026-05-24（1 个提交）</h2>
+`<h2>2026-05-25（86 个提交）</h2>
+<table>
+<tr><th>提交</th><th>时间</th><th>说明</th></tr>
+<tr><td><code>906690d</code></td><td>19:15</td><td>rollback: 回滚至v20260525.58(d48889f)，保留Auth token修复</td></tr>
+<tr><td><code>f25e27b</code></td><td>19:12</td><td>fix: token验证Authorization header用错('***'→'Bearer ')</td></tr>
+<tr><td><code>b474793</code></td><td>19:08</td><td>feat: 恢复历史区Lucide图标+操作按钮移至标题右侧</td></tr>
+<tr><td><code>69d2870</code></td><td>18:57</td><td>fix: 版本号不一致导致页面无限刷新</td></tr>
+<tr><td><code>2ef83e3</code></td><td>18:49</td><td>fix: 编辑删除居中并排, 无边框+新增privacy/terms</td></tr>
+<tr><td><code>181a339</code></td><td>18:47</td><td>fix: 恢复body标签, 页面修复</td></tr>
+<tr><td><code>1bfb66d</code></td><td>18:43</td><td>Revert "fix: 彻底清理CSS"</td></tr>
+<tr><td><code>8582480</code></td><td>18:43</td><td>Revert "fix: 编辑按钮统一hover"</td></tr>
+<tr><td><code>adc1978</code></td><td>18:43</td><td>Revert "fix: 绝对定位恢复"</td></tr>
+<tr><td><code>5a237d4</code></td><td>18:42</td><td>fix: 绝对定位恢复, badge缩到6px</td></tr>
+<tr><td><code>6c89739</code></td><td>18:39</td><td>fix: 编辑按钮统一hover显示</td></tr>
+<tr><td><code>a7f0957</code></td><td>18:38</td><td>fix: 彻底清理CSS</td></tr>
+<tr><td><code>88e1d8a</code></td><td>18:35</td><td>fix: 全部改为文档流, 零重叠</td></tr>
+<tr><td><code>1cce3f6</code></td><td>18:32</td><td>fix: badge缩到7px避免重叠</td></tr>
+<tr><td><code>98eb60c</code></td><td>18:31</td><td>fix: badge恢复左上,编辑右上紧挨</td></tr>
+<tr><td><code>ba1bec7</code></td><td>18:29</td><td>fix: badge移到底部避免重叠</td></tr>
+<tr><td><code>3401f82</code></td><td>18:10</td><td>fix: 合并重复CSS定义, 去掉边框</td></tr>
+<tr><td><code>d48889f</code></td><td>18:04</td><td>fix: 编辑删除去白框</td></tr>
+<tr><td><code>b314782</code></td><td>18:04</td><td>fix: 编辑删除统一Lucide 20x20px</td></tr>
+<tr><td><code>9155a46</code></td><td>18:02</td><td>fix: 编辑按钮改文字✎统一大小</td></tr>
+<tr><td><code>cb5702a</code></td><td>18:02</td><td>fix: 编辑按钮pencil→pen</td></tr>
+<tr><td><code>1150bbc</code></td><td>17:59</td><td>fix: 按钮图标文字垂直居中</td></tr>
+<tr><td><code>e55e4cf</code></td><td>17:58</td><td>fix: 编辑删除按钮紧挨 18x18px</td></tr>
+<tr><td><code>78b8a4c</code></td><td>17:56</td><td>fix: toggleSelect按钮用Lucide图标</td></tr>
+<tr><td><code>d19e01e</code></td><td>17:55</td><td>fix: 编辑按钮改lucide pencil图标</td></tr>
+<tr><td><code>e242b72</code></td><td>17:54</td><td>fix: 多选→操作, 放到标题右边</td></tr>
+<tr><td><code>8726e6a</code></td><td>17:53</td><td>fix: 自定义sparkles缩到20×20px</td></tr>
+<tr><td><code>7cb51d8</code></td><td>17:51</td><td>fix: 历史区按钮图标统一Lucide</td></tr>
+<tr><td><code>f8914fb</code></td><td>17:48</td><td>fix: 自定义badge/delete/edit统一9px</td></tr>
+<tr><td><code>3dc84aa</code></td><td>17:44</td><td>fix: 删除按钮改透明边框</td></tr>
+<tr><td><code>d6a3986</code></td><td>17:43</td><td>fix: 仅改删除按钮✕</td></tr>
+<tr><td><code>af7ed94</code></td><td>17:41</td><td>fix: 自定义图标纯文字</td></tr>
+<tr><td><code>e5a8a3b</code></td><td>17:38</td><td>fix: 删除按钮回✕文字+sparkles Lucide</td></tr>
+<tr><td><code>dd93537</code></td><td>17:37</td><td>fix: Seedance缩短适配80px</td></tr>
+<tr><td><code>278e026</code></td><td>17:37</td><td>fix: layout卡片文字溢出省略</td></tr>
+<tr><td><code>3a7c541</code></td><td>17:36</td><td>fix: 自定义图标颜色#667eea88→#aaa</td></tr>
+<tr><td><code>4b74eae</code></td><td>17:35</td><td>fix: badge-custom改绝对定位</td></tr>
+<tr><td><code>20ef455</code></td><td>17:34</td><td>fix: 风格/艺术自定义icon 16→12px</td></tr>
+<tr><td><code>43395a0</code></td><td>17:33</td><td>fix: 自定义预览sparkles 20→14px</td></tr>
+<tr><td><code>95816ff</code></td><td>17:28</td><td>fix: translate.php关display_errors+修cache权限</td></tr>
+<tr><td><code>19f7498</code></td><td>17:24</td><td>fix: 卡片缩到80px, 预览不错位</td></tr>
+<tr><td><code>e431413</code></td><td>17:22</td><td>fix: 编辑按钮加大显示编辑二字</td></tr>
+<tr><td><code>961ec79</code></td><td>17:20</td><td>fix: 编辑按钮纯文字编</td></tr>
+<tr><td><code>e7ca8ed</code></td><td>17:18</td><td>fix: ＋按钮改文字新增</td></tr>
+<tr><td><code>196867b</code></td><td>17:17</td><td>fix: 预览图max-height降到64px</td></tr>
+<tr><td><code>8d64455</code></td><td>17:16</td><td>fix: flex容器margin-left推按钮</td></tr>
+<tr><td><code>0e4478a</code></td><td>17:14</td><td>fix: 自定义预览图标20→14px</td></tr>
+<tr><td><code>c059471</code></td><td>17:03</td><td>fix: sanshitu_v2.html新文件名防缓存</td></tr>
+<tr><td><code>78d269a</code></td><td>16:59</td><td>fix: 重置/新增按钮回文字</td></tr>
+<tr><td><code>4821cd2</code></td><td>16:51</td><td>fix: fromPreset=undefined另存为错误</td></tr>
+<tr><td><code>39cf7a8</code></td><td>16:50</td><td>fix: ＋新建弹窗按钮改为新增</td></tr>
+<tr><td><code>e1c806d</code></td><td>16:46</td><td>fix: 恢复新建弹窗不显示另存为</td></tr>
+<tr><td><code>36c6175</code></td><td>16:43</td><td>fix: 时间戳URL强刷绕过缓存</td></tr>
+<tr><td><code>cb19d60</code></td><td>16:42</td><td>fix: 自定义弹窗始终显示另存为</td></tr>
+<tr><td><code>c89ac7b</code></td><td>16:41</td><td>fix: 重置/新增按钮尺寸统一</td></tr>
+<tr><td><code>5fabf42</code></td><td>16:38</td><td>fix: 暗黑模式按钮对比度#555→#aaa</td></tr>
+<tr><td><code>feb02a5</code></td><td>16:37</td><td>fix: 编辑按钮回文字, preview限高90px</td></tr>
+<tr><td><code>08c8fff</code></td><td>16:34</td><td>feat: 全部按钮统一Lucide 20种78个实例</td></tr>
+<tr><td><code>fd5d1cb</code></td><td>16:33</td><td>fix: 版本更新reload不加参数</td></tr>
+<tr><td><code>317af96</code></td><td>16:31</td><td>fix: 去掉init auto-logout</td></tr>
+<tr><td><code>77aa7c3</code></td><td>16:28</td><td>fix: toast→t, 修复JS崩溃</td></tr>
+<tr><td><code>88b593c</code></td><td>16:16</td><td>fix: token过期跳转登录+toast</td></tr>
+<tr><td><code>20f42ef</code></td><td>16:12</td><td>chore: bump to v20260525.15</td></tr>
+<tr><td><code>c572bb4</code></td><td>16:12</td><td>fix: token过期自动登出+弹登录框</td></tr>
+<tr><td><code>554d06a</code></td><td>16:07</td><td>feat: Lucide图标替代emoji, 13个图标就位</td></tr>
+<tr><td><code>27e5751</code></td><td>15:52</td><td>fix: 版本号触发刷新+清理测试文件</td></tr>
+<tr><td><code>a20e9cc</code></td><td>15:50</td><td>feat: 版本更新自动静默刷新</td></tr>
+<tr><td><code>7cf740e</code></td><td>15:49</td><td>feat: 30s版本轮询+JWT自动续期</td></tr>
+<tr><td><code>e614f9e</code></td><td>15:44</td><td>feat: 全链路自动化</td></tr>
+<tr><td><code>432d578</code></td><td>15:33</td><td>feat: 参考图移至提示词上方</td></tr>
+<tr><td><code>bb321e9</code></td><td>15:27</td><td>feat: 三列等宽布局</td></tr>
+<tr><td><code>307ef1d</code></td><td>15:24</td><td>fix: minmax防item撑开grid列</td></tr>
+<tr><td><code>e3a03dd</code></td><td>15:20</td><td>fix: 恢复2fr 3fr比例</td></tr>
+<tr><td><code>7e0265e</code></td><td>15:10</td><td>fix: 左列改1fr+min</td></tr>
+<tr><td><code>da3b41c</code></td><td>15:06</td><td>fix: 右边栏minmax响应式</td></tr>
+<tr><td><code>76d2c60</code></td><td>15:04</td><td>fix: 右边栏固定+滚动+人物风格加✏️</td></tr>
+<tr><td><code>475bd42</code></td><td>14:54</td><td>fix: 自定义layout缺preview导致崩溃</td></tr>
+<tr><td><code>c92cda9</code></td><td>14:39</td><td>chore: 删除测试文件</td></tr>
+<tr><td><code>ed62330</code></td><td>14:39</td><td>fix: $table未定义PHP Warning</td></tr>
+<tr><td><code>fb0be83</code></td><td>14:35</td><td>fix: logto_auth.php注释被破坏500</td></tr>
+<tr><td><code>15cbeb1</code></td><td>14:32</td><td>fix: PHP关display_errors+修Warning</td></tr>
+<tr><td><code>01658a5</code></td><td>14:28</td><td>fix: 自定义保存后本地立即渲染</td></tr>
+<tr><td><code>6fdc3ca</code></td><td>14:21</td><td>fix: token自动刷新+callback refresh_token</td></tr>
+<tr><td><code>ed0735c</code></td><td>14:16</td><td>feat: SD-API→版本号+副标题+API隐藏</td></tr>
+<tr><td><code>104e806</code></td><td>14:06</td><td>feat: 人物资产结构调整</td></tr>
+<tr><td><code>66f7909</code></td><td>13:56</td><td>fix: sync version.txt</td></tr>
+</table>
+
+<h2>2026-05-24（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>dd86072</code></td><td>04:01</td><td>docs: 同步更新项目文档（+5/23 1条提交/无新Bug修复）</td></tr>
@@ -675,7 +866,8 @@ const DOCS = [
 
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 186</li>
+<li><strong>总提交数</strong>: 273</li>
+<li><strong>2026-05-25</strong>: 86 个提交（全天）</li>
 <li><strong>2026-05-24</strong>: 1 个提交（文档同步）</li>
 <li><strong>2026-05-23</strong>: 1 个提交（文档同步）</li>
 <li><strong>2026-05-22</strong>: 11 个提交（全天）</li>
