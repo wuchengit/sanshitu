@@ -781,7 +781,7 @@ async function authFetch(url, opts){
 (async function(){
   if(!AUTH_TOKEN) return;
   var r=await fetch('https://auth.aiwuuw.com/oidc/me',{headers:{'Authorization':'***'+AUTH_TOKEN}});
-  if(!r.ok){ doLogout(); }
+  if(!r.ok){ doLogout(); setTimeout(function(){ showLoginModal(); }, 800); }
 })();
 
 function consumeLoginHash(){
