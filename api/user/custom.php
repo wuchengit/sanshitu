@@ -1,7 +1,5 @@
 <?php
 // user/custom.php - CRUD for custom presets
-ini_set('display_errors', 0);
-error_reporting(0);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -14,10 +12,10 @@ require_once __DIR__ . '/../lib/crypto.php';
 
 $userId = requireLogtoAuth();
 $pdo = db();
+$table = tableName('custom_presets');
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $category = $_GET['category'] ?? '';
-  $table = tableName('custom_presets');
   $sql = "SELECT id, category, name, label, prompt, sort_order FROM {$table} WHERE user_id = ?";
   $params = [$userId];
   if ($category) { $sql .= ' AND category = ?'; $params[] = $category; }
