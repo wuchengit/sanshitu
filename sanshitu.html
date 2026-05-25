@@ -148,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.16</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.17</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -249,7 +249,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.16";
+const APP_VERSION="20260525.17";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Version check - use URL param to force browser reload
@@ -661,7 +661,7 @@ function bindViewerEvents(){
   document.addEventListener('mouseup',function(){if(isD){isD=false;overlay.style.cursor='grab';}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindViewerEvents);else bindViewerEvents();
-function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('提示词已复制','ok');}
+function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);t('提示词已复制','ok');}
 function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
 var _viewerOrigPrompt='';
 function translateViewerPrompt(btn){
@@ -877,7 +877,7 @@ async function handleAuth(){
     authSet('sanshitu_user', JSON.stringify(d.user));
     updateAuthUI();
     closeLoginModal();
-    toast('登录成功', 'ok');
+    t('登录成功', 'ok');
   } catch(e) {
     errEl.textContent = '网络错误，请重试';
     errEl.classList.add('show');
@@ -894,7 +894,7 @@ function doLogout(){
   customPresets=[];
   reRender();
   updateAuthUI();
-  toast('已退出登录');
+  t('已退出登录');
 }
 
 // ====== 自定义预设 ======
@@ -991,7 +991,7 @@ async function saveCustomPreset(saveAs){
       reRender();
       // 异步从服务器拉最新（容错）
       loadCustomPresets();
-      toast(wasEdit?'已更新':'已保存','ok');
+      t(wasEdit?'已更新':'已保存','ok');
     }else{
       var ed=await r.json();
       err.textContent=ed.error||'保存失败';err.classList.add('show');
@@ -1015,9 +1015,9 @@ async function deleteCustomPreset(id){
       if(selDir&&selDir.startsWith('c_'+id+'_')) selDir='none';
       if(selLayout&&selLayout.startsWith('c_'+id+'_')) selLayout='pure';
       reRender();up();
-      toast('已删除','ok');
+      t('已删除','ok');
     }
-  }catch(e){toast('删除失败','err');}
+  }catch(e){t('删除失败','err');}
 }
 
 // 合并自定义预设到风格列表
@@ -1079,9 +1079,9 @@ async function saveConfig(){
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN},
       body: JSON.stringify({key: 'preset', data: cfg})
     });
-    if (r.ok) { toast('配置已保存', 'ok'); }
-    else { var d = await r.json(); toast(d.error || '保存失败', 'err'); if (r.status === 401) doLogout(); }
-  } catch(e) { toast('网络错误', 'err'); }
+    if (r.ok) { t('配置已保存', 'ok'); }
+    else { var d = await r.json(); t(d.error || '保存失败', 'err'); if (r.status === 401) doLogout(); }
+  } catch(e) { t('网络错误', 'err'); }
 }
 
 async function loadConfig(){
@@ -1110,16 +1110,16 @@ async function loadConfig(){
         reRender();
         onModelChange();
         up();
-        toast('配置已加载', 'ok');
+        t('配置已加载', 'ok');
       } else {
-        toast('暂无保存的配置');
+        t('暂无保存的配置');
       }
     } else {
       var d2 = await r.json();
-      toast(d2.error || '加载失败', 'err');
+      t(d2.error || '加载失败', 'err');
       if (r.status === 401) doLogout();
     }
-  } catch(e) { toast('网络错误', 'err'); }
+  } catch(e) { t('网络错误', 'err'); }
 }
 
 function setVal(id, val){
