@@ -147,7 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.3</span></h1>
+    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.4</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -246,7 +246,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.3";
+const APP_VERSION="20260525.4";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -859,8 +859,12 @@ async function loadCustomPresets(){
       var d=await r.json();
       customPresets=d.presets||[];
       reRender();
+      return;
     }
-  }catch(e){}
+    console.error('loadCustomPresets failed:', r.status, r.statusText);
+  }catch(e){
+    console.error('loadCustomPresets error:', e);
+  }
 }
 
 var editPresetId=null,editPresetFrom='',editPresetOrigName='';
@@ -925,15 +929,25 @@ async function saveCustomPreset(saveAs){
     });
     if(r.ok){
       var wasEdit=!!editPresetId;
+      var d=await r.json();
       document.getElementById('customModal').classList.remove('show');
       editPresetId=null;editPresetFrom='';
-      await loadCustomPresets();
+      // 本地立即加入，不依赖服务器 re-fetch
+      if(d.id && !wasEdit){
+        customPresets.push({id:d.id, category:customModalCategory, name:name, label:label, prompt:prompt, sort_order:999});
+      }else if(d.id && wasEdit){
+        var idx=customPresets.findIndex(function(p){return p.id===d.id;});
+        if(idx>=0){ customPresets[idx].name=name; customPresets[idx].label=label; customPresets[idx].prompt=prompt; }
+      }
+      reRender();
+      // 异步从服务器拉最新（容错）
+      loadCustomPresets();
       toast(wasEdit?'已更新':'已保存','ok');
     }else{
-      var d=await r.json();
-      err.textContent=d.error||'保存失败';err.classList.add('show');
+      var ed=await r.json();
+      err.textContent=ed.error||'保存失败';err.classList.add('show');
     }
-  }catch(e){err.textContent='网络错误';err.classList.add('show');}
+  }catch(e){err.textContent='保存失败: '+e.message;err.classList.add('show');}
 }
 
 async function deleteCustomPreset(id){
