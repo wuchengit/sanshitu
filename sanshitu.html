@@ -779,7 +779,7 @@ async function authFetch(url, opts){
 // Validate token on init
 (async function(){
   if(!AUTH_TOKEN) return;
-  var r=await fetch('https://auth.aiwuuw.com/oidc/me',{headers:{'Authorization':'***'+AUTH_TOKEN}});
+  var r=await fetch('https://auth.aiwuuw.com/oidc/me',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
   if(!r.ok){ doLogout(); }
 })();
 
