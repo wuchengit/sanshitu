@@ -100,6 +100,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .modal-box .error.show{display:block}
 .modal-close{position:absolute;top:12px;right:12px;width:28px;height:28px;background:#25252d;border:1px solid #333;border-radius:50%;color:#aaa;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .header{position:relative;padding-right:120px}
+.lucide{width:14px;height:14px;vertical-align:-2px;stroke-width:2}
 </style>
 </head>
 <body>
@@ -147,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.13</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.14</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -156,20 +157,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- ===== LEFT ===== -->
     <div>
       <div class="card" style="display:none">
-        <div class="card-t">🔑 API 配置</div>
+        <div class="card-t"><i data-lucide="key"></i> API 配置</div>
         <input type="password" id="apiKey" placeholder="自定义Key（可选）" style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px">
       </div>
       <div class="card">
-        <div class="card-t">🖼️ 参考图</div>
+        <div class="card-t"><i data-lucide="image"></i> 参考图</div>
         <div class="upload-row" id="uploadRow"></div>
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
       </div>
       <div class="card">
-        <div class="card-t">📝 提示词</div>
+        <div class="card-t"><i data-lucide="pencil"></i> 提示词</div>
         <textarea id="promptInput" rows="8" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:vertical"></textarea>
       </div>
       <div class="card">
-        <div class="card-t">⚙️ 模型</div>
+        <div class="card-t"><i data-lucide="cpu"></i> 模型</div>
         <div class="model-row">
           <div class="form-group"><label>类型</label><select id="modelType" onchange="onModelChange()"><option value="gpt-image-2">gpt-image-2</option><option value="gpt-image-2-vip">gpt-image-2-vip</option></select></div>
           <div class="form-group"><label>比例</label><select id="aspectRatio" onchange="up()"><option value="9:16">9:16 竖屏</option><option value="16:9">16:9 横屏</option><option value="1:1">1:1 方形</option><option value="4:3">4:3</option><option value="3:4">3:4</option><option value="3:2">3:2</option><option value="2:3">2:3</option><option value="5:4">5:4</option><option value="4:5">4:5</option><option value="21:9">21:9 超宽</option><option value="9:21">9:21 超长</option><option value="2:1">2:1</option><option value="1:2">1:2</option><option value="3:1">3:1</option><option value="1:3">1:3</option></select></div>
@@ -177,7 +178,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
       </div>
       <div class="card">
-        <div class="card-t">📋 提示词预览</div>
+        <div class="card-t"><i data-lucide="eye"></i> 提示词预览</div>
         <div class="preview-box" id="promptPreview">选择右侧结构和风格后自动组合...</div>
         <div class="preview-tools">
           <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
@@ -186,26 +187,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
-        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1">🎨 生成图片</button><button class="save-cfg-btn" onclick="saveConfig()" title="登录后保存当前配置到云端">💾</button><button class="save-cfg-btn" onclick="loadConfig()" title="登录后加载云端配置" style="margin-left:0">📥</button></div>
+        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1"><i data-lucide="sparkles"></i> 生成图片</button><button class="save-cfg-btn" onclick="saveConfig()" title="登录后保存当前配置到云端">💾</button><button class="save-cfg-btn" onclick="loadConfig()" title="登录后加载云端配置" style="margin-left:0">📥</button></div>
       </div>
       
     </div>
     <!-- ===== RIGHT ===== -->
     <div>
       <div class="card" style="padding:10px 12px">
-        <div class="card-t" style="margin-bottom:6px">📐 人物资产结构<button class="reset-btn" onclick="selLayout='pure';renderLayouts();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('layout')" title="自定义资产结构">＋</button></div>
+        <div class="card-t" style="margin-bottom:6px"><i data-lucide="grid-3x3"></i> 人物资产结构<button class="reset-btn" onclick="selLayout='pure';renderLayouts();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('layout')" title="自定义资产结构">＋</button></div>
         <div class="layout-strip" id="layoutStrip"></div>
       </div>
       <div class="card" style="padding:10px 12px">
-        <div class="card-t" style="margin-bottom:6px">🎭 人物风格<button class="reset-btn" onclick="selStyle='none';renderStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('style')" title="自定义人物风格">＋</button></div>
+        <div class="card-t" style="margin-bottom:6px"><i data-lucide="user-round"></i> 人物风格<button class="reset-btn" onclick="selStyle='none';renderStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('style')" title="自定义人物风格">＋</button></div>
         <div class="style-grid" id="styleGrid"></div>
-        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎨 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('art')" title="自定义艺术风格">＋</button></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px"><i data-lucide="palette"></i> 艺术风格<button class="reset-btn" onclick="selArt='none';renderArtStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('art')" title="自定义艺术风格">＋</button></div>
         <div class="style-grid" id="artGrid"></div>
-        <div class="card-t" style="margin-bottom:6px;margin-top:12px">🎬 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('dir')" title="自定义导演代表作">＋</button></div>
+        <div class="card-t" style="margin-bottom:6px;margin-top:12px"><i data-lucide="clapperboard"></i> 导演代表作<button class="reset-btn" onclick="selDir='none';renderDirStyles();up()">重置</button><button class="add-custom-btn" onclick="showCustomModal('dir')" title="自定义导演代表作">＋</button></div>
         <div class="style-grid" id="dirGrid"></div>
       </div>
       <div class="card">
-        <div class="card-t">👤 人物属性</div>
+        <div class="card-t"><i data-lucide="sliders-horizontal"></i> 人物属性</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
         <select id="optGender" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">性别不限</option><option value="female">女</option><option value="male">男</option></select>
         <select id="optRace" onchange="up()" style="background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#e8e8ed;font-size:11px;cursor:pointer"><option value="">人种不限</option><option value="East Asian">东亚</option><option value="Caucasian">白人/欧洲</option><option value="African">黑人/非洲</option><option value="South Asian">南亚/印度</option><option value="Middle Eastern">中东</option><option value="Latino">拉丁裔</option><option value="Southeast Asian">东南亚</option></select>
@@ -232,7 +233,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <!-- ===== HISTORY ===== -->
     <div>
-      <div class="card"><div class="card-t">📜 生成历史</div>
+      <div class="card"><div class="card-t"><i data-lucide="clock"></i> 生成历史</div>
       <button class="preview-btn" id="selToggle" onclick="toggleSelect()" style="margin-bottom:4px">☐ 多选</button>
       <div class="sel-toolbar" id="selToolbar">
         <span class="sel-count" id="selCount">已选 0 项</span>
@@ -248,7 +249,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.13";
+const APP_VERSION="20260525.14";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Version check - use URL param to force browser reload
@@ -449,11 +450,11 @@ document.getElementById('genBtn').onclick=async function(){
   if(btn.disabled)return;
   btn.disabled=true;
   btn.textContent='⏳';
-  setTimeout(function(){btn.disabled=false;btn.textContent='🎨 生成';},3000);
+  setTimeout(function(){btn.disabled=false;btn.innerHTML='<i data-lucide="sparkles"></i> 生成图片';if(window.lucide)lucide.createIcons();},3000);
   var _start=Date.now();
   var apiKey=document.getElementById('apiKey').value.trim(),prompt=buildPrompt();
   var m=document.getElementById('modelType').value,ar=document.getElementById('aspectRatio').value,res=document.getElementById('resolution').value;
-  if(!prompt){t('请填写提示词','err');btn.disabled=false;btn.textContent='🎨 生成';return}
+  if(!prompt){t('请填写提示词','err');btn.disabled=false;btn.innerHTML='<i data-lucide="sparkles"></i> 生成图片';if(window.lucide)lucide.createIcons();return}
   if(apiKey)localStorage.setItem('ds_key',apiKey);
   var av=ar;
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
@@ -1125,6 +1126,7 @@ function reRender(){
   renderStyles();
   renderArtStyles();
   renderDirStyles();
+  setTimeout(function(){if(window.lucide)lucide.createIcons();},50);
 }
 
 updateAuthUI();
@@ -1141,7 +1143,7 @@ updateAuthUI();
 <img id="viewerImg" src="" style="display:block;max-width:64vw;max-height:85vh;object-fit:contain;cursor:grab;user-select:none"></div>
 <div id="viewerPromptBox" style="display:none;flex-direction:column;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;max-height:85vh;max-width:340px;min-width:200px;overflow:hidden">
 <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
-<span style="color:#888;font-size:10px;flex:1">📝 提示词</span>
+<span style="color:#888;font-size:10px;flex:1"><i data-lucide="pencil"></i> 提示词</span>
 <button class="preview-btn" onclick="copyViewerPrompt(this)" style="font-size:9px;padding:2px 6px">📋 复制</button>
 <button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px">🌐 翻译</button>
 <select id="viewerTargetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:1px 2px;cursor:pointer"><option value="中文">中文</option><option value="英文">English</option><option value="日文">日本語</option><option value="韩文">한국어</option><option value="法文">Français</option><option value="西班牙文">Español</option></select>
@@ -1179,5 +1181,7 @@ updateAuthUI();
 <div style="display:flex;gap:8px"><button class="btn-primary" id="customSaveBtn" onclick="saveCustomPreset(false)" style="flex:1">💾 保存</button><button class="btn-primary" id="customSaveAsBtn" onclick="saveCustomPreset(true)" style="flex:1;background:#333;display:none">📋 另存</button></div>
 </div></div></div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
