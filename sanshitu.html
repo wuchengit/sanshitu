@@ -147,7 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.11</span></h1>
+    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.12</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -248,23 +248,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.11";
+const APP_VERSION="20260525.12";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
-  // Auto-check server version and force reload if needed
+  // Version check - use URL param to force browser reload
   fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
     sv=sv.trim();
-    if(storedVer!==sv){
+    if(storedVer&&storedVer!==sv){
       localStorage.setItem('ds_ver',sv);
-      if(storedVer){location.reload(true);return;}
+      // Hard reload with version param to bypass all caches
+      location.href=location.pathname+'?v='+sv;
+      return;
     }
+    if(!storedVer) localStorage.setItem('ds_ver',sv);
   }).catch(function(){});
+  // APP version mismatch warning
   if(storedVer&&storedVer!==APP_VERSION){
     var bar=document.createElement('div');
     bar.className='update-bar show';
-    bar.innerHTML='🔄 页面已更新 <button class="update-btn" onclick="location.reload(true)">刷新页面</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
+    bar.innerHTML='🔄 有新版本 <button class="update-btn" onclick="location.href=location.pathname+\'?v=\'+APP_VERSION">更新</button><span class="update-close" onclick="this.parentElement.style.display=\'none\';localStorage.setItem(\'ds_ver\',APP_VERSION)">✕</span>';
     document.body.appendChild(bar);
-    setTimeout(function(){bar.style.display='none';},5000);
   }
 })();
 var LAYOUTS=[],STYLES=[],ART_STYLES=[],DIR_STYLES=[];
@@ -740,10 +743,21 @@ async function authFetch(url, opts){
     if (ok) {
       opts.headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
       r = await fetch(url, opts);
+    } else {
+      // Token expired and can't refresh — auto logout + prompt login
+      doLogout();
+      setTimeout(function(){ showLoginModal(); }, 500);
     }
   }
   return r;
 }
+
+// Validate token on init
+(async function(){
+  if(!AUTH_TOKEN) return;
+  var r=await fetch('https://auth.aiwuuw.com/oidc/me',{headers:{'Authorization':'***'+AUTH_TOKEN}});
+  if(!r.ok){ doLogout(); }
+})();
 
 function consumeLoginHash(){
   if (!location.hash || location.hash.indexOf('login_token=') === -1) return;
