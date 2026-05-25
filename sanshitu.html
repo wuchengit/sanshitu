@@ -148,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.18</span></h1>
+    <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.19</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -249,19 +249,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.18";
+const APP_VERSION="20260525.19";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
-  // Version check - use URL param to force browser reload
+  // Version check - auto reload if server version changed
   fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
     sv=sv.trim();
     if(storedVer&&storedVer!==sv){
       localStorage.setItem('ds_ver',sv);
-      // Hard reload with version param to bypass all caches
-      location.href=location.pathname+'?v='+sv;
+      location.reload();
       return;
     }
     if(!storedVer) localStorage.setItem('ds_ver',sv);
+    // Clean up ?v= param from URL
+    if(/[?&]v=/.test(location.search)){
+      history.replaceState(null,'',location.pathname+location.search.replace(/[?&]v=[^&]*/,'').replace(/^&/,'?'));
+    }
   }).catch(function(){});
   // Version check on load - auto reload if outdated
   if(storedVer&&storedVer!==APP_VERSION){
