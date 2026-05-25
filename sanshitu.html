@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header h1 span{background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .badge-sd{background:#667eea22;color:#667eea;border:1px solid #667eea44;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:600}
 .header p{color:#888;font-size:11px;margin-top:2px}
-.main-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,420px);gap:16px}
+.main-grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(280px,420px);gap:16px}
 @media(max-width:1000px){.main-grid{grid-template-columns:1fr}}
 
 .card{background:#1a1a20;border-radius:10px;border:1px solid #2a2a32;padding:12px;margin-bottom:10px}
@@ -147,7 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <div class="container">
   <div class="header">
-    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.7</span></h1>
+    <h1>🎬 <span>三视图生成器</span> <span class="badge-sd">v20260525.8</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()">🔑 登录</button>
 <span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
@@ -246,7 +246,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="20260525.7";
+const APP_VERSION="20260525.8";
 (function(){
   var storedVer=localStorage.getItem('ds_ver');
   // Auto-check server version and force reload if needed
@@ -305,7 +305,7 @@ function renderLayouts(){
 
 function renderStyles(){
   var merged=STYLES.concat(getMergedStyle('style'));
-  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')">✕</button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\\'style\\','+JSON.stringify(s).replace(/"/g,'&quot;')+')\" title=\"编辑\">✏️</button>':''}</div>`).join('');
+  document.getElementById('styleGrid').innerHTML=merged.map(s=>`<div class="style-card ${s.id===selStyle?'active':''} ${s._custom?'custom-item':''}" onclick="${s._custom?'':'selStyle=\''+s.id+'\';renderStyles();up()'}" style="position:relative">${s._custom?'<span class="badge-custom">我的</span><button class="del-custom" onclick="event.stopPropagation();deleteCustomPreset('+s._id+')">✕</button>':''}<div class="icon" onclick="${s._custom?'selStyle=\''+s.id+'\';renderStyles();up()':''}">${s.icon}</div><div class="name">${s.name}</div>${s.desc?'<div class="desc">'+s.desc+'</div>':''}${AUTH_TOKEN?'<button class=\"edit-preset-btn\" onclick=\"event.stopPropagation();editPresetItem(\'style\','+JSON.stringify(s).replace(/"/g,'&quot;')+')\" title=\"编辑\">✏️</button>':''}</div>`).join('');
 }
 
 function renderArtStyles(){
