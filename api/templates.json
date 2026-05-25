@@ -1,25 +1,18 @@
 {
   "layouts": [
     {
-      "id": "classic",
-      "name": "经典三视图",
-      "desc": "9:16 面部+三视图",
-      "preview": "<img src=\"/images/previews/thumb/classic.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
-      "prompt": "Split vertical composition with NO GAP between the two sections - they are tightly joined at a single horizontal seam line. Top section: full front-facing headshot showing the COMPLETE head from top of hair to chin, filling the entire top half. Bottom section begins IMMEDIATELY at the bottom of the chin, with NO empty space, gap, or padding between sections. Bottom section: full-body three-view orthographic turn-around (front, side, back) of the BODY ONLY - the neck area aligns with the top edge of the bottom section as if the photograph was cropped just above the shoulders, giving the natural impression that the head is simply outside the frame rather than removed. No face appears in the bottom section. Same background throughout."
-    },
-    {
-      "id": "portrait",
-      "name": "全身定妆照",
-      "desc": "9:16 正面站立",
-      "preview": "<img src=\"/images/previews/thumb/portrait.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
-      "prompt": "Full-body character design sheet, front-facing standing pose, entire figure from head to toe centered in frame, clean neutral background, studio lighting, professional character reference, 8K."
-    },
-    {
       "id": "pure",
       "name": "纯三视图",
       "desc": "16:9 全身+头部",
       "preview": "<img src=\"/images/previews/thumb/pure.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
       "prompt": "Full-body three-view orthographic turn-around (front, side, back) of a figure INCLUDING the complete head from top to toe. All three views show the entire body arranged side by side. Clean character reference sheet, pure background, soft studio lighting."
+    },
+    {
+      "id": "halfbody",
+      "name": "半身三视图",
+      "desc": "16:9 半身三视角",
+      "preview": "<img src=\"/images/previews/thumb/halfbody.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
+      "prompt": "Three-view orthographic turn-around (front, side, back) showing the character from waist up INCLUDING the complete head with facial features. All three half-body views arranged side by side. Clean character reference sheet, pure background, studio lighting, 8K."
     },
     {
       "id": "face3view",
@@ -36,18 +29,25 @@
       "prompt": "Split horizontal composition. Left half: full-body three-view orthographic (front, side, back) of figure INCLUDING head. Right half: close-up detail shots of accessories, clothing textures, distinctive items from the prompt - enlarged scale with clear visibility. If no accessories, show costume detail close-ups. Same background."
     },
     {
-      "id": "halfbody",
-      "name": "半身三视图",
-      "desc": "16:9 半身三视角",
-      "preview": "<img src=\"/images/previews/thumb/halfbody.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
-      "prompt": "Three-view orthographic turn-around (front, side, back) showing the character from waist up INCLUDING the complete head with facial features. All three half-body views arranged side by side. Clean character reference sheet, pure background, studio lighting, 8K."
+      "id": "portrait",
+      "name": "全身定妆照",
+      "desc": "9:16 正面站立",
+      "preview": "<img src=\"/images/previews/thumb/portrait.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
+      "prompt": "Full-body character design sheet, front-facing standing pose, entire figure from head to toe centered in frame, clean neutral background, studio lighting, professional character reference, 8K."
     },
     {
       "id": "expression",
-      "name": "头像三视图",
-      "desc": "全身照+头部三视图",
+      "name": "Seedance专用三视图",
+      "desc": "高效通过Seedance平台真人合规",
       "preview": "<img src=\"/images/previews/thumb/expression.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
       "prompt": "Split horizontal composition. Left half: full-body front-facing portrait of the complete figure from head to toe, standing naturally. Right half arranged vertically: head and shoulders 3-view reference (front, side, back views) showing the complete head and upper shoulders, stacked top to bottom. Same background. Clean character reference sheet."
+    },
+    {
+      "id": "classic",
+      "name": "面部优先三视图",
+      "desc": "9:16 面部+三视图",
+      "preview": "<img src=\"/images/previews/thumb/classic.jpg?___V___\" style=\"width:100%;height:100%;object-fit:contain\">",
+      "prompt": "Split vertical composition with NO GAP between the two sections - they are tightly joined at a single horizontal seam line. Top section: full front-facing headshot showing the COMPLETE head from top of hair to chin, filling the entire top half. Bottom section begins IMMEDIATELY at the bottom of the chin, with NO empty space, gap, or padding between sections. Bottom section: full-body three-view orthographic turn-around (front, side, back) of the BODY ONLY - the neck area aligns with the top edge of the bottom section as if the photograph was cropped just above the shoulders, giving the natural impression that the head is simply outside the frame rather than removed. No face appears in the bottom section. Same background throughout."
     }
   ],
   "styles": [
