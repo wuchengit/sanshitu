@@ -1,6 +1,6 @@
 <?php
-// lib/logto_auth.php - Validate Logto access tokens
-ini_set('display_errors', 0); and return Logto user sub.
+// lib/logto_auth.php - Validate Logto access tokens and return Logto user sub.
+ini_set('display_errors', 0);
 
 function requireLogtoAuth(): string {
   $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
