@@ -30,7 +30,7 @@ $pdo = db();
 
 if ($method === 'GET') {
     $stmt = $pdo->prepare(
-        'SELECT id, user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url, created_at FROM ' . tableName('generations') . ' WHERE user_id = ? ORDER BY created_at DESC LIMIT 50'
+        'SELECT id, user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url, created_at FROM ' . tableName('generations') . ' WHERE user_id = ? ORDER BY created_at ASC LIMIT 50'
     );
     $stmt->execute([$userId]);
     $rows = $stmt->fetchAll();
