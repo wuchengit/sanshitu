@@ -485,7 +485,7 @@ document.getElementById('genBtn').onclick=async function(){
             authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){loadHistory();}).catch(function(){});
           } else {
             var tempHistory=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
-            tempHistory.push({image_url:d2.original,thumb_url:d2.thumb,model:m,info:m+' '+av,prompt:prompt,created_at:new Date().toISOString()});
+            tempHistory.push({image_url:d2.original,thumb_url:d2.thumb,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0,prompt:prompt,created_at:new Date().toISOString()});
             if(tempHistory.length>50)tempHistory.shift();
             localStorage.setItem('ds_h_temp',JSON.stringify(tempHistory));
           }
