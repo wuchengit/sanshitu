@@ -67,5 +67,7 @@ $host = $_SERVER['HTTP_HOST'];
 echo json_encode([
     'original' => "$scheme://$host/data/images/$filename.png",
     'thumb' => "$scheme://$host/data/images/thumbs/$thumbName",
-    'size' => filesize($filepath)
+    'width' => $ow ?? 0,
+    'height' => $oh ?? 0,
+    'file_size' => filesize($filepath)
 ]);
