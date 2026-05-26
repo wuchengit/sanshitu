@@ -709,7 +709,7 @@ async function downloadViewer(){var url=document.getElementById('viewerImg').src
 function viewH(idx){
   var x=_historyData[idx];
   if(!x) return;
-  openViewer(x.image_url||x.u, x.model||'', x.prompt||'');
+  openViewer(x.image_url||x.u, (x.model||'')+' | '+(x.resolution||''), x.prompt||'');
 }
 
 
