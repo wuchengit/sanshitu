@@ -83,8 +83,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .user-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa}
 .user-badge .logout{color:#888;cursor:pointer;font-size:10px;padding:2px 6px;background:#25252d;border:1px solid #333;border-radius:4px}
 .user-badge .logout:hover{color:#e74c3c}
-.save-cfg-btn{padding:3px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;cursor:pointer;margin-left:4px;transition:all .2s}
-.save-cfg-btn:hover{background:#333;color:#fff}
+
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:9998;justify-content:center;align-items:center}
 .modal-overlay.show{display:flex}
 .modal-box{background:#1a1a20;border:1px solid #2a2a32;border-radius:12px;padding:24px;width:360px;max-width:90vw}
@@ -188,7 +187,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
-        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1"><i data-lucide="sparkles"></i> 生成图片</button><button class="save-cfg-btn" onclick="saveConfig()" title="登录后保存当前配置到云端"><i data-lucide="save"></i></button><button class="save-cfg-btn" onclick="loadConfig()" title="登录后加载云端配置" style="margin-left:0"><i data-lucide="download"></i></button></div>
+        <div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-gen" id="genBtn" style="flex:1"><i data-lucide="sparkles"></i> 生成图片</button></div>
       </div>
       
     </div>
@@ -1084,75 +1083,7 @@ function updateAuthUI(){
   }
   }
 
-async function saveConfig(){
-  if (!AUTH_TOKEN) { showLoginModal(); return; }
-  var cfg = {
-    selLayout: selLayout, selStyle: selStyle, selArt: selArt, selDir: selDir,
-    optGender: document.getElementById('optGender').value,
-    optRace: document.getElementById('optRace').value,
-    optAge: document.getElementById('optAge').value,
-    optHeight: document.getElementById('optHeight').value,
-    optJob: document.getElementById('optJob').value,
-    optEra: document.getElementById('optEra').value,
-    modelType: document.getElementById('modelType').value,
-    resolution: document.getElementById('resolution').value,
-    aspectRatio: document.getElementById('aspectRatio').value
-  };
-  try {
-    var r = await fetch('/api/user/config.php', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN},
-      body: JSON.stringify({key: 'preset', data: cfg})
-    });
-    if (r.ok) { t('配置已保存', 'ok'); }
-    else { var d = await r.json(); t(d.error || '保存失败', 'err'); if (r.status === 401) doLogout(); }
-  } catch(e) { t('网络错误', 'err'); }
-}
 
-async function loadConfig(){
-  if (!AUTH_TOKEN) { showLoginModal(); return; }
-  try {
-    var r = await fetch('/api/user/config.php?key=preset', {
-      headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}
-    });
-    if (r.ok) {
-      var d = await r.json();
-      if (d.config) {
-        var c = d.config;
-        if (c.selLayout) selLayout = c.selLayout;
-        if (c.selStyle) selStyle = c.selStyle;
-        if (c.selArt) selArt = c.selArt;
-        if (c.selDir) selDir = c.selDir;
-        setVal('optGender', c.optGender);
-        setVal('optRace', c.optRace);
-        setVal('optAge', c.optAge);
-        setVal('optHeight', c.optHeight);
-        setVal('optJob', c.optJob);
-        setVal('optEra', c.optEra);
-        setVal('modelType', c.modelType);
-        setVal('resolution', c.resolution);
-        setVal('aspectRatio', c.aspectRatio);
-        reRender();
-        onModelChange();
-        up();
-        t('配置已加载', 'ok');
-      } else {
-        t('暂无保存的配置');
-      }
-    } else {
-      var d2 = await r.json();
-      t(d2.error || '加载失败', 'err');
-      if (r.status === 401) doLogout();
-    }
-  } catch(e) { t('网络错误', 'err'); }
-}
-
-function setVal(id, val){
-  if (val !== undefined && val !== null && val !== '') {
-    var el = document.getElementById(id);
-    if (el) el.value = val;
-  }
-}
 
 function reRender(){
   renderLayouts();
