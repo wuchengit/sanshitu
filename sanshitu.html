@@ -152,7 +152,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <h1><i data-lucide="box" style="width:22px;height:22px;vertical-align:-4px;color:#667eea"></i> <span>三视图生成器</span> <span class="badge-sd">v20260525.58</span></h1>
     <p>高效的人物提示词资源整理平台</p>
     <button class="login-btn" id="loginBtn" onclick="loginWithLogto()"><i data-lucide="log-in"></i> 登录</button>
-<span class="user-badge" id="userBadge" style="display:none"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
+<span class="user-badge" id="userBadge" style="display:none"><img id="userAvatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:none" onerror="this.style.display='none'"><span id="userEmail"></span><button class="logout" onclick="doLogout()">退出</button></span>
   </div>
   <div class="main-grid">
     <!-- ===== LEFT ===== -->
@@ -1049,6 +1049,10 @@ function updateAuthUI(){
   if (loggedIn) {
     var name = (AUTH_USER && (AUTH_USER.email || AUTH_USER.username || AUTH_USER.sub)) || '已登录';
     document.getElementById('userEmail').textContent = name;
+    var avatar = (AUTH_USER && AUTH_USER.avatar) || '';
+    var img = document.getElementById('userAvatar');
+    if (avatar) { img.src = avatar; img.style.display = ''; }
+    else { img.style.display = 'none'; }
     loadCustomPresets();
     scheduleTokenRefresh();
   } else {

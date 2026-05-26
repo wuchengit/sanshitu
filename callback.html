@@ -51,7 +51,8 @@
       localStorage.setItem('sanshitu_user', JSON.stringify({
         sub: payload.sub,
         username: payload.username || payload.sub,
-        email: payload.email || ''
+        email: payload.email || '',
+        avatar: payload.avatar || payload.picture || ''
       }));
     }
     document.body.innerHTML = '<p style="text-align:center;margin-top:100px;color:green">登录成功！正在跳转...</p>';
