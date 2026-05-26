@@ -463,7 +463,7 @@ document.getElementById('genBtn').onclick=async function(){
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
   // 插入loading历史（内存）
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
-  _historyData.unshift({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
+  _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
   if(_historyData.length>30)_historyData.pop();
   renderHistory();
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
