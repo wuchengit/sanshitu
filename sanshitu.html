@@ -482,7 +482,7 @@ document.getElementById('genBtn').onclick=async function(){
       var _loadId=loadId;
       fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
         if(d2.original&&d2.thumb){
-          authFetch('/api/generations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){loadHistory();}).catch(function(){});
+          authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){loadHistory();}).catch(function(){});
         }
       }).catch(function(){});
       t('✅ 成功','ok');
@@ -503,7 +503,7 @@ document.getElementById('genBtn').onclick=async function(){
 async function loadHistory(){
   if (!AUTH_TOKEN) { _historyData = []; renderHistory(); return; }
   try {
-    var r = await authFetch('/api/generations');
+    var r = await authFetch('/api/generations.php');
     var d = await r.json();
     if (d.ok) {
       _historyData = (d.data || []).map(function(x){
@@ -587,7 +587,7 @@ function batchDelete(){
   // 调 API 删除服务端记录
   var promises=ids.map(function(idx){
     var item=_historyData[idx];
-    if(item&&item.id) return authFetch('/api/generations?id='+encodeURIComponent(item.id),{method:'DELETE'}).catch(function(){});
+    if(item&&item.id) return authFetch('/api/generations.php?id='+encodeURIComponent(item.id),{method:'DELETE'}).catch(function(){});
   });
   Promise.all(promises).then(function(){
     loadHistory();
