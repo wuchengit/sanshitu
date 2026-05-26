@@ -469,8 +469,11 @@ document.getElementById('genBtn').onclick=async function(){
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
   if(apiKey)body._key=apiKey;
   if(uploadedFiles.length)body.images=uploadedFiles.map(function(f){return f.data;});
+  var abortCtrl=new AbortController();
+  var abortTimer=setTimeout(function(){abortCtrl.abort();},600000);
   try{
-    var r=await fetch('/generate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var r=await fetch('/generate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:abortCtrl.signal});
+    clearTimeout(abortTimer);
     var d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
@@ -500,9 +503,12 @@ document.getElementById('genBtn').onclick=async function(){
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
     }
   }catch(e){
+    clearTimeout(abortTimer);
     for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData.splice(ei,1);break;}}
     renderHistory();
-    t('❌ '+e.message,'err');
+    t(e.name==='AbortError'?'⏰ 生成超时，请重试':'❌ 生成失败','err');
+    btn.disabled=false;btn.innerHTML='<i data-lucide="sparkles"></i> 生成图片';if(window.lucide)lucide.createIcons();
+    return;
   }
 };;
 

@@ -1,4 +1,5 @@
 <?php
+set_time_limit(600);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -38,9 +39,29 @@ curl_setopt_array($ch, [
     CURLOPT_TIMEOUT => 120
 ]);
 
+$startTime = microtime(true);
 $response = curl_exec($ch);
+$duration = round((microtime(true) - $startTime) * 1000);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlError = curl_error($ch);
 curl_close($ch);
+
+// 失败时写日志
+$json = json_decode($response, true);
+$isError = $curlError || $httpCode >= 400 || ($json && empty($json['results']));
+if ($isError) {
+  $logDir = __DIR__ . '/logs';
+  if (!is_dir($logDir)) mkdir($logDir, 0755, true);
+  $logEntry = json_encode([
+    'time' => date('Y-m-d H:i:s'),
+    'model' => $model,
+    'prompt' => mb_substr($prompt, 0, 100),
+    'status' => 'failed',
+    'error' => $curlError ?: ($json['error'] ?? $json['message'] ?? "HTTP $httpCode"),
+    'cost' => $duration . 'ms'
+  ], JSON_UNESCAPED_UNICODE) . "\n";
+  file_put_contents($logDir . '/generate.log', $logEntry, FILE_APPEND | LOCK_EX);
+}
 
 http_response_code($httpCode);
 echo $response;
