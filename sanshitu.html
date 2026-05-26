@@ -635,7 +635,9 @@ document.getElementById('promptInput').oninput=up;document.getElementById('aspec
 // 浮层查看器
 let vs=1,vx=0,vy=0,isD=false,sx=0,sy=0;
 var viewerPrompt='';
-function openViewer(url,info,prompt){
+var _viewerResolution='';
+function openViewer(url,info,prompt,resolution){
+  _viewerResolution=resolution||'';
   viewerPrompt=prompt||'';
   document.getElementById('viewerOverlay').style.display='flex';
   document.getElementById('viewerImg').src=url;
@@ -653,11 +655,12 @@ function openViewer(url,info,prompt){
     var w=this.naturalWidth,h=this.naturalHeight;
     var lb={'0.56':'9:16','0.75':'3:4','1.33':'4:3','1.50':'3:2','1.78':'16:9'}[(w/h).toFixed(2)]||w+':'+h;
     var base=info||'';
+    var res=_viewerResolution?' ('+_viewerResolution.toUpperCase()+')':'';
     fetch(url).then(function(r){return r.blob()}).then(function(b){
       var fs=b.size>1048576?(b.size/1048576).toFixed(1)+'MB':(b.size/1024).toFixed(0)+'KB';
-      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+' | '+fs;
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+res+' | '+fs;
     }).catch(function(){
-      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h;
+      document.getElementById('viewerInfo').textContent=base+' | 比例 '+lb+' | 分辨率 '+w+'x'+h+res;
     });
   };
 }
@@ -709,7 +712,7 @@ async function downloadViewer(){var url=document.getElementById('viewerImg').src
 function viewH(idx){
   var x=_historyData[idx];
   if(!x) return;
-  openViewer(x.image_url||x.u, (x.model||'')+' | '+(x.resolution||''), x.prompt||'');
+  openViewer(x.image_url||x.u, x.model||'', x.prompt||'', x.resolution||'');
 }
 
 
