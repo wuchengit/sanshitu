@@ -475,7 +475,7 @@ document.getElementById('genBtn').onclick=async function(){
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
       // 更新loading记录（内存，先显示远程URL）
-      for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt};break;}}
+      for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av};break;}}
       renderHistory();
       // 异步保存到本地，然后POST到服务端
       var _loadId=loadId;
