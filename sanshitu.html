@@ -462,12 +462,10 @@ document.getElementById('genBtn').onclick=async function(){
   if(apiKey)localStorage.setItem('ds_key',apiKey);
   var av=ar;
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
-  // 插入loading历史
+  // 插入loading历史（内存）
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
-  var ld=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  ld.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
-  if(ld.length>30)ld.shift();
-  localStorage.setItem('ds_h',JSON.stringify(ld));
+  _historyData.unshift({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
+  if(_historyData.length>30)_historyData.pop();
   renderHistory();
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
   if(apiKey)body._key=apiKey;
@@ -477,43 +475,53 @@ document.getElementById('genBtn').onclick=async function(){
     var d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
-      // 更新loading记录（先显示远程URL）
-      var _h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var _i=_h.length-1;_i>=0;_i--){if(_h[_i].id===loadId){_h[_i]={u:url,id:loadId,apiId:d.id,info:m+' '+av,model:m,t:Date.now(),prompt:prompt};break;}}
-      if(_h.length>30)_h.shift();
-      localStorage.setItem('ds_h',JSON.stringify(_h));
+      // 更新loading记录（内存，先显示远程URL）
+      for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt};break;}}
       renderHistory();
-      // 异步保存到本地（用loadId精确匹配更新）
+      // 异步保存到本地，然后POST到服务端
       var _loadId=loadId;
       fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
-        if(d2.original&&d2.thumb){var sh=JSON.parse(localStorage.getItem('ds_h')||'[]');for(var si=sh.length-1;si>=0;si--){if(sh[si].id===_loadId){sh[si].u=d2.original;sh[si].thumb=d2.thumb;sh[si].prompt=sh[si].prompt||prompt;break;}}localStorage.setItem('ds_h',JSON.stringify(sh));renderHistory();}
+        if(d2.original&&d2.thumb){
+          authFetch('/api/generations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){loadHistory();}).catch(function(){});
+        }
       }).catch(function(){});
       t('✅ 成功','ok');
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
       // 失败：按loadId精确删除对应的loading记录
-      var fh=JSON.parse(localStorage.getItem('ds_h')||'[]');
-      for(var fi=fh.length-1;fi>=0;fi--){if(fh[fi].id===loadId){fh.splice(fi,1);break;}}
-      localStorage.setItem('ds_h',JSON.stringify(fh));
+      for(var fi=_historyData.length-1;fi>=0;fi--){if(_historyData[fi].id===loadId){_historyData.splice(fi,1);break;}}
       renderHistory();
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
     }
   }catch(e){
-    var eh=JSON.parse(localStorage.getItem('ds_h')||'[]');
-    for(var ei=eh.length-1;ei>=0;ei--){if(eh[ei].id===loadId){eh.splice(ei,1);break;}}
-    localStorage.setItem('ds_h',JSON.stringify(eh));
+    for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData.splice(ei,1);break;}}
     renderHistory();
     t('❌ '+e.message,'err');
   }
 };;
 
+async function loadHistory(){
+  if (!AUTH_TOKEN) { _historyData = []; renderHistory(); return; }
+  try {
+    var r = await authFetch('/api/generations');
+    var d = await r.json();
+    if (d.ok) {
+      _historyData = (d.data || []).map(function(x){
+        // Map server fields to legacy field names for renderHistory compatibility
+        x.u = x.image_url;
+        x.thumb = x.thumb_url;
+        return x;
+      });
+    } else { _historyData = []; }
+  } catch(e) { _historyData = []; }
+  renderHistory();
+}
+
 function renderHistory(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  // 清理超过2分钟的loading记录（页面刷新后无法恢复）
+  var h=_historyData;
+  // 清理超过2分钟的loading记录
   var now=Date.now();
-  var cleaned=false;
-  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>120000){h.splice(ci,1);cleaned=true;}}
-  if(cleaned)localStorage.setItem('ds_h',JSON.stringify(h));
+  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>120000){h.splice(ci,1);}}
   var out='';
   var selMode=document.getElementById('historyMasonry').classList.contains('sel-mode');
   if(h.length){
@@ -522,7 +530,7 @@ function renderHistory(){
       if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
       var broken=x.broken?' broken':'';
       var chk=selMode?'<div class="chk'+(x._sel?' on':'')+'" data-i="'+idx+'" onclick="event.stopPropagation();toggleCheck(this,'+idx+')">'+(x._sel?'✓':'')+'</div>':'';
-      return '<div class="history-item'+broken+'" data-i="'+idx+'" onclick="handleItemClick(event,'+idx+')">'+chk+'<img class="hs-img" src="'+(x.thumb||x.u)+'" loading="lazy"></div>';
+      return '<div class="history-item'+broken+'" data-i="'+idx+'" onclick="handleItemClick(event,'+idx+')">'+chk+'<img class="hs-img" src="'+(x.thumb_url||x.thumb||x.image_url||x.u)+'" loading="lazy"></div>';
     }).join('');
   }else{out='<span style="color:#555;font-size:11px">暂无</span>';}
   document.getElementById('historyMasonry').innerHTML=out;
@@ -531,7 +539,7 @@ function renderHistory(){
     this.src='/images/placeholder.svg';this.onerror=null;
     var p=this.parentElement;if(p){p.classList.add('broken');}
     var di=p?p.getAttribute('data-i'):null;
-    if(di!==null){var hh=JSON.parse(localStorage.getItem('ds_h')||'[]');if(hh[di]){hh[di].broken=true;localStorage.setItem('ds_h',JSON.stringify(hh));}}
+    if(di!==null&&_historyData[di]){_historyData[di].broken=true;}
   };}
 }
 
@@ -551,48 +559,46 @@ function handleItemClick(e,idx){
 }
 function toggleCheck(el,idx){
   if(!selMode)return;
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
+  var x=_historyData[idx];
   if(!x||x.loading||x.broken)return;
   x._sel=!x._sel;
-  localStorage.setItem('ds_h',JSON.stringify(h));
   var d=document.querySelector('.history-item[data-i="'+idx+'"] .chk');
   if(d){d.classList.toggle('on',x._sel);d.textContent=x._sel?'✓':'';}
   upSelCount();
 }
 function upSelCount(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var n=h.filter(function(x){return x._sel&&!x.broken;}).length;
+  var n=_historyData.filter(function(x){return x._sel&&!x.broken;}).length;
   document.getElementById('selCount').textContent='已选 '+n+' 项';
 }
 function getSelected(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  return h.map(function(x,i){return x._sel&&!x.broken?i:-1;}).filter(function(i){return i>=0;});
+  return _historyData.map(function(x,i){return x._sel&&!x.broken?i:-1;}).filter(function(i){return i>=0;});
 }
 function selectAll(){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var allSel=h.filter(function(x){return !x.loading&&!x.broken&&x._sel;}).length;
-  var total=h.filter(function(x){return !x.loading&&!x.broken;}).length;
+  var allSel=_historyData.filter(function(x){return !x.loading&&!x.broken&&x._sel;}).length;
+  var total=_historyData.filter(function(x){return !x.loading&&!x.broken;}).length;
   var set=allSel<total;
-  h.forEach(function(x){if(!x.loading&&!x.broken)x._sel=set;});
-  localStorage.setItem('ds_h',JSON.stringify(h));
+  _historyData.forEach(function(x){if(!x.loading&&!x.broken)x._sel=set;});
   renderHistory();
   upSelCount();
 }
 function batchDelete(){
   var ids=getSelected();
   if(!ids.length){t('请先选择历史记录','err');return;}
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  for(var i=ids.length-1;i>=0;i--){h.splice(ids[i],1);}
-  localStorage.setItem('ds_h',JSON.stringify(h));
-  toggleSelect();
-  renderHistory();
-  t('已删除 '+ids.length+' 项','ok');
+  // 调 API 删除服务端记录
+  var promises=ids.map(function(idx){
+    var item=_historyData[idx];
+    if(item&&item.id) return authFetch('/api/generations?id='+encodeURIComponent(item.id),{method:'DELETE'}).catch(function(){});
+  });
+  Promise.all(promises).then(function(){
+    loadHistory();
+    toggleSelect();
+    t('已删除 '+ids.length+' 项','ok');
+  });
 }
 async function batchDownload(){
   var ids=getSelected();
   if(!ids.length){t('请先选择历史记录','err');return;}
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]');
-  var urls=ids.map(function(idx){return h[idx].u;}).filter(Boolean);
+  var urls=ids.map(function(idx){return _historyData[idx]&&(_historyData[idx].image_url||_historyData[idx].u);}).filter(Boolean);
   if(!urls.length){t('没有可下载的图片','err');return;}
   // 单张直接下载（走代理避免跨域预览）
   if(urls.length===1){window.location.href='/dl.php?url='+encodeURIComponent(urls[0]);return;}
@@ -606,8 +612,9 @@ async function batchDownload(){
 }
 
 function _viewH(idx){
-  const h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];if(!x)return;
-  document.getElementById('resultArea').innerHTML=`<div><img src="${x.u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${x.u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
+  var x=_historyData[idx];if(!x)return;
+  var u=x.image_url||x.u;
+  document.getElementById('resultArea').innerHTML=`<div><img src="${u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
 }
 
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
@@ -620,8 +627,8 @@ document.getElementById('apiKey').value=savedKey||'';
 // Load templates from API (not exposed in source)
 fetch('/api/templates.php').then(function(r){return r.json()}).then(function(d){
   LAYOUTS=d.layouts;STYLES=d.styles;ART_STYLES=d.art_styles;DIR_STYLES=d.dir_styles;
-  renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();
-}).catch(function(){renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();renderHistory();onModelChange();up();});
+  renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();loadHistory();onModelChange();up();
+}).catch(function(){renderLayouts();renderStyles();renderArtStyles();renderDirStyles();renderUploads();loadHistory();onModelChange();up();});
 var _fs=localStorage.getItem('ds_fontSize');if(_fs)changeFontSize(_fs);
 document.getElementById('promptInput').oninput=up;document.getElementById('aspectRatio').onchange=up;document.getElementById('resolution').onchange=up;
 
@@ -700,9 +707,9 @@ function restoreViewerPrompt(){
 }
 async function downloadViewer(){var url=document.getElementById('viewerImg').src;try{var r=await fetch(url);var b=await r.blob();var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click()}catch(e){window.open(url,'_blank')}}
 function viewH(idx){
-  var h=JSON.parse(localStorage.getItem('ds_h')||'[]'),x=h[idx];
+  var x=_historyData[idx];
   if(!x) return;
-  openViewer(x.u, x.model||'', x.prompt||'');
+  openViewer(x.image_url||x.u, x.model||'', x.prompt||'');
 }
 
 
@@ -710,6 +717,7 @@ function viewH(idx){
 consumeLoginHash();
 var AUTH_TOKEN = authGet('sanshitu_token') || window.__SANSHITU_AUTH_TOKEN || '';
 var AUTH_USER = getStoredUser();
+var _historyData = [];
 var authMode = 'login';
 
 // Token 刷新
@@ -828,7 +836,7 @@ function getStoredUser(){
 }
 
 function loginWithLogto(){
-  var v=Array(64);crypto.getRandomValues(new Uint8Array(v));var ver=btoa(String.fromCharCode.apply(null,new Uint8Array(v))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");var s=new Uint8Array(32);crypto.getRandomValues(s);var st=btoa(String.fromCharCode.apply(null,s)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");crypto.subtle.digest("SHA-256",new TextEncoder().encode(ver)).then(function(h){var ch=btoa(String.fromCharCode.apply(null,new Uint8Array(h))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");sessionStorage.setItem("logto_verifier",ver);sessionStorage.setItem("logto_state",st);var u="https://auth.aiwuuw.com/oidc/auth?client_id=40vr7avrp8cgluppm1xly&redirect_uri="+encodeURIComponent("https://www.aiwuuw.com/callback")+"&response_type=code&scope=openid+profile+offline_access&code_challenge="+ch+"&code_challenge_method=S256&state="+st+"&prompt=login";location.href=u;});
+  var v=Array(64);crypto.getRandomValues(new Uint8Array(v));var ver=btoa(String.fromCharCode.apply(null,new Uint8Array(v))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");var s=new Uint8Array(32);crypto.getRandomValues(s);var st=btoa(String.fromCharCode.apply(null,s)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");crypto.subtle.digest("SHA-256",new TextEncoder().encode(ver)).then(function(h){var ch=btoa(String.fromCharCode.apply(null,new Uint8Array(h))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");sessionStorage.setItem("logto_verifier",ver);sessionStorage.setItem("logto_state",st);var u="https://auth.aiwuuw.com/oidc/auth?client_id=40vr7avrp8cgluppm1xly&redirect_uri="+encodeURIComponent("https://www.aiwuuw.com/callback")+"&response_type=code&scope=openid+profile+offline_access&code_challenge="+ch+"&code_challenge_method=S256&state="+st+"&prompt=login"+"&prompt=consent";location.href=u;});
 }
 
 function showLoginModal(){
@@ -1062,9 +1070,12 @@ function updateAuthUI(){
     var img = document.getElementById('userAvatar');
     if (avatar) { img.src = avatar; img.style.display = ''; }
     else { img.style.display = 'none'; }
+    loadHistory();
     loadCustomPresets();
     scheduleTokenRefresh();
   } else {
+    _historyData=[];
+    renderHistory();
     customPresets=[];
     reRender();
   }
