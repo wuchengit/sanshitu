@@ -883,13 +883,22 @@ async function handleAuth(){
 }
 
 function doLogout(){
+  var idToken = authGet('sanshitu_id_token');
   AUTH_TOKEN = '';
   AUTH_USER = null;
   window.__SANSHITU_AUTH_TOKEN='';
   window.__SANSHITU_AUTH_USER='';
   authRemove('sanshitu_token');
   authRemove('sanshitu_user');
+  authRemove('sanshitu_id_token');
+  authRemove('sanshitu_refresh');
   customPresets=[];
+  if (idToken) {
+    location.href = 'https://auth.aiwuuw.com/oidc/session/end?id_token_hint=' +
+      encodeURIComponent(idToken) +
+      '&post_logout_redirect_uri=' + encodeURIComponent('https://www.aiwuuw.com/sanshitu');
+    return;
+  }
   reRender();
   updateAuthUI();
   t('已退出登录');
