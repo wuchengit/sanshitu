@@ -463,7 +463,18 @@ document.getElementById('genBtn').onclick=async function(){
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
   // 插入loading历史（内存）
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
-  _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
+  var _failedIdx = -1;
+  for(var _fii = 0; _fii < _historyData.length; _fii++){
+    if(_historyData[_fii].failed){
+      _failedIdx = _fii;
+      break;
+    }
+  }
+  if(_failedIdx >= 0){
+    _historyData[_failedIdx] = {u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt};
+  } else {
+    _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
+  }
   if(_historyData.length>30)_historyData.pop();
   renderHistory();
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
@@ -498,13 +509,13 @@ document.getElementById('genBtn').onclick=async function(){
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
       // 失败：按loadId精确删除对应的loading记录
-      for(var fi=_historyData.length-1;fi>=0;fi--){if(_historyData[fi].id===loadId){_historyData.splice(fi,1);break;}}
+      for(var fi=_historyData.length-1;fi>=0;fi--){if(_historyData[fi].id===loadId){_historyData[fi] = {u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};break;}}
       renderHistory();
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
     }
   }catch(e){
     clearTimeout(abortTimer);
-    for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData.splice(ei,1);break;}}
+    for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData[ei] = {u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};break;}}
     renderHistory();
     t(e.name==='AbortError'?'⏰ 生成超时，请重试':'❌ 生成失败','err');
     btn.disabled=false;btn.innerHTML='<i data-lucide="sparkles"></i> 生成图片';if(window.lucide)lucide.createIcons();
@@ -544,6 +555,7 @@ function renderHistory(){
     out=h.slice().reverse().map(function(x,i){
       var idx=h.length-1-i;
       if(x.loading)return '<div class="history-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
+      if(x.failed)return '<div class="history-item failed"><div style="width:100%;height:100%;background:#2a1a1a;display:flex;align-items:center;justify-content:center;color:#ff6b6b;font-size:12px">生成失败</div></div>';
       var broken=x.broken?' broken':'';
       var chk=selMode?'<div class="chk'+(x._sel?' on':'')+'" data-i="'+idx+'" onclick="event.stopPropagation();toggleCheck(this,'+idx+')">'+(x._sel?'✓':'')+'</div>':'';
       return '<div class="history-item'+broken+'" data-i="'+idx+'" onclick="handleItemClick(event,'+idx+')">'+chk+'<img class="hs-img" src="'+(x.thumb_url||x.thumb||x.image_url||x.u)+'" loading="lazy"></div>';

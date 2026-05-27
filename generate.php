@@ -48,7 +48,8 @@ curl_close($ch);
 
 // 失败时写日志
 $json = json_decode($response, true);
-$isError = $curlError || $httpCode >= 400 || ($json && empty($json['results']));
+$hasImage = !empty($json['results'][0]['url']);
+$isError = $curlError || $httpCode >= 400 || !$hasImage;
 if ($isError) {
   $logDir = __DIR__ . '/logs';
   if (!is_dir($logDir)) mkdir($logDir, 0755, true);
