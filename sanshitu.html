@@ -832,26 +832,50 @@ function selectBrowserAsset(idx){
     document.getElementById('assetPreviewActions').style.display='none';
     return;
   }
-  var previewUrl=a.preview_path||a.file_path;
   var info='📄 '+(a.file_path.split('/').pop()||a.file_path)+(a.width?' | '+a.width+'×'+a.height:'')+(a.file_size?' | '+formatFileSize(a.file_size):'')+(a.created_at?' | '+a.created_at.substring(0,10):'');
   document.getElementById('assetPreviewInfo').textContent=info;
   document.getElementById('assetPreviewInfo').style.display='';
   document.getElementById('assetPreviewActions').style.display='';
-  // blob 缓存：同一 URL 只下载一次
-  if(_blobCache[previewUrl]){
-    document.getElementById('assetPreviewImg').innerHTML='<img src="'+_blobCache[previewUrl]+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+
+  // 如果无预览图，先生成
+  if(!a.preview_path){
+    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 生成预览中...</div>';
+    var _si=idx;
+    authFetch('/api/assets.php?action=genpreview&id='+a.id,{method:'POST'}).then(function(r){ return r.json(); }).then(function(d){
+      if(d.ok&&d.preview_path){
+        a.preview_path=d.preview_path;
+        if(_browserSelIdx===_si) loadPreviewBlob(a.preview_path,_si);
+      }else{
+        if(_browserSelIdx===_si) loadPreviewBlob(a.file_path,_si);
+      }
+    }).catch(function(){
+      if(_browserSelIdx===_si) loadPreviewBlob(a.file_path,_si);
+    });
     return;
   }
-  document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 加载预览...</div>';
-  var _si=idx;
+
+  loadPreviewBlob(a.preview_path,idx);
+}
+
+function loadPreviewBlob(previewUrl, idx){
+  // blob 缓存：同一 URL 只下载一次
+  if(_blobCache[previewUrl]){
+    if(_browserSelIdx===idx){
+      document.getElementById('assetPreviewImg').innerHTML='<img src="'+_blobCache[previewUrl]+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+    }
+    return;
+  }
+  if(_browserSelIdx===idx){
+    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 加载预览...</div>';
+  }
   fetch(previewUrl).then(function(r){ return r.blob(); }).then(function(b){
     var objUrl=URL.createObjectURL(b);
     _blobCache[previewUrl]=objUrl;
-    if(_browserSelIdx===_si){
+    if(_browserSelIdx===idx){
       document.getElementById('assetPreviewImg').innerHTML='<img src="'+objUrl+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
     }
   }).catch(function(){
-    if(_browserSelIdx===_si){
+    if(_browserSelIdx===idx){
       document.getElementById('assetPreviewImg').innerHTML='<img src="'+escapeHtml(previewUrl)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
     }
   });
