@@ -502,7 +502,7 @@ function downloadPrompt(){
 function renderUploads(){
   let h='';
   for(let i=0;i<6;i++)
-    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="openViewer(uploadedFiles[${i}].data,'参考图','','')"><img src="${uploadedFiles[i].thumb||uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="${i===0?'handleRefPicker(event)':''}">${i===0?'+':''}</div>`;
+    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="openViewer(uploadedFiles[${i}].data,'参考图','','')"><img src="${uploadedFiles[i].thumb||uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="handleRefPicker(event)">+</div>`;
   document.getElementById('uploadRow').innerHTML=h;
 }
 
@@ -886,7 +886,6 @@ function addBrowserAssetToRef(){
   var a=_userAssets[_browserSelIdx];
   if(!a||a.loading) return;
   addAssetToRef(a.file_path,a.thumb_path);
-  closeAssetBrowser();
 }
 
 function downloadBrowserAsset(){
