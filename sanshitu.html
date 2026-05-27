@@ -683,7 +683,7 @@ function renderAssetLibrary(){
       h+='<div class="asset-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:16px;height:16px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
       continue;
     }
-    h+='<div class="asset-item" onclick="addAssetToRef(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
+    h+='<div class="asset-item" onclick="openViewerAsset(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\',\'资源库\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
   }
   h+='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
   grid.innerHTML=h;
@@ -889,7 +889,7 @@ function openViewer(url,info,prompt,resolution){
     });
   };
 }
-function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';_viewerOrigPrompt='';}
+function closeViewer(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('viewerOverlay').style.display='none';document.body.style.overflow='';viewerPrompt='';_viewerOrigPrompt='';_viewerAssetUrl='';_viewerAssetThumb='';document.getElementById('viewerAddToRefBtn').style.display='none';}
 function bindViewerEvents(){
   var overlay=document.getElementById('viewerOverlay');
   if(!overlay||overlay.dataset.bound)return;
@@ -934,6 +934,20 @@ function restoreViewerPrompt(){
   document.getElementById('viewerRestoreBtn').style.display='none';
 }
 async function downloadViewer(){var url=document.getElementById('viewerImg').src;try{var r=await fetch(url);var b=await r.blob();var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click()}catch(e){window.open(url,'_blank')}}
+
+var _viewerAssetUrl='',_viewerAssetThumb='';
+function openViewerAsset(url,thumbUrl,label){
+  _viewerAssetUrl=url;
+  _viewerAssetThumb=thumbUrl;
+  openViewer(url,label||'资源库');
+  document.getElementById('viewerAddToRefBtn').style.display='';
+}
+function addViewerAssetToRef(){
+  if(!_viewerAssetUrl) return;
+  addAssetToRef(_viewerAssetUrl,_viewerAssetThumb);
+  closeViewer();
+}
+
 function viewH(idx){
   var x=_historyData[idx];
   if(!x) return;
@@ -1338,6 +1352,7 @@ updateAuthUI();
 <div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center;max-width:90vw">
 <span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
 <button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
+<button class="preview-btn" id="viewerAddToRefBtn" onclick="addViewerAssetToRef()" style="display:none;padding:5px 12px;font-size:11px;background:linear-gradient(135deg,#667eea,#764ba2)">🎯 添加到参考图</button>
 <button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer"><i data-lucide="x"></i></button></div>
 <div style="display:flex;gap:12px;align-items:flex-start;max-width:90vw;max-height:85vh" onclick="event.stopPropagation()">
 <div id="viewerContainer" style="position:relative;overflow:hidden;border-radius:8px;flex-shrink:0">
