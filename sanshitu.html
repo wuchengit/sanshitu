@@ -312,28 +312,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-const APP_VERSION="20260527.01";
-(function(){
-  var storedVer=localStorage.getItem('ds_ver');
-  // Version check - auto reload if server version changed
-  fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
-    sv=sv.trim();
-    if(storedVer&&storedVer!==sv){
-      localStorage.setItem('ds_ver',sv);
-      location.href=location.pathname+'?t='+Date.now();
-      return;
-    }
-    if(!storedVer) localStorage.setItem('ds_ver',sv);
-    // Clean up ?v= param from URL
-    if(/[?&]v=/.test(location.search)||/[?&]t=/.test(location.search)){
-      history.replaceState(null,'',location.pathname+location.search.replace(/[?&][vt]=[^&]*/g,'').replace(/^&/,'?'));
-    }
-  }).catch(function(){});
-  // Version check on load - auto reload if outdated
-  if(storedVer&&storedVer!==APP_VERSION){
-    location.reload();
-  }
-})();
+const APP_VERSION="20260525.58";
 var LAYOUTS=[],STYLES=[],ART_STYLES=[],DIR_STYLES=[];
 const RES_MAP = {
   '9:16':{'1k':'941x1672','2k':'1152x2048','4k':'2160x3840'},
@@ -1262,16 +1241,7 @@ function scheduleTokenRefresh(){
 }
 
 // 30s 轮询版本，检测到新版本自动静默刷新
-setInterval(function(){
-  fetch('/version.txt?v='+Date.now()).then(function(r){return r.text()}).then(function(sv){
-    sv=sv.trim();
-    if(sv && sv!==APP_VERSION){
-      // 保存当前提示词到localStorage防止丢失
-      try{var pi=document.getElementById('promptInput');if(pi&&pi.value)localStorage.setItem('ds_draft',pi.value);}catch(e){}
-      location.reload();
-    }
-  }).catch(function(){});
-},30000);
+// 30s 版本轮询（已移除）
 
 // 带自动刷新的 fetch
 async function authFetch(url, opts){

@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
+set_time_limit(120);
 
 $input = json_decode(file_get_contents('php://input'), true);
 $url = $input['url'] ?? '';
@@ -26,7 +27,8 @@ $thumbPath = $thumbDir . '/' . $thumbName;
 $ch = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 30,
+    CURLOPT_TIMEOUT => 120,
+    CURLOPT_CONNECTTIMEOUT => 15,
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_USERAGENT => 'Mozilla/5.0'
 ]);
