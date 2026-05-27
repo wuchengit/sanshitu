@@ -61,7 +61,7 @@ if ($isError) {
     'error' => $curlError ?: ($json['error'] ?? $json['message'] ?? "HTTP $httpCode"),
     'cost' => $duration . 'ms'
   ], JSON_UNESCAPED_UNICODE) . "\n";
-  file_put_contents($logDir . '/generate.log', $logEntry, FILE_APPEND | LOCK_EX);
+  error_log($logEntry, 3, __DIR__ . '/logs/generate.log');
 }
 
 http_response_code($httpCode);
