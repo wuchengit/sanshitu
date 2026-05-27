@@ -36,7 +36,7 @@ curl_setopt_array($ch, [
         'Content-Type: application/json'
     ],
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 120
+    CURLOPT_TIMEOUT => 600
 ]);
 
 $startTime = microtime(true);
