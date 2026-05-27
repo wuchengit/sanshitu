@@ -53,8 +53,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .asset-upload-btn{display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:#25252d;border:1px dashed #444;border-radius:4px;cursor:pointer;color:#555;font-size:20px;transition:all .2s}
 .asset-upload-btn:hover{border-color:#667eea66;color:#667eea}
 
-/* 资源选择器 Modal */
-.asset-picker-modal .modal-box{width:520px;max-height:80vh;overflow-y:auto}
+/* 资源库紧凑一行 */
+.asset-row{display:flex;gap:3px;margin-top:4px;overflow-x:auto;padding-bottom:2px}
+.asset-thumb{width:48px;height:48px;flex-shrink:0;background:#25252d;border:1px solid #333;border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.asset-thumb:hover{border-color:#667eea}
+.asset-thumb img{width:100%;height:100%;object-fit:cover}
+.asset-view-all{flex-shrink:0;width:48px;height:48px;background:#667eea15;border:1px dashed #667eea44;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#667eea;font-size:10px;transition:all .2s;text-align:center;line-height:1.2}
+.asset-view-all:hover{background:#667eea25;border-color:#667eea}
+
+/* 资源浏览器弹窗 - 左右布局 */
+.asset-browser-modal .modal-box{width:780px;max-height:85vh;overflow:hidden;padding:16px}
+.asset-browser-layout{display:flex;gap:12px;height:70vh;max-height:calc(85vh - 60px)}
+.asset-browser-left{flex:0 0 320px;overflow-y:auto;padding-right:4px}
+.asset-browser-left .asset-grid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr))}
+.asset-browser-right{flex:1;display:flex;flex-direction:column;background:#1a1a22;border:1px solid #2a2a32;border-radius:8px;overflow:hidden}
+.asset-preview-img{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.asset-preview-img img{max-width:100%;max-height:100%;object-fit:contain}
+.asset-preview-placeholder{color:#555;font-size:12px;text-align:center;padding:20px}
+.asset-preview-info{padding:8px 12px;border-top:1px solid #2a2a32;font-size:10px;color:#888}
+.asset-preview-actions{padding:8px 12px;display:flex;gap:6px;border-top:1px solid #2a2a32}
+.asset-preview-actions button{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600}
+.asset-btn-add{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.asset-btn-del{background:#ef444422;color:#ef4444;border:1px solid #ef444444!important}
+.asset-btn-add:hover{opacity:.9}
+.asset-btn-del:hover{background:#ef444433}
 
 /* 人物资产结构 - 紧凑 */
 .layout-strip{display:flex;gap:6px;overflow-x:auto}
@@ -192,10 +214,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
       <!-- 资源库 -->
       <div class="card" id="assetLibraryCard" style="display:none">
-        <div class="card-t"><i data-lucide="folder-open"></i> 资源库 <button id="assetUploadBtn" onclick="document.getElementById('assetFileInput').click()" style="margin-left:auto;background:#667eea22;border:1px solid #667eea44;border-radius:4px;color:#667eea;font-size:10px;padding:2px 8px;cursor:pointer">上传</button></div>
-        <div class="asset-grid" id="assetGrid">
-          <div class="asset-upload-btn" onclick="document.getElementById('assetFileInput').click()">+</div>
-        </div>
+        <div class="card-t"><i data-lucide="folder-open"></i> 资源库 <span id="assetLibraryCount" style="color:#888;font-size:10px;margin-left:4px"></span> <button id="assetUploadBtn" onclick="document.getElementById('assetFileInput').click()" style="margin-left:auto;background:#667eea22;border:1px solid #667eea44;border-radius:4px;color:#667eea;font-size:10px;padding:2px 8px;cursor:pointer">上传</button></div>
+        <div class="asset-row" id="assetRow"></div>
       </div>
       <div class="card">
         <div class="card-t" style="margin-bottom:6px"><i data-lucide="pen-tool"></i> 提示词<label class="free-mode-toggle" style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:#999;cursor:pointer;position:relative"><input type="checkbox" id="freeModeToggle" onchange="up()"> 自由模式 <span style="position:relative;display:inline-flex;align-items:center"><i data-lucide="info" style="width:12px;height:12px;opacity:.6"></i><span class="tooltip-text" style="display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#333;color:#eee;padding:4px 8px;border-radius:4px;font-size:10px;white-space:nowrap;z-index:100;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.3)">开启后仅使用输入框内容，跳过所有预设</span></span></label></div>
@@ -655,7 +675,7 @@ function renderHistory(){
 }
 
 // ========== 资源库 ==========
-var _userAssets=[];
+var _userAssets=[],_browserSelIdx=-1;
 
 async function loadAssets(){
   if(!AUTH_TOKEN) return;
@@ -665,59 +685,121 @@ async function loadAssets(){
     if(d.ok) _userAssets=d.data||[];
   } catch(e){ _userAssets=[]; }
   renderAssetLibrary();
+  if(document.getElementById('assetBrowserModal').classList.contains('show')){ renderAssetBrowser(); }
 }
 
 function renderAssetLibrary(){
   var card=document.getElementById('assetLibraryCard');
   if(!AUTH_TOKEN){ card.style.display='none'; return; }
   card.style.display='';
-  var grid=document.getElementById('assetGrid');
-  if(!_userAssets.length){
-    grid.innerHTML='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
+  var row=document.getElementById('assetRow');
+  var count=document.getElementById('assetLibraryCount');
+  var realAssets=_userAssets.filter(function(a){return !a.loading;});
+  count.textContent=realAssets.length?'('+realAssets.length+')':'';
+  if(!realAssets.length){
+    row.innerHTML='<div style="color:#555;font-size:11px;padding:4px 0">暂无资源</div>';
     return;
   }
   var h='';
-  for(var i=0;i<_userAssets.length;i++){
-    var a=_userAssets[i];
-    if(a.loading){
-      h+='<div class="asset-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:16px;height:16px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
-      continue;
-    }
-    h+='<div class="asset-item" onclick="openViewerAsset(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\',\'资源库\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
+  var showCount=Math.min(realAssets.length,6);
+  for(var i=0;i<showCount;i++){
+    var a=realAssets[i];
+    h+='<div class="asset-thumb" onclick="openAssetBrowser('+_userAssets.indexOf(a)+')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
   }
-  h+='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
-  grid.innerHTML=h;
+  if(realAssets.length>6){
+    h+='<div class="asset-view-all" onclick="openAssetBrowser(-1)">查看<br>全部</div>';
+  }
+  row.innerHTML=h;
+}
+
+// ===== 资源浏览器弹窗 =====
+function openAssetBrowser(startIdx){
+  _browserSelIdx=startIdx;
+  document.getElementById('assetBrowserModal').classList.add('show');
+  renderAssetBrowser();
+}
+
+function closeAssetBrowser(){
+  document.getElementById('assetBrowserModal').classList.remove('show');
+  _browserSelIdx=-1;
 }
 
 function openAssetPicker(){
-  document.getElementById('assetPickerModal').classList.add('show');
-  renderAssetPicker();
+  openAssetBrowser(-1);
 }
 
 function closeAssetPicker(){
-  document.getElementById('assetPickerModal').classList.remove('show');
+  closeAssetBrowser();
 }
 
-async function renderAssetPicker(){
-  var grid=document.getElementById('assetPickerGrid');
-  if(!_userAssets.length){
-    try{
-      var r=await authFetch('/api/assets.php');
-      var d=await r.json();
-      if(d.ok) _userAssets=d.data||[];
-    } catch(e){}
-    renderAssetLibrary();
-  }
-  if(!_userAssets.length){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">暂无资源，请先在资源库中上传</div>';
+function renderAssetBrowser(){
+  var grid=document.getElementById('assetBrowserGrid');
+  var countEl=document.getElementById('assetBrowserCount');
+  var realAssets=_userAssets.filter(function(a){return !a.loading;});
+  countEl.textContent=realAssets.length?'('+realAssets.length+' 项)':'';
+  if(!realAssets.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">暂无资源，请上传</div>';
+    // 清空右侧
+    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">暂无图片</div>';
+    document.getElementById('assetPreviewInfo').style.display='none';
+    document.getElementById('assetPreviewActions').style.display='none';
     return;
   }
   var h='';
-  for(var i=0;i<_userAssets.length;i++){
-    var a=_userAssets[i];
-    h+='<div class="asset-item" onclick="selectAssetForRef(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\');closeAssetPicker()"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
+  for(var i=0;i<realAssets.length;i++){
+    var a=realAssets[i];
+    var actualIdx=_userAssets.indexOf(a);
+    var sel=actualIdx===_browserSelIdx?' style="border-color:#667eea;box-shadow:0 0 0 1px #667eea"':'';
+    h+='<div class="asset-item"'+sel+' onclick="selectBrowserAsset('+actualIdx+')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
   }
   grid.innerHTML=h;
+  selectBrowserAsset(_browserSelIdx);
+}
+
+function selectBrowserAsset(idx){
+  _browserSelIdx=idx;
+  // 高亮左侧选中
+  var items=document.getElementById('assetBrowserGrid').querySelectorAll('.asset-item');
+  var realAssets=_userAssets.filter(function(a){return !a.loading;});
+  items.forEach(function(el,i){
+    if(_userAssets.indexOf(realAssets[i])===idx){
+      el.style.borderColor='#667eea';
+      el.style.boxShadow='0 0 0 1px #667eea';
+    }else{
+      el.style.borderColor='';
+      el.style.boxShadow='';
+    }
+  });
+  // 更新右侧预览
+  var a=_userAssets[idx];
+  if(!a||a.loading){
+    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">👈 选择一张图片查看</div>';
+    document.getElementById('assetPreviewInfo').style.display='none';
+    document.getElementById('assetPreviewActions').style.display='none';
+    return;
+  }
+  document.getElementById('assetPreviewImg').innerHTML='<img src="'+escapeHtml(a.file_path)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+  var info='📄 '+(a.file_path.split('/').pop()||a.file_path)+(a.width?' | '+a.width+'×'+a.height:'')+(a.file_size?' | '+formatFileSize(a.file_size):'')+(a.created_at?' | '+a.created_at.substring(0,10):'');
+  document.getElementById('assetPreviewInfo').textContent=info;
+  document.getElementById('assetPreviewInfo').style.display='';
+  document.getElementById('assetPreviewActions').style.display='';
+}
+
+function addBrowserAssetToRef(){
+  var a=_userAssets[_browserSelIdx];
+  if(!a||a.loading) return;
+  addAssetToRef(a.file_path,a.thumb_path);
+  closeAssetBrowser();
+}
+
+function deleteBrowserAsset(){
+  var a=_userAssets[_browserSelIdx];
+  if(!a||a.loading) return;
+  if(!confirm('确认删除该资源？')) return;
+  authFetch('/api/assets.php?id='+a.id,{method:'DELETE'}).then(function(r){return r.json()}).then(function(d){
+    if(d.ok){ loadAssets(); _browserSelIdx=-1; }
+    else t('❌ 删除失败','err');
+  }).catch(function(){ t('❌ 删除失败','err'); });
 }
 
 function addAssetToRef(url, thumbUrl){
@@ -726,10 +808,6 @@ function addAssetToRef(url, thumbUrl){
   uploadedFiles.push({data:url, thumb:thumbUrl||url});
   renderUploads();
   t('已添加参考图','ok');
-}
-
-function selectAssetForRef(url, thumbUrl){
-  addAssetToRef(url, thumbUrl);
 }
 
 async function uploadAsset(file){
@@ -754,6 +832,12 @@ async function deleteAsset(id){
     if(d.ok) loadAssets();
     else t('❌ 删除失败','err');
   } catch(e){ t('❌ 删除失败','err'); }
+}
+
+function formatFileSize(bytes){
+  if(bytes>1048576) return (bytes/1048576).toFixed(1)+'MB';
+  if(bytes>1024) return (bytes/1024).toFixed(0)+'KB';
+  return bytes+'B';
 }
 
 // 挂钩资源文件上传
@@ -1383,14 +1467,29 @@ updateAuthUI();
 </div></div></div>
 
 
-<!-- 资源选择器弹窗 -->
-<div class="modal-overlay asset-picker-modal" id="assetPickerModal">
+<!-- 资源浏览器弹窗 (左右布局) -->
+<div class="modal-overlay asset-browser-modal" id="assetBrowserModal">
 <div style="position:relative">
 <div class="modal-box">
-<button class="modal-close" onclick="closeAssetPicker()"><i data-lucide="x"></i></button>
-<h2>🏛️ 选择资源</h2>
-<div class="asset-grid" id="assetPickerGrid" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
-  <div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">⏳ 加载中...</div>
+<button class="modal-close" onclick="closeAssetBrowser()"><i data-lucide="x"></i></button>
+<h2 style="margin-bottom:10px">🏛️ 资源库 <span id="assetBrowserCount" style="color:#888;font-size:11px;font-weight:400"></span></h2>
+<div class="asset-browser-layout">
+  <!-- 左侧：缩略图网格 -->
+  <div class="asset-browser-left">
+    <div class="asset-upload-btn" onclick="document.getElementById('assetFileInput').click()" style="width:68px;height:68px;margin-bottom:4px">+</div>
+    <div class="asset-grid" id="assetBrowserGrid" style="grid-template-columns:repeat(auto-fill,minmax(68px,1fr))"></div>
+  </div>
+  <!-- 右侧：预览 + 信息 + 操作 -->
+  <div class="asset-browser-right" id="assetPreviewPane">
+    <div class="asset-preview-img" id="assetPreviewImg">
+      <div class="asset-preview-placeholder">👈 选择一张图片查看</div>
+    </div>
+    <div class="asset-preview-info" id="assetPreviewInfo" style="display:none"></div>
+    <div class="asset-preview-actions" id="assetPreviewActions" style="display:none">
+      <button class="asset-btn-add" onclick="addBrowserAssetToRef()">🎯 添加到参考图</button>
+      <button class="asset-btn-del" onclick="deleteBrowserAsset()">🗑️ 删除</button>
+    </div>
+  </div>
 </div>
 </div></div></div>
 
