@@ -64,6 +64,7 @@ if ($method === 'POST') {
             UPLOAD_ERR_PARTIAL => '文件上传不完整',
             UPLOAD_ERR_NO_FILE => '未选择文件',
         ];
+        error_log('[ASSETS_DEBUG] upload error: code=' . $err . ' size=' . ($_FILES['file']['size'] ?? 'N/A') . ' name=' . ($_FILES['file']['name'] ?? 'N/A') . ' type=' . ($_FILES['file']['type'] ?? 'N/A'));
         http_response_code(400);
         echo json_encode(['ok' => false, 'error' => $messages[$err] ?? '上传失败 (code ' . $err . ')']);
         exit;
@@ -81,9 +82,9 @@ if ($method === 'POST') {
         exit;
     }
 
-    if ($file['size'] > 10 * 1024 * 1024) {
+    if ($file['size'] > 30 * 1024 * 1024) {
         http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => '文件大小不能超过 10MB']);
+        echo json_encode(['ok' => false, 'error' => '文件大小不能超过 30MB']);
         exit;
     }
 
