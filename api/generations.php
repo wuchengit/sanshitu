@@ -38,7 +38,7 @@ if ($method === 'GET') {
     exit;
 }
 
-if ($method === 'POST') {
+if ($method === 'POST' || $method === 'PUT') {
     $body = json_decode(file_get_contents('php://input'), true);
     $isFailed = !empty($body['failed']);
     if (!$body || (!$isFailed && empty($body['image_url']))) {
@@ -47,24 +47,40 @@ if ($method === 'POST') {
         exit;
     }
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO ' . tableName('generations') . ' (user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-        $userId,
-        $body['prompt'] ?? '',
-        $body['model'] ?? '',
-        $body['info'] ?? '',
-        $body['resolution'] ?? '',
-        $body['aspect'] ?? '',
-        (int)($body['width'] ?? 0),
-        (int)($body['height'] ?? 0),
-        (int)($body['file_size'] ?? 0),
-        $isFailed ? '' : ($body['image_url'] ?? ''),
-        $isFailed ? '' : ($body['thumb_url'] ?? '')
-    ]);
-
-    echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    $updateId = !empty($body['id']) ? (int)$body['id'] : 0;
+    if ($updateId > 0) {
+        // UPDATE: 更新已有记录 (save_image 下载后用本地URL替换CDN)
+        $stmt = $pdo->prepare('UPDATE ' . tableName('generations') . ' SET image_url=?, thumb_url=?, width=?, height=?, file_size=? WHERE id=? AND user_id=?');
+        $stmt->execute([
+            $body['image_url'],
+            $body['thumb_url'] ?? '',
+            (int)($body['width'] ?? 0),
+            (int)($body['height'] ?? 0),
+            (int)($body['file_size'] ?? 0),
+            $updateId,
+            $userId
+        ]);
+        echo json_encode(['ok' => true, 'id' => $updateId]);
+    } else {
+        // INSERT: 新建记录
+        $stmt = $pdo->prepare(
+            'INSERT INTO ' . tableName('generations') . ' (user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $userId,
+            $body['prompt'] ?? '',
+            $body['model'] ?? '',
+            $body['info'] ?? '',
+            $body['resolution'] ?? '',
+            $body['aspect'] ?? '',
+            (int)($body['width'] ?? 0),
+            (int)($body['height'] ?? 0),
+            (int)($body['file_size'] ?? 0),
+            $isFailed ? '' : ($body['image_url'] ?? ''),
+            $isFailed ? '' : ($body['thumb_url'] ?? '')
+        ]);
+        echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
     exit;
 }
 

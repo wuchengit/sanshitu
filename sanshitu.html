@@ -572,32 +572,75 @@ document.getElementById('genBtn').onclick=async function(){
       // 更新loading记录（内存，先显示远程URL）
       var _found=false;for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av};_found=true;break;}}if(!_found){_historyData.push({u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av});}
       renderHistory();
-      // 异步保存到本地，然后POST到服务端
       var _loadId=loadId;
-      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
-        if(d2.original&&d2.thumb){
-          if (AUTH_TOKEN) {
-            authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){
-              // 直接在内存中更新本地URL，不调loadHistory()避免清掉进行中的记录
-              for(var _hi=0;_hi<_historyData.length;_hi++){
-                if(_historyData[_hi].id===_loadId){
-                  _historyData[_hi].image_url=d2.original;
-                  _historyData[_hi].thumb_url=d2.thumb;
-                  _historyData[_hi].u=d2.original;
-                  _historyData[_hi].thumb=d2.thumb;
+      // 先存CDN地址到数据库，再异步下载到本地后更新
+      var _saveChain;
+      if(AUTH_TOKEN){
+        _saveChain = authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:url,thumb_url:url,width:0,height:0,file_size:0})}).then(function(r){return r.json()}).then(function(d3){
+          var _sid=d3.ok&&d3.id?d3.id:0;
+          // CDN已存，开始下载到本地
+          fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+            if(d2.original&&d2.thumb&&_sid){
+              // 更新数据库：本地URL替换CDN
+              authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_sid,prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){
+                for(var _hi=0;_hi<_historyData.length;_hi++){
+                  if(_historyData[_hi].id===_loadId){
+                    _historyData[_hi].image_url=d2.original;
+                    _historyData[_hi].thumb_url=d2.thumb;
+                    _historyData[_hi].u=d2.original;
+                    _historyData[_hi].thumb=d2.thumb;
+                    break;
+                  }
+                }
+                renderHistory();
+              }).catch(function(){});
+            }else if(d2.original&&d2.thumb){
+              // save_image成功但CDN存失败了，单独Insert
+              authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).catch(function(){});
+              for(var _hj=0;_hj<_historyData.length;_hj++){
+                if(_historyData[_hj].id===_loadId){
+                  _historyData[_hj].image_url=d2.original;
+                  _historyData[_hj].thumb_url=d2.thumb;
+                  _historyData[_hj].u=d2.original;
+                  _historyData[_hj].thumb=d2.thumb;
                   break;
                 }
               }
               renderHistory();
-            }).catch(function(){});
-          } else {
-            var tempHistory=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
-            tempHistory.push({image_url:d2.original,thumb_url:d2.thumb,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0,prompt:prompt,created_at:new Date().toISOString()});
-            if(tempHistory.length>50)tempHistory.shift();
-            localStorage.setItem('ds_h_temp',JSON.stringify(tempHistory));
+            }
+          }).catch(function(){});
+        }).catch(function(){});
+      }else{
+        // 游客: 先存CDN到localStorage
+        var _th0=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+        _th0.push({image_url:url,thumb_url:url,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:0,height:0,file_size:0,prompt:prompt,created_at:new Date().toISOString()});
+        if(_th0.length>50)_th0.shift();
+        localStorage.setItem('ds_h_temp',JSON.stringify(_th0));
+        // 异步下载到本地后更新localStorage
+        fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+          if(d2.original&&d2.thumb){
+            var _thx=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+            for(var _tx=_thx.length-1;_tx>=0;_tx--){
+              if(_thx[_tx].image_url===url){
+                _thx[_tx].image_url=d2.original;
+                _thx[_tx].thumb_url=d2.thumb;
+                break;
+              }
+            }
+            localStorage.setItem('ds_h_temp',JSON.stringify(_thx));
+            for(var _hx=0;_hx<_historyData.length;_hx++){
+              if(_historyData[_hx].id===_loadId){
+                _historyData[_hx].image_url=d2.original;
+                _historyData[_hx].thumb_url=d2.thumb;
+                _historyData[_hx].u=d2.original;
+                _historyData[_hx].thumb=d2.thumb;
+                break;
+              }
+            }
+            renderHistory();
           }
-        }
-      }).catch(function(){});
+        }).catch(function(){});
+      }
       t('✅ 成功','ok');
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
