@@ -576,7 +576,11 @@ document.getElementById('genBtn').onclick=async function(){
       // 先存CDN地址到数据库，再异步下载到本地后更新
       var _saveChain;
       if(AUTH_TOKEN){
-        _saveChain = authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:url,thumb_url:url,width:0,height:0,file_size:0})}).then(function(r){return r.json()}).then(function(d3){
+        fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_start',error:url.substring(0,80)})}).catch(function(){});
+        _saveChain = authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:url,thumb_url:url,width:0,height:0,file_size:0})}).then(function(r){
+          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_resp',http:r.status})}).catch(function(){});
+          return r.json();
+        }).then(function(d3){
           var _sid=d3.ok&&d3.id?d3.id:0;
           // CDN已存，开始下载到本地
           fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
