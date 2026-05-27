@@ -40,9 +40,10 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
-    if (!$body || empty($body['image_url'])) {
+    $isFailed = !empty($body['failed']);
+    if (!$body || (!$isFailed && empty($body['image_url']))) {
         http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => '缺少 image_url']);
+        echo json_encode(['ok' => false, 'error' => $isFailed ? '缺少必要字段' : '缺少 image_url']);
         exit;
     }
 
@@ -59,8 +60,8 @@ if ($method === 'POST') {
         (int)($body['width'] ?? 0),
         (int)($body['height'] ?? 0),
         (int)($body['file_size'] ?? 0),
-        $body['image_url'],
-        $body['thumb_url'] ?? ''
+        $isFailed ? '' : ($body['image_url'] ?? ''),
+        $isFailed ? '' : ($body['thumb_url'] ?? '')
     ]);
 
     echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
