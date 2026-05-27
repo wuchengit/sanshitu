@@ -599,11 +599,12 @@ document.getElementById('genBtn').onclick=async function(){
   try{
     var r=await fetch('/generate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:abortCtrl.signal});
     clearTimeout(abortTimer);
+    console.log('[GEN_DEBUG] response status:',r.status,'text preview:',(await r.clone().text()).substring(0,200));
     var d=await r.json();
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
       // 更新loading记录（内存，先显示远程URL）
-      for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av};break;}}
+      var _found=false;for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av};_found=true;break;}}if(!_found){_historyData.push({u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av});}
       renderHistory();
       // 异步保存到本地，然后POST到服务端
       var _loadId=loadId;
@@ -622,12 +623,14 @@ document.getElementById('genBtn').onclick=async function(){
       t('✅ 成功','ok');
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
+      console.log('[GEN_DEBUG] failure: status=',d.status,'results=',JSON.stringify(d.results),'error=',d.error,'full=',JSON.stringify(d).substring(0,500));
       // 失败：按loadId精确删除对应的loading记录
       var _found=false;for(var fi=_historyData.length-1;fi>=0;fi--){if(_historyData[fi].id===loadId){_historyData[fi]={u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};_found=true;break;}}if(!_found){_historyData.push({u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt});}
       renderHistory();
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
     }
   }catch(e){
+    console.log('[GEN_DEBUG] catch:',e.name,e.message);
     clearTimeout(abortTimer);
     var _found2=false;for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData[ei]={u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};_found2=true;break;}}if(!_found2){_historyData.push({u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt});}
     renderHistory();
@@ -662,7 +665,7 @@ function renderHistory(){
   var h=_historyData;
   // 清理超过2分钟的loading记录
   var now=Date.now();
-  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>120000){h.splice(ci,1);}}
+  for(var ci=h.length-1;ci>=0;ci--){if(h[ci].loading&&(now-h[ci].t)>600000){h.splice(ci,1);}}
   var out='';
   var selMode=document.getElementById('historyMasonry').classList.contains('sel-mode');
   if(h.length){
