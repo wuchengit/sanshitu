@@ -17,7 +17,7 @@ $log = [
 ];
 
 $line = json_encode($log, JSON_UNESCAPED_UNICODE) . "\n";
-$logFile = __DIR__ . '/logs/generate.log';
+$logFile = '/var/www/sanshitu-data/logs/generate.log';
 $dir = dirname($logFile);
 
 if (!is_dir($dir)) {

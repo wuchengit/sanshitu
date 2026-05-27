@@ -221,7 +221,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <!-- 参考图选择弹出菜单 -->
         <div class="ref-picker-popup" id="refPicker" onclick="event.stopPropagation()">
           <div class="ref-picker-item" onclick="document.getElementById('fileInput').click();refPickerHide()">📁 从本地上传</div>
-          <div class="ref-picker-item" onclick="openAssetPicker();refPickerHide()">🏛️ 从资源库选择</div>
+          <div class="ref-picker-item" onclick="openAssetPicker();refPickerHide()"><i data-lucide="archive" style="width:14px;height:14px;vertical-align:-2px"></i> 从资源库选择</div>
         </div>
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
         <input type="file" id="assetFileInput" accept="image/*" style="display:none">
@@ -247,9 +247,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="card-t"><i data-lucide="eye"></i> 提示词预览</div>
         <div class="preview-box" id="promptPreview">选择右侧结构和风格后自动组合...</div>
         <div class="preview-tools">
-          <button class="preview-btn" onclick="copyPrompt()">📋 复制</button>
+          <button class="preview-btn" onclick="copyPrompt()"><i data-lucide="copy" style="width:12px;height:12px"></i> 复制</button>
           <button class="preview-btn" onclick="downloadPrompt()"><i data-lucide="download"></i> 下载</button>
-          <button class="preview-btn" onclick="translatePrompt(this)">🌐 翻译</button>
+          <button class="preview-btn" onclick="translatePrompt(this)"><i data-lucide="languages" style="width:12px;height:12px"></i> 翻译</button>
           <select id="targetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer"><option value="中文">🇨🇳 中文</option><option value="英文">🇬🇧 English</option><option value="日文">🇯🇵 日本語</option><option value="韩文">🇰🇷 한국어</option><option value="法文">🇫🇷 Français</option><option value="西班牙文">🇪🇸 Español</option></select>
           <span style="flex:1"></span><span style="font-size:9px;color:#555;margin-right:2px">字号</span><select id="fontSize" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:2px 4px;cursor:pointer" onchange="changeFontSize(this.value)"><option value="10">小</option><option value="12" selected>默认</option><option value="14">中</option><option value="16">大</option></select><span style="font-size:9px;color:#555" id="promptLen">0</span>
         </div>
@@ -436,8 +436,8 @@ function dlImg(url,btn){
   btn.innerHTML='⏳';
   fetch(url).then(function(r){return r.blob()}).then(function(b){
     var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sanshitu_'+Date.now()+'.png';a.click();
-    btn.innerHTML='⬇️ 下载';
-  }).catch(function(){btn.innerHTML='⬇️ 下载';});
+    btn.innerHTML='<i data-lucide="download" style="width:12px;height:12px"></i> 下载';
+  }).catch(function(){btn.innerHTML='<i data-lucide="download" style="width:12px;height:12px"></i> 下载';});
 }
 
 function translatePrompt(btn){
@@ -453,7 +453,7 @@ function translatePrompt(btn){
     document.getElementById('promptLen').textContent=el.dataset.orig.length;
     var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
     btn.textContent='💡 原文';btn.style.color='#22c55e';
-    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
     return;
   }
   btn.innerHTML='⏳';
@@ -470,7 +470,7 @@ function translatePrompt(btn){
     if(!rb){
       var btns=btn.parentElement;
       rb=document.createElement('button');
-      rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='↩ 原文';
+      rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='<i data-lucide="undo" style="width:12px;height:12px"></i> 原文';
       rb.onclick=function(){
         el.textContent=el.dataset.orig;
         document.getElementById('promptLen').textContent=el.dataset.orig.length;
@@ -480,7 +480,7 @@ function translatePrompt(btn){
       btns.insertBefore(rb, btn.nextSibling);
     }
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
-  .finally(function(){btn.innerHTML='🌐 翻译';});
+  .finally(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';});
 }
 function copyPrompt(){
   var p=document.getElementById('promptPreview'),r=document.createRange();
@@ -792,7 +792,7 @@ function renderAssetBrowser(){
   grid.parentElement.classList.toggle('browser-sel',_browserSelMode);
   if(!realAssets.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">暂无资源，请上传</div>';
-    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">暂无图片</div>';
+    document.getElementById('assetPreviewContent').innerHTML='<div class="asset-preview-placeholder">暂无图片</div>';
     document.getElementById('preview4kBadge').style.display='none';
     document.getElementById('assetPreviewInfo').style.display='none';
     document.getElementById('assetPreviewActions').style.display='none';
@@ -829,7 +829,7 @@ function selectBrowserAsset(idx){
   // 更新右侧预览
   var a=_userAssets[idx];
   if(!a||a.loading){
-    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">👈 选择一张图片查看</div>';
+    document.getElementById('assetPreviewContent').innerHTML='<div class="asset-preview-placeholder">👈 选择一张图片查看</div>';
     document.getElementById('preview4kBadge').style.display='none';
     document.getElementById('assetPreviewInfo').style.display='none';
     document.getElementById('assetPreviewActions').style.display='none';
@@ -839,11 +839,11 @@ function selectBrowserAsset(idx){
   document.getElementById('assetPreviewInfo').textContent=info;
   document.getElementById('assetPreviewInfo').style.display='';
   document.getElementById('assetPreviewActions').style.display='';
-  document.getElementById('preview4kBadge').style.display=(a.width>=3840||a.height>=3840)?'':'none';
+  document.getElementById('preview4kBadge').style.display=(a.width>=3840||a.height>=3840)?'block':'none';
 
   // 如果无预览图，先生成
   if(!a.preview_path){
-    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 生成预览中...</div>';
+    document.getElementById('assetPreviewContent').innerHTML='<div class="asset-preview-placeholder">⏳ 生成预览中...</div>';
     var _si=idx;
     authFetch('/api/assets.php?action=genpreview&id='+a.id,{method:'POST'}).then(function(r){ return r.json(); }).then(function(d){
       if(d.ok&&d.preview_path){
@@ -865,22 +865,22 @@ function loadPreviewBlob(previewUrl, idx){
   // blob 缓存：同一 URL 只下载一次
   if(_blobCache[previewUrl]){
     if(_browserSelIdx===idx){
-      document.getElementById('assetPreviewImg').innerHTML='<img src="'+_blobCache[previewUrl]+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+      document.getElementById('assetPreviewContent').innerHTML='<img src="'+_blobCache[previewUrl]+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
     }
     return;
   }
   if(_browserSelIdx===idx){
-    document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 加载预览...</div>';
+    document.getElementById('assetPreviewContent').innerHTML='<div class="asset-preview-placeholder">⏳ 加载预览...</div>';
   }
   fetch(previewUrl).then(function(r){ return r.blob(); }).then(function(b){
     var objUrl=URL.createObjectURL(b);
     _blobCache[previewUrl]=objUrl;
     if(_browserSelIdx===idx){
-      document.getElementById('assetPreviewImg').innerHTML='<img src="'+objUrl+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+      document.getElementById('assetPreviewContent').innerHTML='<img src="'+objUrl+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
     }
   }).catch(function(){
     if(_browserSelIdx===idx){
-      document.getElementById('assetPreviewImg').innerHTML='<img src="'+escapeHtml(previewUrl)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+      document.getElementById('assetPreviewContent').innerHTML='<img src="'+escapeHtml(previewUrl)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
     }
   });
 }
@@ -1066,7 +1066,7 @@ async function batchDownload(){
 function _viewH(idx){
   var x=_historyData[idx];if(!x)return;
   var u=x.image_url||x.u;
-  document.getElementById('resultArea').innerHTML=`<div><img src="${u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${u}';a.download='sanshitu_'+Date.now()+'.png';a.click()">⬇️ 下载</button></div>`;
+  document.getElementById('resultArea').innerHTML=`<div><img src="${u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${u}';a.download='sanshitu_'+Date.now()+'.png';a.click()"><i data-lucide="download" style="width:12px;height:12px"></i> 下载</button></div>`;
 }
 
 function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
@@ -1138,7 +1138,7 @@ function translateViewerPrompt(btn){
     document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
     document.getElementById('viewerRestoreBtn').style.display='none';
     btn.textContent='💡 原文';btn.style.color='#22c55e';
-    setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+    setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
     return;
   }
   btn.innerHTML='⏳';btn.disabled=true;
@@ -1151,7 +1151,7 @@ function translateViewerPrompt(btn){
       document.getElementById('viewerPromptText').textContent=d.translation;
       document.getElementById('viewerRestoreBtn').style.display=same?'none':'inline-block';
       btn.textContent=same?'💡 原文':'✓ 已翻译';btn.style.color='#22c55e';
-      setTimeout(function(){btn.textContent='🌐 翻译';btn.style.color='';},1500);
+      setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
   .finally(function(){btn.disabled=false;});
@@ -1318,7 +1318,7 @@ function closeLoginModal(){
 
 function setAuthMode(mode){
   authMode = mode;
-  document.getElementById('authTitle').textContent = mode === 'login' ? '<i data-lucide="log-in"></i> 登录' : '📝 注册';
+  document.getElementById('authTitle').innerHTML = mode === 'login' ? '<i data-lucide="log-in"></i> 登录' : '<i data-lucide="user-plus"></i> 注册';
   document.getElementById('authSubmit').textContent = mode === 'login' ? '登录' : '注册';
   document.getElementById('authToggleText').textContent = mode === 'login' ? '没有账号？' : '已有账号？';
   document.getElementById('authToggleLink').textContent = mode === 'login' ? '立即注册' : '去登录';
@@ -1407,8 +1407,8 @@ function showCustomModal(cat,presetData,fromPreset){
   if(!AUTH_TOKEN){showLoginModal();return;}
   customModalCategory=cat;
   document.getElementById('customError').classList.remove('show');
-  document.getElementById('customTitle').textContent=(presetData?(fromPreset?'✏️ 新建自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]:'✏️ 编辑自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]):'➕ 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]);
-  document.getElementById('customSaveBtn').textContent=presetData&&!fromPreset?'💾 保存':'➕ 新增';
+  document.getElementById('customTitle').innerHTML=(presetData?(fromPreset?'<i data-lucide="plus"></i> 新建自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]:'<i data-lucide="pen"></i> 编辑自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]):'<i data-lucide="plus"></i> 自定义'+{layout:'资产结构',style:'人物风格',art:'艺术风格',dir:'导演代表作'}[cat]);
+  document.getElementById('customSaveBtn').innerHTML=presetData&&!fromPreset?'<i data-lucide="save"></i> 保存':'<i data-lucide="plus"></i> 新增';
   document.getElementById('customSaveAsBtn').style.display=(presetData&&!fromPreset)?'inline-block':'none';
   document.getElementById('customName').value=presetData?presetData.name:'';
   document.getElementById('customLabel').value=presetData?presetData.label||'':'';
@@ -1578,8 +1578,8 @@ updateAuthUI();
 <div id="viewerOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center;cursor:grab" onclick="closeViewer(event)">
 <div style="position:absolute;top:16px;right:16px;z-index:10;display:flex;gap:8px;align-items:center;max-width:90vw">
 <span id="viewerInfo" style="color:#aaa;font-size:12px;padding:4px 10px;background:#1a1a20cc;border-radius:6px;max-width:500px;overflow:auto;white-space:nowrap"></span>
-<button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px">⬇️ 下载</button>
-<button class="preview-btn" id="viewerAddToRefBtn" onclick="addViewerAssetToRef()" style="display:none;padding:5px 12px;font-size:11px;background:linear-gradient(135deg,#667eea,#764ba2)">🎯 添加到参考图</button>
+<button class="preview-btn" onclick="downloadViewer()" style="padding:5px 12px;font-size:11px"><i data-lucide="download" style="width:12px;height:12px"></i> 下载</button>
+<button class="preview-btn" id="viewerAddToRefBtn" onclick="addViewerAssetToRef()" style="display:none;padding:5px 12px;font-size:11px;background:linear-gradient(135deg,#667eea,#764ba2)"><i data-lucide="plus-circle" style="width:12px;height:12px"></i> 添加到参考图</button>
 <button onclick="closeViewer()" style="width:32px;height:32px;background:#1a1a20cc;border:1px solid #444;border-radius:50%;color:#fff;font-size:16px;cursor:pointer"><i data-lucide="x"></i></button></div>
 <div style="display:flex;gap:12px;align-items:flex-start;max-width:90vw;max-height:85vh" onclick="event.stopPropagation()">
 <div id="viewerContainer" style="position:relative;overflow:hidden;border-radius:8px;flex-shrink:0">
@@ -1587,11 +1587,11 @@ updateAuthUI();
 <div id="viewerPromptBox" style="display:none;flex-direction:column;background:#1a1a20e8;border:1px solid #2a2a32;border-radius:8px;max-height:85vh;max-width:340px;min-width:200px;overflow:hidden">
 <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #2a2a32;flex-shrink:0">
 <span style="color:#888;font-size:10px;flex:1">✎ 提示词</span>
-<button class="preview-btn" onclick="copyViewerPrompt(this)" style="font-size:9px;padding:2px 6px">📋 复制</button>
-<button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px">🌐 翻译</button>
+<button class="preview-btn" onclick="copyViewerPrompt(this)" style="font-size:9px;padding:2px 6px"><i data-lucide="copy" style="width:12px;height:12px"></i> 复制</button>
+<button class="preview-btn" onclick="translateViewerPrompt(this)" style="font-size:9px;padding:2px 6px"><i data-lucide="languages" style="width:12px;height:12px"></i> 翻译</button>
 <select id="viewerTargetLang" style="background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:9px;padding:1px 2px;cursor:pointer"><option value="中文">中文</option><option value="英文">English</option><option value="日文">日本語</option><option value="韩文">한국어</option><option value="法文">Français</option><option value="西班牙文">Español</option></select>
-<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px">⬇️ 下载</button>
-<button class="preview-btn" id="viewerRestoreBtn" onclick="restoreViewerPrompt()" style="display:none;font-size:9px;padding:2px 6px">↩ 原文</button></div>
+<button class="preview-btn" onclick="downloadViewerPrompt()" style="font-size:9px;padding:2px 6px"><i data-lucide="download" style="width:12px;height:12px"></i> 下载</button>
+<button class="preview-btn" id="viewerRestoreBtn" onclick="restoreViewerPrompt()" style="display:none;font-size:9px;padding:2px 6px"><i data-lucide="undo" style="width:12px;height:12px"></i> 原文</button></div>
 <div style="padding:10px;overflow-y:auto;flex:1">
 <pre id="viewerPromptText" style="color:#bbb;font-size:11px;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.5"></pre></div></div></div>
 <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;background:#1a1a20cc;padding:4px 14px;border-radius:12px" id="viewerZoom">🔄 滚轮缩放·拖动查看</div></div>
@@ -1615,7 +1615,7 @@ updateAuthUI();
 <div style="position:relative">
 <div class="modal-box">
 <button class="modal-close" onclick="closeAssetBrowser()"><i data-lucide="x"></i></button>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0">🏛️ 资源库 <span id="assetBrowserCount" style="color:#888;font-size:11px;font-weight:400"></span></h2><div style="display:flex;gap:6px;align-items:center"><button id="browserSelBtn" onclick="toggleBrowserMode()" style="background:transparent;border:1px solid #444;border-radius:4px;color:#aaa;font-size:11px;padding:3px 10px;cursor:pointer">☑ 选择</button><button id="browserCancelSelBtn" onclick="toggleBrowserMode()" style="display:none;background:transparent;border:1px solid #667eea;border-radius:4px;color:#667eea;font-size:11px;padding:3px 10px;cursor:pointer">✕ 取消</button></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0"><i data-lucide="archive" style="width:14px;height:14px;vertical-align:-2px"></i> 资源库 <span id="assetBrowserCount" style="color:#888;font-size:11px;font-weight:400"></span></h2><div style="display:flex;gap:6px;align-items:center"><button id="browserSelBtn" onclick="toggleBrowserMode()" style="background:transparent;border:1px solid #444;border-radius:4px;color:#aaa;font-size:11px;padding:3px 10px;cursor:pointer"><i data-lucide="check-square" style="width:12px;height:12px"></i> 选择</button><button id="browserCancelSelBtn" onclick="toggleBrowserMode()" style="display:none;background:transparent;border:1px solid #667eea;border-radius:4px;color:#667eea;font-size:11px;padding:3px 10px;cursor:pointer"><i data-lucide="x" style="width:12px;height:12px"></i> 取消</button></div></div>
 <div class="asset-browser-layout">
   <!-- 左侧：缩略图网格 -->
   <div class="asset-browser-left" style="display:flex;flex-direction:column">
@@ -1625,21 +1625,23 @@ updateAuthUI();
     </div>
     <div class="browser-toolbar" id="browserToolbar">
       <span id="browserSelCount">已选 0 项</span>
-      <button class="danger" onclick="batchDeleteAssets()" style="margin-left:auto">🗑️ 批量删除</button>
-      <button onclick="batchDownloadAssets()">📦 批量下载</button>
+      <button class="danger" onclick="batchDeleteAssets()" style="margin-left:auto"><i data-lucide="trash-2" style="width:12px;height:12px"></i> 批量删除</button>
+      <button onclick="batchDownloadAssets()"><i data-lucide="package" style="width:12px;height:12px"></i> 批量下载</button>
     </div>
   </div>
   <!-- 右侧：预览 + 信息 + 操作 -->
   <div class="asset-browser-right" id="assetPreviewPane">
     <div class="asset-preview-img" id="assetPreviewImg" style="position:relative">
-      <div class="asset-preview-placeholder">👈 选择一张图片查看</div>
-      <span class="asset-preview-badge" id="preview4kBadge">4K</span>
+      <div id="assetPreviewContent" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+        <div class="asset-preview-placeholder">👈 选择一张图片查看</div>
+      </div>
+      <span class="asset-preview-badge" id="preview4kBadge" style="display:none">4K</span>
     </div>
     <div class="asset-preview-info" id="assetPreviewInfo" style="display:none"></div>
     <div class="asset-preview-actions" id="assetPreviewActions" style="display:none">
-      <button class="asset-btn-add" onclick="addBrowserAssetToRef()">🎯 添加到参考图</button>
-      <button onclick="downloadBrowserAsset()" style="padding:6px 14px;border-radius:6px;border:1px solid #555;background:transparent;color:#ccc;cursor:pointer;font-size:11px;font-weight:600">⬇️ 下载</button>
-      <button class="asset-btn-del" onclick="deleteBrowserAsset()">🗑️ 删除</button>
+      <button class="asset-btn-add" onclick="addBrowserAssetToRef()"><i data-lucide="plus-circle" style="width:12px;height:12px"></i> 添加到参考图</button>
+      <button class="preview-btn" onclick="downloadBrowserAsset()"><i data-lucide="download" style="width:12px;height:12px"></i> 下载</button>
+      <button class="preview-btn" onclick="deleteBrowserAsset()" style="color:#ef4444"><i data-lucide="trash-2" style="width:12px;height:12px"></i> 删除</button>
     </div>
   </div>
 </div>
@@ -1650,13 +1652,13 @@ updateAuthUI();
 <div style="position:relative">
 <div class="modal-box">
 <button class="modal-close" onclick="document.getElementById('customModal').classList.remove('show')"><i data-lucide="x"></i></button>
-<h2 id="customTitle">➕ 自定义预设</h2>
+<h2 id="customTitle"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px"></i> 自定义预设</h2>
 <div id="customError" class="error"></div>
 <div class="form-group"><label style="color:#888;font-size:10px">名称</label><input id="customName" placeholder="显示名称"></div>
 <div class="form-group" id="customLabelGroup" style="display:none"><label style="color:#888;font-size:10px">代表作</label><input id="customLabel" placeholder="代表作名称（如 重庆森林）"></div>
 <div class="form-group"><label style="color:#888;font-size:10px">提示词（英文）</label><textarea id="customPrompt" rows="4" placeholder="描述视觉风格的英文提示词..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e8e8ed;font-size:12px;font-family:monospace;resize:vertical"></textarea></div>
 <div class="form-group"><label style="color:#888;font-size:10px">图标URL（可选，人物风格/艺术风格）</label><input id="customIcon" placeholder="留空则使用默认图标"></div>
-<div style="display:flex;gap:8px"><button class="btn-primary" id="customSaveBtn" onclick="saveCustomPreset(false)" style="flex:1">💾 保存</button><button class="btn-primary" id="customSaveAsBtn" onclick="saveCustomPreset(true)" style="flex:1;background:#555;display:none">📋 另存为</button></div>
+<div style="display:flex;gap:8px"><button class="btn-primary" id="customSaveBtn" onclick="saveCustomPreset(false)" style="flex:1"><i data-lucide="save" style="width:12px;height:12px"></i> 保存</button><button class="btn-primary" id="customSaveAsBtn" onclick="saveCustomPreset(true)" style="flex:1;background:#555;display:none"><i data-lucide="copy" style="width:12px;height:12px"></i> 另存为</button></div>
 </div></div></div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
