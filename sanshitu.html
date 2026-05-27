@@ -123,12 +123,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-gen{background:linear-gradient(135deg,#667eea,#764ba2)}
 
 /* 历史 */
-.history-masonry{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;max-height:400px;overflow-y:auto;padding:4px}.history-item{aspect-ratio:9/16;border-radius:4px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;position:relative}.history-item:hover{border-color:#667eea}.history-item img{width:100%;height:100%;object-fit:contain;display:block;background:#0a0a0e}.history-item .chk{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#1a1a20cc;border:2px solid #444;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}.history-item .chk.on{background:#667eea;border-color:#667eea}.history-item.broken{opacity:.4;cursor:default}.history-item.broken:hover{border-color:#333}.sel-mode .history-item .chk{display:flex}.sel-mode .history-item{cursor:pointer}.sel-mode .history-item.broken{cursor:default}.sel-toolbar{display:none;align-items:center;gap:6px;margin-bottom:6px}.sel-toolbar.show{display:flex}.sel-toolbar button{padding:4px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}.sel-toolbar button:hover{background:#333;color:#fff}.sel-count{font-size:10px;color:#888}
+.history-masonry{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;max-height:calc(100vh - 150px);overflow-y:auto;padding:4px}.history-item{aspect-ratio:9/16;border-radius:4px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;position:relative}.history-item:hover{border-color:#667eea}.history-item img{width:100%;height:100%;object-fit:contain;display:block;background:#0a0a0e}.history-item .chk{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#1a1a20cc;border:2px solid #444;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}.history-item .chk.on{background:#667eea;border-color:#667eea}.history-item.broken{opacity:.4;cursor:default}.history-item.broken:hover{border-color:#333}.sel-mode .history-item .chk{display:flex}.sel-mode .history-item{cursor:pointer}.sel-mode .history-item.broken{cursor:default}.sel-toolbar{display:none;align-items:center;gap:6px;margin-bottom:6px}.sel-toolbar.show{display:flex}.sel-toolbar button{padding:4px 10px;background:#25252d;border:1px solid #333;border-radius:4px;color:#aaa;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}.sel-toolbar button:hover{background:#333;color:#fff}.sel-count{font-size:10px;color:#888}
 
-.toast{position:fixed;top:12px;right:12px;background:#1a1a20;border:1px solid #333;border-radius:8px;padding:8px 14px;font-size:12px;transform:translateX(120%);transition:transform .3s;z-index:100}
-.toast.show{transform:translateX(0)}
-.toast.err{border-color:#ef4444;color:#ef4444}
-.toast.ok{border-color:#22c55e;color:#22c55e}
+.toast-container{position:fixed;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;z-index:99999;pointer-events:none}.toast-item{background:#1a1a20;border:1px solid #333;border-radius:8px;padding:8px 14px;font-size:12px;transform:translateX(120%);transition:transform .3s;opacity:0}.toast-item.show{transform:translateX(0);opacity:1}.toast-item.err{border-color:#ef4444;color:#ef4444}.toast-item.ok{border-color:#22c55e;color:#22c55e}.toast-item.warn{border-color:#f59e0b;color:#f59e0b}
 @keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 .free-mode-toggle:hover .tooltip-text{display:block!important}.edit-preset-btn{position:absolute;top:1px;right:22px;min-width:16px;height:16px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;line-height:1}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn{display:flex}.edit-preset-btn:hover{color:#667eea;background:#667eea15}.custom-item:hover .del-custom{display:flex}
 /* 登录 */
@@ -312,7 +309,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
 const APP_VERSION="20260525.58";
@@ -577,19 +574,7 @@ document.getElementById('genBtn').onclick=async function(){
   if(m==='gpt-image-2-vip'&&RES_MAP[ar]?.[res])av=RES_MAP[ar][res];
   // 插入loading历史（内存）
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
-  var _failedIdx = -1;
-  for(var _fii = 0; _fii < _historyData.length; _fii++){
-    if(_historyData[_fii].failed){
-      _failedIdx = _fii;
-      break;
-    }
-  }
-  if(_failedIdx >= 0){
-    _historyData[_failedIdx] = {u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt};
-  } else {
-    _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
-  }
-  if(_historyData.length>30)_historyData.pop();
+  _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
   renderHistory();
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
   if(apiKey)body._key=apiKey;
@@ -599,8 +584,10 @@ document.getElementById('genBtn').onclick=async function(){
   try{
     var r=await fetch('/generate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:abortCtrl.signal});
     clearTimeout(abortTimer);
-    console.log('[GEN_DEBUG] response status:',r.status,'text preview:',(await r.clone().text()).substring(0,200));
-    var d=await r.json();
+    var _rawText=await r.text();
+    console.log('[GEN_DEBUG] raw response (first 500):',_rawText.substring(0,500));
+    var d;
+    try{d=JSON.parse(_rawText);}catch(_pe){throw new SyntaxError('JSON parse error: '+_rawText.substring(0,200));}
     if(d.status==='succeeded'&&d.results?.[0]?.url){
       var url=d.results[0].url;
       // 更新loading记录（内存，先显示远程URL）
@@ -611,7 +598,19 @@ document.getElementById('genBtn').onclick=async function(){
       fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
         if(d2.original&&d2.thumb){
           if (AUTH_TOKEN) {
-            authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){loadHistory();}).catch(function(){});
+            authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){
+              // 直接在内存中更新本地URL，不调loadHistory()避免清掉进行中的记录
+              for(var _hi=0;_hi<_historyData.length;_hi++){
+                if(_historyData[_hi].id===_loadId){
+                  _historyData[_hi].image_url=d2.original;
+                  _historyData[_hi].thumb_url=d2.thumb;
+                  _historyData[_hi].u=d2.original;
+                  _historyData[_hi].thumb=d2.thumb;
+                  break;
+                }
+              }
+              renderHistory();
+            }).catch(function(){});
           } else {
             var tempHistory=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
             tempHistory.push({image_url:d2.original,thumb_url:d2.thumb,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0,prompt:prompt,created_at:new Date().toISOString()});
@@ -624,17 +623,36 @@ document.getElementById('genBtn').onclick=async function(){
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
       console.log('[GEN_DEBUG] failure: status=',d.status,'results=',JSON.stringify(d.results),'error=',d.error,'full=',JSON.stringify(d).substring(0,500));
-      // 失败：按loadId精确删除对应的loading记录
+      // 失败：按loadId精确更新对应的loading记录
       var _found=false;for(var fi=_historyData.length-1;fi>=0;fi--){if(_historyData[fi].id===loadId){_historyData[fi]={u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};_found=true;break;}}if(!_found){_historyData.push({u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt});}
       renderHistory();
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
+      // 异步持久化失败记录到服务端，刷新后也能看到
+      if(AUTH_TOKEN){
+        authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({failed:1,prompt:prompt,model:m,info:'生成失败',resolution:document.getElementById('resolution').value,aspect:av})}).catch(function(){});
+      }else{
+        var _th=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+        _th.push({image_url:'',thumb_url:'',model:m,info:'生成失败',aspect:av,prompt:prompt,created_at:new Date().toISOString(),_failed:true});
+        if(_th.length>50)_th.shift();
+        localStorage.setItem('ds_h_temp',JSON.stringify(_th));
+      }
     }
   }catch(e){
     console.log('[GEN_DEBUG] catch:',e.name,e.message);
     clearTimeout(abortTimer);
     var _found2=false;for(var ei=_historyData.length-1;ei>=0;ei--){if(_historyData[ei].id===loadId){_historyData[ei]={u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt};_found2=true;break;}}if(!_found2){_historyData.push({u:'',id:loadId,info:'生成失败',failed:true,t:Date.now(),prompt:prompt});}
     renderHistory();
-    t(e.name==='AbortError'?'⏰ 生成超时，请重试':'❌ 生成失败','err');
+    var _errMsg=e.name==='AbortError'?'⏰ 生成超时，请重试':'❌ 生成失败';
+    t(_errMsg,'err');
+    // 异步持久化失败记录
+    if(AUTH_TOKEN){
+      authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({failed:1,prompt:prompt,model:m,info:'生成失败',resolution:document.getElementById('resolution').value,aspect:av})}).catch(function(){});
+    }else{
+      var _th2=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+      _th2.push({image_url:'',thumb_url:'',model:m,info:'生成失败',aspect:av,prompt:prompt,created_at:new Date().toISOString(),_failed:true});
+      if(_th2.length>50)_th2.shift();
+      localStorage.setItem('ds_h_temp',JSON.stringify(_th2));
+    }
     btn.disabled=false;btn.innerHTML='<i data-lucide="sparkles"></i> 生成图片';if(window.lucide)lucide.createIcons();
     return;
   }
@@ -650,12 +668,22 @@ async function loadHistory(){
     var r = await authFetch('/api/generations.php');
     var d = await r.json();
     if (d.ok) {
-      _historyData = (d.data || []).map(function(x){
-        // Map server fields to legacy field names for renderHistory compatibility
-        x.u = x.image_url;
-        x.thumb = x.thumb_url;
+      var _serverData = (d.data || []).map(function(x){
+        x.u = x.image_url || '';
+        x.thumb = x.thumb_url || '';
+        // 没有图的服务端记录视为失败
+        if(!x.image_url)x.failed=true;
         return x;
       });
+      // 保留进行中的记录（loading 或刚成功但还没持久化的），避免被 loadHistory 清掉
+      var _serverIds={};for(var _si=0;_si<_serverData.length;_si++){var _uid=_serverData[_si].image_url||_serverData[_si].u;if(_uid)_serverIds[_uid]=true;}
+      for(var _mi=0;_mi<_historyData.length;_mi++){
+        var _r=_historyData[_mi];
+        if(_r.loading||(_r.u&&_r.u.indexOf('aitohumanize.com')>0&&!_serverIds[_r.u])){
+          _serverData.push(_r);
+        }
+      }
+      _historyData = _serverData;
     } else { _historyData = []; }
   } catch(e) { _historyData = []; }
   renderHistory();
@@ -1068,7 +1096,15 @@ function _viewH(idx){
   document.getElementById('resultArea').innerHTML=`<div><img src="${u}" style="width:100%;border-radius:6px;display:block"><button class="preview-btn" style="margin-top:4px" onclick="var a=document.createElement('a');a.href='${u}';a.download='sanshitu_'+Date.now()+'.png';a.click()"><i data-lucide="download" style="width:12px;height:12px"></i> 下载</button></div>`;
 }
 
-function t(msg,type='ok'){const o=document.getElementById('toast');o.textContent=msg;o.className='toast '+type+' show';setTimeout(()=>o.classList.remove('show'),2000)}
+function t(msg,type='ok'){
+  var c=document.getElementById('toastContainer');
+  var el=document.createElement('div');
+  el.className='toast-item '+type;
+  el.textContent=msg;
+  c.appendChild(el);
+  requestAnimationFrame(function(){el.classList.add('show');});
+  setTimeout(function(){el.classList.remove('show');setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},300);},3000);
+}
 
 // Init
 // 自动清理旧默认Key，只保留用户自己的Key

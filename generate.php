@@ -47,12 +47,22 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlError = curl_error($ch);
 curl_close($ch);
 
-// 失败时写日志
+// 日志：记录所有响应完整内容，方便排查 VIP 模型问题
 $json = json_decode($response, true);
 $hasImage = !empty($json['results'][0]['url']);
 $isError = $curlError || $httpCode >= 400 || !$hasImage;
-// 临时：记录所有响应，排查格式问题
-error_log(json_encode(['time'=>date('Y-m-d H:i:s'),'model'=>$model,'prompt'=>mb_substr($prompt,0,50),'status'=>$curlError?'curl_error':($httpCode>=400?'http_error':($hasImage?'ok':'no_image')),'error'=>$curlError?:($json['error']??$json['message']??''),'cost'=>$duration.'ms','http_code'=>$httpCode,'has_keys'=>json_encode(array_keys($json??[]))],JSON_UNESCAPED_UNICODE).PHP_EOL, 3, '/var/www/sanshitu-data/logs/generate.log');
+$logEntry = json_encode([
+  'time'=>date('Y-m-d H:i:s'),
+  'model'=>$model,
+  'prompt'=>mb_substr($prompt,0,50),
+  'http_code'=>$httpCode,
+  'curl_error'=>$curlError,
+  'cost'=>$duration.'ms',
+  'status'=>($curlError?'curl_error':($httpCode>=400?'http_error':($hasImage?'ok':'no_image'))),
+  'error'=>mb_substr($curlError ?: ($json['error']??$json['message']??''),0,200),
+  'full_response'=>mb_substr($response,0,1000)
+], JSON_UNESCAPED_UNICODE);
+error_log($logEntry.PHP_EOL, 3, '/var/www/sanshitu-data/logs/generate.log');
 if ($isError) {
   $logDir = '/var/www/sanshitu-data/logs';
   if (!is_dir($logDir)) mkdir($logDir, 0755, true);
