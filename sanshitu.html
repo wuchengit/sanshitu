@@ -471,7 +471,7 @@ function downloadPrompt(){
 function renderUploads(){
   let h='';
   for(let i=0;i<6;i++)
-    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="openViewer(uploadedFiles[${i}].data,'参考图','','')"><img src="${uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="${i===0?'handleRefPicker(event)':''}">${i===0?'+':''}</div>`;
+    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="openViewer(uploadedFiles[${i}].data,'参考图','','')"><img src="${uploadedFiles[i].thumb||uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="${i===0?'handleRefPicker(event)':''}">${i===0?'+':''}</div>`;
   document.getElementById('uploadRow').innerHTML=h;
 }
 
@@ -499,9 +499,35 @@ function refPickerHide(){
   document.getElementById('refPicker').classList.remove('show');
 }
 
+function createThumbnail(dataUrl, maxW){
+  return new Promise(function(resolve){
+    var img=new Image();
+    img.onload=function(){
+      var w=Math.min(img.naturalWidth, maxW);
+      var h=img.naturalHeight*(w/img.naturalWidth);
+      var c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      var ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',0.7));
+    };
+    img.src=dataUrl;
+  });
+}
 document.getElementById('fileInput').onchange=function(e){
   const remaining=6-uploadedFiles.length;
-  Promise.all(Array.from(e.target.files).slice(0,remaining).map(f=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r({data:fr.result});fr.readAsDataURL(f)}))).then(r=>{uploadedFiles.push(...r);renderUploads()});
+  Promise.all(Array.from(e.target.files).slice(0,remaining).map(function(f){
+    return new Promise(function(r){
+      var fr=new FileReader();
+      fr.onload=function(){
+        var data=fr.result;
+        createThumbnail(data,200).then(function(thumb){
+          r({data:data,thumb:thumb});
+        });
+      };
+      fr.readAsDataURL(f);
+    });
+  })).then(function(r){uploadedFiles.push(...r);renderUploads();});
   this.value='';
 };
 
@@ -653,7 +679,7 @@ function renderAssetLibrary(){
   var h='';
   for(var i=0;i<_userAssets.length;i++){
     var a=_userAssets[i];
-    h+='<div class="asset-item" onclick="addAssetToRef(\''+escapeHtml(a.file_path)+'\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
+    h+='<div class="asset-item" onclick="addAssetToRef(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
   }
   h+='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
   grid.innerHTML=h;
@@ -685,22 +711,21 @@ async function renderAssetPicker(){
   var h='';
   for(var i=0;i<_userAssets.length;i++){
     var a=_userAssets[i];
-    h+='<div class="asset-item" onclick="selectAssetForRef(\''+escapeHtml(a.file_path)+'\');closeAssetPicker()"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
+    h+='<div class="asset-item" onclick="selectAssetForRef(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\');closeAssetPicker()"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
   }
   grid.innerHTML=h;
 }
 
-function addAssetToRef(url){
+function addAssetToRef(url, thumbUrl){
   var remaining=6-uploadedFiles.length;
   if(remaining<=0){ t('最多6张参考图','err'); return; }
-  // 将 URL 转为 base64 或直接使用 URL
-  uploadedFiles.push({data:url});
+  uploadedFiles.push({data:url, thumb:thumbUrl||url});
   renderUploads();
   t('已添加参考图','ok');
 }
 
-function selectAssetForRef(url){
-  addAssetToRef(url);
+function selectAssetForRef(url, thumbUrl){
+  addAssetToRef(url, thumbUrl);
 }
 
 async function uploadAsset(file){
