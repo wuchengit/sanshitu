@@ -599,7 +599,7 @@ document.getElementById('genBtn').onclick=async function(){
       if(AUTH_TOKEN){
         fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_start',error:url.substring(0,80)})}).catch(function(){});
         _saveChain = authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:url,thumb_url:url,width:0,height:0,file_size:0})}).then(function(r){
-          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_resp',http:r.status})}).catch(function(){});
+          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_resp',error:'http='+r.status})}).catch(function(){});
           return r.json();
         }).then(function(d3){
           var _sid=d3.ok&&d3.id?d3.id:0;
@@ -634,7 +634,8 @@ document.getElementById('genBtn').onclick=async function(){
               renderHistory();
             }
           }).catch(function(){});
-        }).catch(function(){
+        }).catch(function(e){
+          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_fail',error:e&&e.message||'unknown'})}).catch(function(){});
           // 兜底：服务端存失败时存到localStorage，防止刷新丢失
           try{
             var _fb=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
