@@ -50,6 +50,8 @@ curl_close($ch);
 $json = json_decode($response, true);
 $hasImage = !empty($json['results'][0]['url']);
 $isError = $curlError || $httpCode >= 400 || !$hasImage;
+// 临时：记录所有响应，排查格式问题
+error_log(json_encode(['time'=>date('Y-m-d H:i:s'),'model'=>$model,'prompt'=>mb_substr($prompt,0,50),'status'=>$curlError?'curl_error':($httpCode>=400?'http_error':($hasImage?'ok':'no_image')),'error'=>$curlError?:($json['error']??$json['message']??''),'cost'=>$duration.'ms','http_code'=>$httpCode,'has_keys'=>json_encode(array_keys($json??[]))],JSON_UNESCAPED_UNICODE).PHP_EOL, 3, __DIR__ . '/../logs/generate.log');
 if ($isError) {
   $logDir = __DIR__ . '/../logs';
   if (!is_dir($logDir)) mkdir($logDir, 0755, true);
