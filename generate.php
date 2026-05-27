@@ -1,4 +1,5 @@
 <?php
+error_reporting(0);
 set_time_limit(600);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
