@@ -168,6 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="card">
         <div class="card-t">✎ 提示词</div>
         <textarea id="promptInput" rows="14" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:none"></textarea>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;cursor:pointer;margin-top:4px"><input type="checkbox" id="freeModeToggle"> 🔓 自由模式</label>
       </div>
       <div class="card">
         <div class="card-t"><i data-lucide="cpu"></i> 模型</div>
@@ -325,6 +326,8 @@ function renderDirStyles(){
 }
 
 function buildPrompt(){
+  var user=document.getElementById('promptInput').value.trim();
+  if(document.getElementById('freeModeToggle').checked) return user;
   var mergedLayouts=LAYOUTS.concat(getMergedStyle('layout'));
   var mergedStyles=STYLES.concat(getMergedStyle('style'));
   var mergedArts=ART_STYLES.concat(getMergedStyle('art'));
@@ -333,7 +336,6 @@ function buildPrompt(){
   var style=mergedStyles.find(function(s){return s.id===selStyle;});
   var art=mergedArts.find(function(a){return a.id===selArt;});
   var dir=mergedDirs.find(function(d){return d.id===selDir;});
-  var user=document.getElementById('promptInput').value.trim();
   var opts='';
   var g=document.getElementById('optGender').value;
   var r=document.getElementById('optRace').value;
