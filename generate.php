@@ -51,7 +51,7 @@ $json = json_decode($response, true);
 $hasImage = !empty($json['results'][0]['url']);
 $isError = $curlError || $httpCode >= 400 || !$hasImage;
 if ($isError) {
-  $logDir = __DIR__ . '/logs';
+  $logDir = __DIR__ . '/../logs';
   if (!is_dir($logDir)) mkdir($logDir, 0755, true);
   $logEntry = json_encode([
     'time' => date('Y-m-d H:i:s'),
@@ -61,7 +61,7 @@ if ($isError) {
     'error' => $curlError ?: ($json['error'] ?? $json['message'] ?? "HTTP $httpCode"),
     'cost' => $duration . 'ms'
   ], JSON_UNESCAPED_UNICODE) . "\n";
-  error_log($logEntry, 3, __DIR__ . '/logs/generate.log');
+  error_log($logEntry, 3, $logDir . '/generate.log');
 }
 
 http_response_code($httpCode);
