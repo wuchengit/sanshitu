@@ -477,7 +477,7 @@ function translatePrompt(btn){
       btns.insertBefore(rb, btn.nextSibling);
     }
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
-  .finally(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';});
+  .finally(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';if(window.lucide)lucide.createIcons();});
 }
 function copyPrompt(){
   var p=document.getElementById('promptPreview'),r=document.createRange();
@@ -1147,7 +1147,7 @@ function translateViewerPrompt(btn){
       document.getElementById('viewerRestoreBtn').style.display=same?'none':'inline-block';
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
-  .finally(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.disabled=false;});
+  .finally(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.disabled=false;if(window.lucide)lucide.createIcons();});
 }
 function restoreViewerPrompt(){
   document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
