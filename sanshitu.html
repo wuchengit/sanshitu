@@ -78,6 +78,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .asset-btn-add:hover{opacity:.9}
 .asset-btn-del:hover{background:#ef444433}
 
+/* 资源浏览器选择模式 */
+.asset-item .bchk{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#1a1a20cc;border:2px solid #555;border-radius:4px;color:#fff;font-size:10px;display:none;align-items:center;justify-content:center;z-index:2}
+.asset-item .bchk.on{background:#667eea;border-color:#667eea;display:flex}
+.browser-sel .asset-item{cursor:pointer}
+.browser-sel .asset-item .bchk{display:flex}
+.browser-sel .asset-item:hover .bchk{border-color:#667eea}
+.browser-toolbar{display:none;padding:6px 8px;background:#1a1a22;border-top:1px solid #2a2a32;gap:6px;align-items:center;font-size:10px;color:#888;margin-top:4px;border-radius:0 0 6px 6px}
+.browser-toolbar.show{display:flex}
+.browser-toolbar button{padding:4px 10px;border-radius:4px;border:1px solid #555;background:transparent;color:#ccc;cursor:pointer;font-size:10px}
+.browser-toolbar button:hover{background:#333}
+.browser-toolbar button.danger{color:#ef4444;border-color:#ef444455}
+.browser-toolbar button.danger:hover{background:#ef444422}
+
 /* 人物资产结构 - 紧凑 */
 .layout-strip{display:flex;gap:6px;overflow-x:auto}
 .layout-card{flex:0 0 auto;width:80px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 4px;cursor:pointer;transition:all .2s;text-align:center}
@@ -675,7 +688,7 @@ function renderHistory(){
 }
 
 // ========== 资源库 ==========
-var _userAssets=[],_browserSelIdx=-1;
+var _userAssets=[],_browserSelIdx=-1,_browserSelMode=false,_browserChecked={};
 
 async function loadAssets(){
   if(!AUTH_TOKEN) return;
@@ -715,6 +728,8 @@ function renderAssetLibrary(){
 // ===== 资源浏览器弹窗 =====
 function openAssetBrowser(startIdx){
   _browserSelIdx=startIdx;
+  _browserSelMode=false;
+  _browserChecked={};
   document.getElementById('assetBrowserModal').classList.add('show');
   renderAssetBrowser();
 }
@@ -722,6 +737,8 @@ function openAssetBrowser(startIdx){
 function closeAssetBrowser(){
   document.getElementById('assetBrowserModal').classList.remove('show');
   _browserSelIdx=-1;
+  _browserSelMode=false;
+  _browserChecked={};
 }
 
 function openAssetPicker(){
@@ -732,14 +749,45 @@ function closeAssetPicker(){
   closeAssetBrowser();
 }
 
+function toggleBrowserMode(){
+  _browserSelMode=!_browserSelMode;
+  _browserChecked={};
+  renderAssetBrowser();
+  // 切换按钮
+  document.getElementById('browserSelBtn').style.display=_browserSelMode?'none':'';
+  document.getElementById('browserCancelSelBtn').style.display=_browserSelMode?'':'none';
+  document.getElementById('browserToolbar').classList.toggle('show',_browserSelMode);
+  document.getElementById('assetBrowserGrid').parentElement.classList.toggle('browser-sel',_browserSelMode);
+  upBrowserSelCount();
+}
+
+function toggleBrowserCheck(idx,e){
+  if(e) e.stopPropagation();
+  if(!_browserSelMode) return;
+  _browserChecked[idx]=!_browserChecked[idx];
+  // 更新 checkbox 视觉
+  var el=document.querySelector('#assetBrowserGrid .asset-item[data-idx="'+idx+'"] .bchk');
+  if(el){ el.classList.toggle('on',_browserChecked[idx]); el.textContent=_browserChecked[idx]?'✓':''; }
+  upBrowserSelCount();
+}
+
+function upBrowserSelCount(){
+  var n=Object.keys(_browserChecked).filter(function(k){return _browserChecked[k];}).length;
+  document.getElementById('browserSelCount').textContent='已选 '+n+' 项';
+}
+
 function renderAssetBrowser(){
   var grid=document.getElementById('assetBrowserGrid');
   var countEl=document.getElementById('assetBrowserCount');
   var realAssets=_userAssets.filter(function(a){return !a.loading;});
   countEl.textContent=realAssets.length?'('+realAssets.length+' 项)':'';
+  // 更新 UI 状态
+  document.getElementById('browserSelBtn').style.display=_browserSelMode?'none':'';
+  document.getElementById('browserCancelSelBtn').style.display=_browserSelMode?'':'none';
+  document.getElementById('browserToolbar').classList.toggle('show',_browserSelMode);
+  grid.parentElement.classList.toggle('browser-sel',_browserSelMode);
   if(!realAssets.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">暂无资源，请上传</div>';
-    // 清空右侧
     document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">暂无图片</div>';
     document.getElementById('assetPreviewInfo').style.display='none';
     document.getElementById('assetPreviewActions').style.display='none';
@@ -749,14 +797,17 @@ function renderAssetBrowser(){
   for(var i=0;i<realAssets.length;i++){
     var a=realAssets[i];
     var actualIdx=_userAssets.indexOf(a);
-    var sel=actualIdx===_browserSelIdx?' style="border-color:#667eea;box-shadow:0 0 0 1px #667eea"':'';
-    h+='<div class="asset-item"'+sel+' onclick="selectBrowserAsset('+actualIdx+')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
+    var sel=actualIdx===_browserSelIdx&&!_browserSelMode?' style="border-color:#667eea;box-shadow:0 0 0 1px #667eea"':'';
+    var checked=_browserChecked[actualIdx]?' on':'';
+    h+='<div class="asset-item"'+sel+' data-idx="'+actualIdx+'" onclick="'+(_browserSelMode?'toggleBrowserCheck('+actualIdx+',event)':'selectBrowserAsset('+actualIdx+')')+'"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><div class="bchk'+checked+'" onclick="event.stopPropagation();toggleBrowserCheck('+actualIdx+')">'+(_browserChecked[actualIdx]?'&#10003;':'')+'</div></div>';
   }
   grid.innerHTML=h;
-  selectBrowserAsset(_browserSelIdx);
+  if(!_browserSelMode) selectBrowserAsset(_browserSelIdx);
+  upBrowserSelCount();
 }
 
 function selectBrowserAsset(idx){
+  if(_browserSelMode) return;
   _browserSelIdx=idx;
   // 高亮左侧选中
   var items=document.getElementById('assetBrowserGrid').querySelectorAll('.asset-item');
@@ -792,6 +843,20 @@ function addBrowserAssetToRef(){
   closeAssetBrowser();
 }
 
+function downloadBrowserAsset(){
+  var a=_userAssets[_browserSelIdx];
+  if(!a||a.loading) return;
+  downloadSingleAsset(a.file_path);
+}
+
+function downloadSingleAsset(url){
+  var a=document.createElement('a');
+  a.href=url;
+  a.download=url.split('/').pop()||'asset_'+Date.now()+'.png';
+  a.target='_blank';
+  a.click();
+}
+
 function deleteBrowserAsset(){
   var a=_userAssets[_browserSelIdx];
   if(!a||a.loading) return;
@@ -800,6 +865,35 @@ function deleteBrowserAsset(){
     if(d.ok){ loadAssets(); _browserSelIdx=-1; }
     else t('❌ 删除失败','err');
   }).catch(function(){ t('❌ 删除失败','err'); });
+}
+
+function batchDeleteAssets(){
+  var ids=Object.keys(_browserChecked).filter(function(k){return _browserChecked[k];});
+  if(!ids.length){ t('请先选择资源','err'); return; }
+  if(!confirm('确认删除 '+ids.length+' 个资源？')) return;
+  var ps=ids.map(function(idx){
+    var a=_userAssets[idx];
+    if(!a||a.loading) return;
+    return authFetch('/api/assets.php?id='+a.id,{method:'DELETE'}).catch(function(){});
+  });
+  Promise.all(ps).then(function(){
+    t('✅ 已删除 '+ids.length+' 项','ok');
+    _browserSelMode=false;
+    _browserChecked={};
+    loadAssets();
+  });
+}
+
+function batchDownloadAssets(){
+  var ids=Object.keys(_browserChecked).filter(function(k){return _browserChecked[k];});
+  if(!ids.length){ t('请先选择资源','err'); return; }
+  ids.forEach(function(idx,i){
+    setTimeout(function(){
+      var a=_userAssets[idx];
+      if(a&&!a.loading) downloadSingleAsset(a.file_path);
+    },i*300);
+  });
+  t('📦 开始下载 '+ids.length+' 项','ok');
 }
 
 function addAssetToRef(url, thumbUrl){
@@ -1472,12 +1566,19 @@ updateAuthUI();
 <div style="position:relative">
 <div class="modal-box">
 <button class="modal-close" onclick="closeAssetBrowser()"><i data-lucide="x"></i></button>
-<h2 style="margin-bottom:10px">🏛️ 资源库 <span id="assetBrowserCount" style="color:#888;font-size:11px;font-weight:400"></span></h2>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0">🏛️ 资源库 <span id="assetBrowserCount" style="color:#888;font-size:11px;font-weight:400"></span></h2><div style="display:flex;gap:6px;align-items:center"><button id="browserSelBtn" onclick="toggleBrowserMode()" style="background:transparent;border:1px solid #444;border-radius:4px;color:#aaa;font-size:11px;padding:3px 10px;cursor:pointer">☑ 选择</button><button id="browserCancelSelBtn" onclick="toggleBrowserMode()" style="display:none;background:transparent;border:1px solid #667eea;border-radius:4px;color:#667eea;font-size:11px;padding:3px 10px;cursor:pointer">✕ 取消</button></div></div>
 <div class="asset-browser-layout">
   <!-- 左侧：缩略图网格 -->
-  <div class="asset-browser-left">
-    <div class="asset-upload-btn" onclick="document.getElementById('assetFileInput').click()" style="width:68px;height:68px;margin-bottom:4px">+</div>
-    <div class="asset-grid" id="assetBrowserGrid" style="grid-template-columns:repeat(auto-fill,minmax(68px,1fr))"></div>
+  <div class="asset-browser-left" style="display:flex;flex-direction:column">
+    <div style="flex:1;overflow-y:auto">
+      <div class="asset-upload-btn" onclick="document.getElementById('assetFileInput').click()" style="width:68px;height:68px;margin-bottom:4px">+</div>
+      <div class="asset-grid" id="assetBrowserGrid" style="grid-template-columns:repeat(auto-fill,minmax(68px,1fr))"></div>
+    </div>
+    <div class="browser-toolbar" id="browserToolbar">
+      <span id="browserSelCount">已选 0 项</span>
+      <button class="danger" onclick="batchDeleteAssets()" style="margin-left:auto">🗑️ 批量删除</button>
+      <button onclick="batchDownloadAssets()">📦 批量下载</button>
+    </div>
   </div>
   <!-- 右侧：预览 + 信息 + 操作 -->
   <div class="asset-browser-right" id="assetPreviewPane">
@@ -1487,6 +1588,7 @@ updateAuthUI();
     <div class="asset-preview-info" id="assetPreviewInfo" style="display:none"></div>
     <div class="asset-preview-actions" id="assetPreviewActions" style="display:none">
       <button class="asset-btn-add" onclick="addBrowserAssetToRef()">🎯 添加到参考图</button>
+      <button onclick="downloadBrowserAsset()" style="padding:6px 14px;border-radius:6px;border:1px solid #555;background:transparent;color:#ccc;cursor:pointer;font-size:11px;font-weight:600">⬇️ 下载</button>
       <button class="asset-btn-del" onclick="deleteBrowserAsset()">🗑️ 删除</button>
     </div>
   </div>
