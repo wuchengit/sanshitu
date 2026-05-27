@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MBTI 性格测试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f12;color:#e8e8ed;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+.container{width:100%;max-width:480px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+
+/* 页面切换 */
+.page{display:none;flex-direction:column;align-items:center;text-align:center;width:100%}
+.page.active{display:flex}
+
+/* 首屏 */
+.page-intro h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.page-intro p{color:#888;font-size:13px;margin-bottom:32px;line-height:1.6}
+.btn-start{width:100%;max-width:280px;padding:16px 32px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s}
+.btn-start:active{transform:scale(.97);opacity:.9}
+
+/* 进度条 */
+.progress-bar{width:100%;height:4px;background:#1a1a22;border-radius:2px;margin-bottom:24px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:2px;transition:width .3s}
+.progress-text{color:#666;font-size:11px;margin-bottom:4px;text-align:left;width:100%}
+
+/* 题目卡片 */
+.question-card{background:#1a1a20;border:1px solid #2a2a32;border-radius:16px;padding:24px 20px;width:100%;text-align:left}
+.question-num{color:#667eea;font-size:12px;font-weight:600;margin-bottom:8px}
+.question-text{color:#e8e8ed;font-size:16px;font-weight:500;line-height:1.6;margin-bottom:24px;min-height:60px}
+
+/* 选项按钮 */
+.option-btn{display:block;width:100%;padding:14px 18px;margin-bottom:10px;background:#25252d;border:1px solid #333;border-radius:10px;color:#ccc;font-size:14px;cursor:pointer;text-align:left;transition:all .15s;line-height:1.4}
+.option-btn:hover{background:#2a2a35;border-color:#667eea66}
+.option-btn:active{background:#667eea22;border-color:#667eea;color:#fff}
+.option-btn.selected{background:#667eea22;border-color:#667eea;color:#fff}
+
+/* 结果页 */
+.page-result{text-align:left;width:100%}
+.result-header{text-align:center;margin-bottom:24px}
+.result-type{font-size:36px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.result-name{color:#aaa;font-size:14px;margin-top:4px}
+.result-desc{color:#999;font-size:12px;line-height:1.8;margin:8px 0 20px;text-align:left}
+
+/* 维度条 */
+.dim-card{background:#1a1a20;border:1px solid #2a2a32;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.dim-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dim-label{font-size:13px;font-weight:600}
+.dim-label.left{color:#667eea}
+.dim-label.right{color:#764ba2}
+.dim-total{color:#666;font-size:10px}
+.dim-bar{width:100%;height:8px;background:#1a1a22;border-radius:4px;overflow:hidden;display:flex}
+.dim-bar .left-fill{height:100%;background:linear-gradient(90deg,#667eea,#5a6fd6);border-radius:4px 0 0 4px;transition:width .6s}
+.dim-bar .right-fill{height:100%;background:linear-gradient(90deg,#6a4a9a,#764ba2);border-radius:0 4px 4px 0;transition:width .6s}
+.dim-pct{display:flex;justify-content:space-between;font-size:10px;color:#666;margin-top:4px}
+
+/* 16类型网格 */
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:20px}
+.type-cell{aspect-ratio:1;background:#1a1a20;border:1px solid #2a2a32;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#555;cursor:pointer;transition:all .15s;text-align:center;padding:4px}
+.type-cell:hover{border-color:#667eea66;color:#999}
+.type-cell.current{border-color:#667eea;background:#667eea15;color:#e8e8ed}
+
+.btn-restart{margin-top:24px;width:100%;padding:12px;background:transparent;border:1px solid #444;border-radius:10px;color:#888;font-size:13px;cursor:pointer}
+.btn-restart:hover{color:#ccc;border-color:#666}
+
+.fade-in{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+// ========== 93 道 MBTI 题 ==========
+// dimension: 'EI','SN','TF','JP'  |  pole: 左选项倾向的维度端
+var QUESTIONS = [
+  // E/I (23题)
+  {q:"在聚会中，你通常：",a:"主动结识新朋友",b:"和熟悉的人待在一起",d:"EI",p:"E"},
+  {q:"独处一段时间后，你感觉：",a:"精力充沛，想社交",b:"享受独处，不急着见人",d:"EI",p:"E"},
+  {q:"认识新朋友对你来说：",a:"令人兴奋",b:"消耗精力",d:"EI",p:"E"},
+  {q:"你更喜欢：",a:"有很多朋友和熟人",b:"只有几个深交的朋友",d:"EI",p:"E"},
+  {q:"在群体中，你通常：",a:"发起对话",b:"等待别人先开口",d:"EI",p:"E"},
+  {q:"社交活动之后，你感觉：",a:"充满活力",b:"筋疲力尽",d:"EI",p:"E"},
+  {q:"你更倾向于：",a:"边想边说",b:"先想好再说",d:"EI",p:"E"},
+  {q:"电话 vs 消息：",a:"更喜欢打电话",b:"更喜欢发消息",d:"EI",p:"E"},
+  {q:"周末你更愿意：",a:"和朋友聚会",b:"在家独处",d:"EI",p:"E"},
+  {q:"在新环境中，你通常：",a:"很快适应并融入",b:"先观察再行动",d:"EI",p:"E"},
+  {q:"团队工作中，你：",a:"喜欢讨论和互动",b:"喜欢独立完成",d:"EI",p:"E"},
+  {q:"你获取能量的方式是：",a:"与人交往",b:"独处思考",d:"EI",p:"E"},
+  {q:"你的朋友会形容你：",a:"外向健谈",b:"安静内敛",d:"EI",p:"E"},
+  {q:"参加会议时，你：",a:"积极发言",b:"更多倾听",d:"EI",p:"E"},
+  {q:"遇到问题，你倾向：",a:"找人讨论",b:"自己先想",d:"EI",p:"E"},
+  {q:"你的社交圈：",a:"广泛多元",b:"小而精",d:"EI",p:"E"},
+  {q:"空闲时间你：",a:"安排社交活动",b:"享受个人爱好",d:"EI",p:"E"},
+  {q:"初次见面的场合：",a:"主动自我介绍",b:"等别人来认识你",d:"EI",p:"E"},
+  {q:"你被认为：",a:"容易接近",b:"有些距离感",d:"EI",p:"E"},
+  {q:"工作方式：",a:"开放办公室",b:"独立空间",d:"EI",p:"E"},
+  {q:"表达想法时：",a:"口头交流更顺畅",b:"书面表达更清晰",d:"EI",p:"E"},
+  {q:"团队头脑风暴：",a:"积极参与",b:"独立思考后再分享",d:"EI",p:"E"},
+  {q:"你更在意：",a:"社交的广度",b:"关系的深度",d:"EI",p:"E"},
+  // S/N (24题)
+  {q:"你更相信：",a:"亲身经验和事实",b:"直觉和灵感",d:"SN",p:"S"},
+  {q:"解决问题时，你偏向：",a:"用已有的方法",b:"尝试新的方式",d:"SN",p:"S"},
+  {q:"你更关注：",a:"当下的细节",b:"未来的可能性",d:"SN",p:"S"},
+  {q:"学习新东西时，你：",a:"喜欢循序渐进",b:"喜欢先了解全局",d:"SN",p:"S"},
+  {q:"描述事物时，你：",a:"注重具体细节",b:"注重整体印象",d:"SN",p:"S"},
+  {q:"你更喜欢的工作：",a:"有明确步骤",b:"有创造空间",d:"SN",p:"S"},
+  {q:"阅读时，你：",a:"逐字逐句",b:"跳读抓重点",d:"SN",p:"S"},
+  {q:"对于规则，你：",a:"尊重并遵守",b:"质疑并想改进",d:"SN",p:"S"},
+  {q:"你更欣赏：",a:"实用主义",b:"理想主义",d:"SN",p:"S"},
+  {q:"做决定时，你依赖：",a:"过往经验",b:"直觉预感",d:"SN",p:"S"},
+  {q:"你更喜欢的故事：",a:"基于真实事件",b:"富有想象力",d:"SN",p:"S"},
+  {q:"工作中你：",a:"注重实际产出",b:"注重创新想法",d:"SN",p:"S"},
+  {q:"对抽象概念：",a:"不太感兴趣",b:"非常着迷",d:"SN",p:"S"},
+  {q:"旅行时你：",a:"按计划路线走",b:"随意探索",d:"SN",p:"S"},
+  {q:"你更看重：",a:"事实和数据",b:"理论和模式",d:"SN",p:"S"},
+  {q:"日常工作中你：",a:"喜欢常规和稳定",b:"喜欢变化和新鲜",d:"SN",p:"S"},
+  {q:"描述一棵树，你说：",a:"它是一棵橡树，高15米",b:"它是森林的灵魂",d:"SN",p:"S"},
+  {q:"对于新想法：",a:"先看是否可行",b:"为可能性而兴奋",d:"SN",p:"S"},
+  {q:"你对过去的回忆：",a:"像照片一样具体",b:"像印象一样模糊",d:"SN",p:"S"},
+  {q:"组装家具时：",a:"先看说明书",b:"凭感觉上手",d:"SN",p:"S"},
+  {q:"你更擅长：",a:"记住具体信息",b:"理解深层含义",d:"SN",p:"S"},
+  {q:"对于隐喻和象征：",a:"有时难以理解",b:"自然地注意到",d:"SN",p:"S"},
+  {q:"你被描述为：",a:"务实",b:"有远见",d:"SN",p:"S"},
+  {q:"做菜时你：",a:"严格按照食谱",b:"凭感觉调配",d:"SN",p:"S"},
+  // T/F (23题)
+  {q:"做决定时，你更看重：",a:"逻辑和公平",b:"人情和和谐",d:"TF",p:"T"},
+  {q:"别人向你倾诉时，你：",a:"分析问题给建议",b:"先共情和理解",d:"TF",p:"T"},
+  {q:"在争论中，你：",a:"坚持自己的逻辑",b:"顾及对方感受",d:"TF",p:"T"},
+  {q:"你认为更重要的是：",a:"实事求是",b:"与人为善",d:"TF",p:"T"},
+  {q:"批评别人时，你：",a:"直接指出问题",b:"委婉地表达",d:"TF",p:"T"},
+  {q:"工作中，你：",a:"以任务结果为导向",b:"以团队关系为优先",d:"TF",p:"T"},
+  {q:"看到不公的事，你：",a:"关注规则是否公平",b:"关注对个人的影响",d:"TF",p:"T"},
+  {q:"对于别人的错误：",a:"客观指出",b:"体谅理解",d:"TF",p:"T"},
+  {q:"你更信任：",a:"理性分析",b:"内心感受",d:"TF",p:"T"},
+  {q:"遇到冲突，你倾向：",a:"讲道理解决",b:"安抚情绪",d:"TF",p:"T"},
+  {q:"你评价一件事：",a:"对错分明",b:"视情况而定",d:"TF",p:"T"},
+  {q:"你认为好决策基于：",a:"冷静分析",b:"价值和信念",d:"TF",p:"T"},
+  {q:"团队成员犯错：",a:"直接说明",b:"私下沟通",d:"TF",p:"T"},
+  {q:"选择工作，你优先：",a:"薪酬和发展",b:"氛围和意义",d:"TF",p:"T"},
+  {q:"别人说你想太多，是指：",a:"你分析过度",b:"你顾虑太多",d:"TF",p:"T"},
+  {q:"你更佩服：",a:"逻辑严密的人",b:"富有同情心的人",d:"TF",p:"T"},
+  {q:"讨论问题时，你：",a:"喜欢辩论",b:"避免争论",d:"TF",p:"T"},
+  {q:"给予反馈时：",a:"诚实直接",b:"鼓励为主",d:"TF",p:"T"},
+  {q:"对于规则：",a:"一视同仁",b:"特殊情况特殊对待",d:"TF",p:"T"},
+  {q:"看到感人故事：",a:"理性看待",b:"容易被打动",d:"TF",p:"T"},
+  {q:"领导风格偏：",a:"任务导向",b:"关系导向",d:"TF",p:"T"},
+  {q:"朋友形容你：",a:"理性冷静",b:"温暖体贴",d:"TF",p:"T"},
+  {q:"做决定时你：",a:"不轻易被感情左右",b:"听从内心的声音",d:"TF",p:"T"},
+  // J/P (23题)
+  {q:"对待日程，你：",a:"喜欢提前规划",b:"喜欢灵活应变",d:"JP",p:"J"},
+  {q:"面对截止日期：",a:"尽早完成",b:"最后一刻冲刺",d:"JP",p:"J"},
+  {q:"你的工作空间：",a:"整洁有序",b:"有点杂乱但自在",d:"JP",p:"J"},
+  {q:"做决策时你：",a:"希望尽快定下来",b:"保持开放选项",d:"JP",p:"J"},
+  {q:"你更喜欢：",a:"确定的计划",b:"即兴的安排",d:"JP",p:"J"},
+  {q:"对于清单和计划表：",a:"经常使用",b:"很少使用",d:"JP",p:"J"},
+  {q:"开始任务时你：",a:"先做好计划",b:"直接动手做",d:"JP",p:"J"},
+  {q:"旅行方式：",a:"提前安排好一切",b:"走到哪算哪",d:"JP",p:"J"},
+  {q:"对于不确定性：",a:"感到不安",b:"感到兴奋",d:"JP",p:"J"},
+  {q:"你的生活：",a:"有规律有节奏",b:"随性自由",d:"JP",p:"J"},
+  {q:"购物时你：",a:"有目标清单",b:"逛到喜欢的就买",d:"JP",p:"J"},
+  {q:"对于约定：",a:"准时到达",b:"灵活迟到",d:"JP",p:"J"},
+  {q:"同事会说你：",a:"组织能力强",b:"适应能力强",d:"JP",p:"J"},
+  {q:"项目开始前：",a:"先制定计划",b:"先开始探索",d:"JP",p:"J"},
+  {q:"周末安排：",a:"提前规划好",b:"看心情决定",d:"JP",p:"J"},
+  {q:"你的桌面：",a:"井井有条",b:"充满创意地凌乱",d:"JP",p:"J"},
+  {q:"对于改变计划：",a:"比较抗拒",b:"轻松接受",d:"JP",p:"J"},
+  {q:"会议中你倾向：",a:"有明确议程",b:"自由讨论",d:"JP",p:"J"},
+  {q:"紧急情况：",a:"按计划应对",b:"随机应变",d:"JP",p:"J"},
+  {q:"别人评价你：",a:"可靠守时",b:"自由随性",d:"JP",p:"J"},
+  {q:"你的生活哲学：",a:"有条不紊",b:"顺其自然",d:"JP",p:"J"},
+  {q:"对于多项任务：",a:"逐个完成",b:"同时进行",d:"JP",p:"J"},
+  {q:"选择餐厅时：",a:"提前查好",b:"走到哪吃到哪",d:"JP",p:"J"},
+];
+
+// ========== 16 种人格类型 ==========
+var TYPES = {
+  "ISTJ":{name:"物流师",desc:"严谨负责、一丝不苟的检查者。重视传统和秩序，以可靠和务实著称。喜欢清晰的规则和结构，做事有条理，是值得信赖的执行者。"},
+  "ISFJ":{name:"守护者",desc:"温暖细腻、默默奉献的保护者。善于照顾他人感受，重视和谐与稳定。用行动而非言语表达关心，是团队中坚实可靠的后盾。"},
+  "INFJ":{name:"提倡者",desc:"安静而神秘，但内心充满理想和热情。具有深刻的洞察力和坚定的价值观，致力于让世界变得更好。是稀有的远见者。"},
+  "INTJ":{name:"建筑师",desc:"富有想象力的战略家，一切皆有方案。独立思考，追求知识和系统性的改进。对自己和他人要求高，是天生的改革者。"},
+  "ISTP":{name:"鉴赏家",desc:"大胆而务实的实干家，善于操作各种工具。冷静、理性，在危机中保持镇定。喜欢动手解决问题，享受探索事物运作方式的乐趣。"},
+  "ISFP":{name:"探险家",desc:"温柔的艺术家，随时准备探索和体验新事物。活在当下，享受感官之美。随性、友善，但保留自己的内心空间。"},
+  "INFP":{name:"调停者",desc:"诗意、善良的利他主义者，总是热心帮助美好的事物。追求和谐与意义，有强烈的个人价值观。外表安静，内心火热。"},
+  "INTP":{name:"逻辑学家",desc:"充满创造力的发明家，对知识有着无尽的渴求。喜欢分析各种理论和模式，享受独处思考。在逻辑世界中最自在。"},
+  "ESTP":{name:"企业家",desc:"聪明、精力充沛且敏锐的实干家，真正享受冒险。活在当下，务实、善于解决眼前问题。是天生的推销员和谈判者。"},
+  "ESFP":{name:"表演者",desc:"自带聚光灯的表演者，乐于成为人群的焦点。享受生活、慷慨大方，用热情感染身边的人。喜欢实践胜过理论。"},
+  "ENFP":{name:"竞选者",desc:"热情、有创造力的自由灵魂。善于发现人与人之间的联系，对新想法和新朋友充满好奇。充满能量和想象力。"},
+  "ENTP":{name:"辩论家",desc:"聪明且好奇的思想家，享受智力上的挑战。善于从多个角度看问题，言辞锋利。喜欢辩论不是为了胜负，而是为了探索真理。"},
+  "ESTJ":{name:"总经理",desc:"出色的管理者，在组织团队和制定方案方面无人能及。务实、果断，重视效率和规则。是传统价值的坚定维护者。"},
+  "ESFJ":{name:"执政官",desc:"热情、周到、受欢迎的社交达人。关心他人的需求，乐于提供实际帮助。重视和谐与合作，是社群的中坚力量。"},
+  "ENFJ":{name:"主人公",desc:"富有魅力的领导者，激励他人成为更好的自己。具有强大的共情能力，善于理解他人的需求。是天生的教育者和引导者。"},
+  "ENTJ":{name:"指挥官",desc:"大胆、富有想象力的强势领导者。总能找到或创造解决方案，善于战略规划。果断、自信，是天生的组织者和变革推动者。"},
+};
+
+// ========== 应用逻辑 ==========
+var state={screen:'intro',qIdx:0,scores:{E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0}};
+
+function render(){
+  var app=document.getElementById('app');
+  if(state.screen==='intro') app.innerHTML=renderIntro();
+  else if(state.screen==='quiz') app.innerHTML=renderQuiz();
+  else if(state.screen==='result') app.innerHTML=renderResult();
+  var active=app.querySelector('.page.active');
+  if(active) active.classList.add('fade-in');
+}
+
+function renderIntro(){
+  return '<div class="page page-intro active">'+
+    '<h1>🧠 MBTI 性格测试</h1>'+
+    '<p>官方 93 题完整版<br>了解真实的自己</p>'+
+    '<button class="btn-start" onclick="startQuiz()">开始测试</button>'+
+    '</div>';
+}
+
+function startQuiz(){
+  state.screen='quiz'; state.qIdx=0;
+  state.scores={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  render();
+}
+
+function renderQuiz(){
+  var q=QUESTIONS[state.qIdx];
+  var pct=Math.round((state.qIdx/QUESTIONS.length)*100);
+  return '<div class="page page-quiz active">'+
+    '<div class="progress-text">第 '+(state.qIdx+1)+' / '+QUESTIONS.length+' 题</div>'+
+    '<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+    '<div class="question-card">'+
+    '<div class="question-num">Q'+(state.qIdx+1)+'</div>'+
+    '<div class="question-text">'+q.q+'</div>'+
+    '<button class="option-btn" onclick="answer(\''+q.p+'\')">'+q.a+'</button>'+
+    '<button class="option-btn" onclick="answer(\''+opposite(q.d,q.p)+'\')">'+q.b+'</button>'+
+    '</div></div>';
+}
+
+function opposite(dim,pole){
+  var map={EI:{E:'I',I:'E'},SN:{S:'N',N:'S'},TF:{T:'F',F:'T'},JP:{J:'P',P:'J'}};
+  return map[dim][pole];
+}
+
+function answer(pole){
+  state.scores[pole]++;
+  state.qIdx++;
+  if(state.qIdx>=QUESTIONS.length) return showResult();
+  render();
+}
+
+function showResult(){
+  state.screen='result';
+  var dims=calcDimensions();
+  state.resultType=dim2type(dims);
+  render();
+}
+
+function calcDimensions(){
+  var r={};
+  ['EI','SN','TF','JP'].forEach(function(d){
+    var dims={EI:['E','I'],SN:['S','N'],TF:['T','F'],JP:['J','P']}[d];
+    var a=state.scores[dim[0]],b=state.scores[dim[1]];
+    var total=a+b||1;
+    r[d]={pole:a>=b?dim[0]:dim[1],pct:Math.round(Math.max(a,b)/total*100),a:a,b:b};
+  });
+  return r;
+}
+
+function dim2type(dims){ return dims.EI.pole+dims.SN.pole+dims.TF.pole+dims.JP.pole; }
+
+function renderResult(){
+  var dims=calcDimensions();
+  var type=dim2type(dims);
+  var info=TYPES[type];
+  var dimsHtml='';
+  ['EI','SN','TF','JP'].forEach(function(d){
+    var labels={EI:['E 外向','I 内向'],SN:['S 实感','N 直觉'],TF:['T 思考','F 情感'],JP:['J 判断','P 感知']}[d];
+    var dd=dims[d];
+    dimsHtml+='<div class="dim-card">'+
+      '<div class="dim-header"><span class="dim-label left">'+labels[0]+'</span><span class="dim-total">'+dd.a+' vs '+dd.b+'</span><span class="dim-label right">'+labels[1]+'</span></div>'+
+      '<div class="dim-bar"><div class="left-fill" style="width:'+dd.pct+'%"></div><div class="right-fill" style="width:'+(100-dd.pct)+'%"></div></div>'+
+      '<div class="dim-pct"><span>'+dd.pct+'%</span><span>'+(100-dd.pct)+'%</span></div>'+
+      '</div>';
+  });
+  var gridHtml='';
+  Object.keys(TYPES).forEach(function(t){
+    gridHtml+='<div class="type-cell'+(t===type?' current':'')+'">'+t+'</div>';
+  });
+  return '<div class="page page-result active">'+
+    '<div class="result-header"><div class="result-type">'+type+'</div><div class="result-name">'+info.name+'</div></div>'+
+    '<div class="result-desc">'+info.desc+'</div>'+
+    dimsHtml+
+    '<div class="type-grid">'+gridHtml+'</div>'+
+    '<button class="btn-restart" onclick="startQuiz()">🔄 重新测试</button>'+
+    '</div>';
+}
+
+render();
+</script>
+</body>
+</html>
