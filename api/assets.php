@@ -64,6 +64,116 @@ if ($method === 'GET') {
 
 // ========== POST ==========
 if ($method === 'POST') {
+    // 优先处理 genpreview（补生预览图）
+    if (isset($_GET['action']) && $_GET['action'] === 'genpreview') {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => '缺少 id']);
+            exit;
+        }
+
+        $stmt = $pdo->prepare('SELECT id, file_path, user_id FROM ' . tableName('assets') . ' WHERE id = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => '记录不存在']);
+            exit;
+        }
+
+        if ($row['user_id'] !== $userId) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => '无权操作']);
+            exit;
+        }
+
+        // 已有预览图则直接返回
+        $stmt2 = $pdo->prepare('SELECT preview_path FROM ' . tableName('assets') . ' WHERE id = ?');
+        $stmt2->execute([$id]);
+        $existing = $stmt2->fetch();
+        if (!empty($existing['preview_path'])) {
+            echo json_encode(['ok' => true, 'preview_path' => $existing['preview_path'], 'cached' => true]);
+            exit;
+        }
+
+        // 解析原图本地路径
+        $dataRoot = '/var/www/sanshitu-data';
+        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+        $fileUrl = $row['file_path'];
+        $localFile = null;
+        if (strpos($fileUrl, $baseUrl) === 0) {
+            $localFile = $dataRoot . substr(parse_url($fileUrl, PHP_URL_PATH), 5);
+        }
+
+        if (!$localFile || !file_exists($localFile)) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => '原图文件不存在']);
+            exit;
+        }
+
+        $imgInfo = @getimagesize($localFile);
+        $mimeType = $imgInfo['mime'] ?? 'image/jpeg';
+        $width = $imgInfo ? $imgInfo[0] : 0;
+        $height = $imgInfo ? $imgInfo[1] : 0;
+
+        $previewName = pathinfo(basename($fileUrl), PATHINFO_FILENAME) . '_preview.' . pathinfo(basename($fileUrl), PATHINFO_EXTENSION);
+        $previewLocal = dirname($localFile) . '/' . $previewName;
+
+        $img = null;
+        switch ($mimeType) {
+            case 'image/jpeg': $img = @imagecreatefromjpeg($localFile); break;
+            case 'image/png':  $img = @imagecreatefrompng($localFile); break;
+            case 'image/gif':  $img = @imagecreatefromgif($localFile); break;
+            case 'image/webp': $img = @imagecreatefromwebp($localFile); break;
+        }
+
+        if (!$img) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => '无法读取图片']);
+            exit;
+        }
+
+        $ow = imagesx($img);
+        $oh = imagesy($img);
+        $pw = $ow; $ph = $oh;
+        $maxDim = 800;
+        if ($pw > $maxDim || $ph > $maxDim) {
+            if ($pw >= $ph) {
+                $ph = (int)($ph * ($maxDim / $pw));
+                $pw = $maxDim;
+            } else {
+                $pw = (int)($pw * ($maxDim / $ph));
+                $ph = $maxDim;
+            }
+        }
+
+        $preview = imagecreatetruecolor($pw, $ph);
+        if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
+            imagealphablending($preview, false);
+            imagesavealpha($preview, true);
+        }
+        imagecopyresampled($preview, $img, 0, 0, 0, 0, $pw, $ph, $ow, $oh);
+
+        switch ($mimeType) {
+            case 'image/jpeg': imagejpeg($preview, $previewLocal, 60); break;
+            case 'image/png':  imagepng($preview, $previewLocal, 6); break;
+            case 'image/gif':  imagegif($preview, $previewLocal); break;
+            case 'image/webp': imagewebp($preview, $previewLocal, 60); break;
+        }
+        imagedestroy($preview);
+        imagedestroy($img);
+
+        $previewUrl = dirname($fileUrl) . '/' . $previewName;
+
+        $stmt3 = $pdo->prepare('UPDATE ' . tableName('assets') . ' SET preview_path = ? WHERE id = ?');
+        $stmt3->execute([$previewUrl, $id]);
+
+        echo json_encode(['ok' => true, 'preview_path' => $previewUrl]);
+        exit;
+    }
+
     if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         $err = $_FILES['file']['error'] ?? 'missing';
         $messages = [
@@ -139,9 +249,9 @@ if ($method === 'POST') {
         $ow = imagesx($img);
         $oh = imagesy($img);
 
-        // 1. 生成预览图（最长边 1200px）
+        // 1. 生成预览图（最长边 800px）
         $pw = $ow; $ph = $oh;
-        $maxDim = 1200;
+        $maxDim = 800;
         if ($pw > $maxDim || $ph > $maxDim) {
             if ($pw >= $ph) {
                 $ph = (int)($ph * ($maxDim / $pw));
@@ -158,10 +268,10 @@ if ($method === 'POST') {
         }
         imagecopyresampled($preview, $img, 0, 0, 0, 0, $pw, $ph, $ow, $oh);
         switch ($mimeType) {
-            case 'image/jpeg': imagejpeg($preview, $previewPath, 75); break;
+            case 'image/jpeg': imagejpeg($preview, $previewPath, 60); break;
             case 'image/png':  imagepng($preview, $previewPath, 6); break;
             case 'image/gif':  imagegif($preview, $previewPath); break;
-            case 'image/webp': imagewebp($preview, $previewPath, 75); break;
+            case 'image/webp': imagewebp($preview, $previewPath, 60); break;
         }
         imagedestroy($preview);
         $previewCreated = true;
@@ -216,118 +326,6 @@ if ($method === 'POST') {
         'height' => $height,
         'file_size' => $fileSize
     ]);
-    exit;
-}
-
-// ========== POST action=genpreview (补生预览图) ==========
-if ($method === 'POST' && isset($_GET['action']) && $_GET['action'] === 'genpreview') {
-    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-    if ($id <= 0) {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => '缺少 id']);
-        exit;
-    }
-
-    $stmt = $pdo->prepare('SELECT id, file_path, user_id FROM ' . tableName('assets') . ' WHERE id = ?');
-    $stmt->execute([$id]);
-    $row = $stmt->fetch();
-
-    if (!$row) {
-        http_response_code(404);
-        echo json_encode(['ok' => false, 'error' => '记录不存在']);
-        exit;
-    }
-
-    if ($row['user_id'] !== $userId) {
-        http_response_code(403);
-        echo json_encode(['ok' => false, 'error' => '无权操作']);
-        exit;
-    }
-
-    // 已有预览图则直接返回
-    $stmt2 = $pdo->prepare('SELECT preview_path FROM ' . tableName('assets') . ' WHERE id = ?');
-    $stmt2->execute([$id]);
-    $existing = $stmt2->fetch();
-    if (!empty($existing['preview_path'])) {
-        echo json_encode(['ok' => true, 'preview_path' => $existing['preview_path'], 'cached' => true]);
-        exit;
-    }
-
-    // 解析原图本地路径
-    $dataRoot = '/var/www/sanshitu-data';
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-    $fileUrl = $row['file_path'];
-    $localFile = null;
-    if (strpos($fileUrl, $baseUrl) === 0) {
-        $localFile = $dataRoot . substr(parse_url($fileUrl, PHP_URL_PATH), 5);
-    }
-
-    if (!$localFile || !file_exists($localFile)) {
-        http_response_code(404);
-        echo json_encode(['ok' => false, 'error' => '原图文件不存在']);
-        exit;
-    }
-
-    $imgInfo = @getimagesize($localFile);
-    $mimeType = $imgInfo['mime'] ?? 'image/jpeg';
-    $width = $imgInfo ? $imgInfo[0] : 0;
-    $height = $imgInfo ? $imgInfo[1] : 0;
-
-    $previewName = pathinfo(basename($fileUrl), PATHINFO_FILENAME) . '_preview.' . pathinfo(basename($fileUrl), PATHINFO_EXTENSION);
-    $previewLocal = dirname($localFile) . '/' . $previewName;
-
-    // 生成预览图（最长边 1200px）
-    $img = null;
-    switch ($mimeType) {
-        case 'image/jpeg': $img = @imagecreatefromjpeg($localFile); break;
-        case 'image/png':  $img = @imagecreatefrompng($localFile); break;
-        case 'image/gif':  $img = @imagecreatefromgif($localFile); break;
-        case 'image/webp': $img = @imagecreatefromwebp($localFile); break;
-    }
-
-    if (!$img) {
-        http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => '无法读取图片']);
-        exit;
-    }
-
-    $ow = imagesx($img);
-    $oh = imagesy($img);
-    $pw = $ow; $ph = $oh;
-    $maxDim = 1200;
-    if ($pw > $maxDim || $ph > $maxDim) {
-        if ($pw >= $ph) {
-            $ph = (int)($ph * ($maxDim / $pw));
-            $pw = $maxDim;
-        } else {
-            $pw = (int)($pw * ($maxDim / $ph));
-            $ph = $maxDim;
-        }
-    }
-
-    $preview = imagecreatetruecolor($pw, $ph);
-    if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
-        imagealphablending($preview, false);
-        imagesavealpha($preview, true);
-    }
-    imagecopyresampled($preview, $img, 0, 0, 0, 0, $pw, $ph, $ow, $oh);
-
-    switch ($mimeType) {
-        case 'image/jpeg': imagejpeg($preview, $previewLocal, 75); break;
-        case 'image/png':  imagepng($preview, $previewLocal, 6); break;
-        case 'image/gif':  imagegif($preview, $previewLocal); break;
-        case 'image/webp': imagewebp($preview, $previewLocal, 75); break;
-    }
-    imagedestroy($preview);
-    imagedestroy($img);
-
-    $previewUrl = dirname($fileUrl) . '/' . $previewName;
-
-    // 更新数据库
-    $stmt3 = $pdo->prepare('UPDATE ' . tableName('assets') . ' SET preview_path = ? WHERE id = ?');
-    $stmt3->execute([$previewUrl, $id]);
-
-    echo json_encode(['ok' => true, 'preview_path' => $previewUrl]);
     exit;
 }
 
