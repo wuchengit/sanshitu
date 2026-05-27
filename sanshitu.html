@@ -679,6 +679,10 @@ function renderAssetLibrary(){
   var h='';
   for(var i=0;i<_userAssets.length;i++){
     var a=_userAssets[i];
+    if(a.loading){
+      h+='<div class="asset-item"><div style="width:100%;height:100%;background:#25252d;display:flex;align-items:center;justify-content:center"><div style="width:16px;height:16px;border:2px solid #333;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite"></div></div></div>';
+      continue;
+    }
     h+='<div class="asset-item" onclick="addAssetToRef(\''+escapeHtml(a.file_path)+'\',\''+escapeHtml(a.thumb_path)+'\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
   }
   h+='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
@@ -731,12 +735,15 @@ function selectAssetForRef(url, thumbUrl){
 async function uploadAsset(file){
   var form=new FormData();
   form.append('file',file);
+  _userAssets.unshift({loading:true,file_path:'',thumb_path:''});
+  renderAssetLibrary();
   try{
     var r=await authFetch('/api/assets.php',{method:'POST',body:form});
     var d=await r.json();
-    if(d.ok){ t('✅ 上传成功','ok'); loadAssets(); }
+    if(d.ok){ t('✅ 上传成功','ok'); }
     else{ t('❌ '+(d.error||'上传失败'),'err'); }
   } catch(e){ t('❌ 上传失败','err'); }
+  loadAssets();
 }
 
 async function deleteAsset(id){
