@@ -609,7 +609,15 @@ document.getElementById('genBtn').onclick=async function(){
               renderHistory();
             }
           }).catch(function(){});
-        }).catch(function(){});
+        }).catch(function(){
+          // 兜底：服务端存失败时存到localStorage，防止刷新丢失
+          try{
+            var _fb=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+            _fb.push({image_url:url,thumb_url:url,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:0,height:0,file_size:0,prompt:prompt,created_at:new Date().toISOString()});
+            if(_fb.length>50)_fb.shift();
+            localStorage.setItem('ds_h_temp',JSON.stringify(_fb));
+          }catch(e){}
+        });
       }else{
         // 游客: 先存CDN到localStorage
         var _th0=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
