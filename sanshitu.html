@@ -37,6 +37,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .upload-box .del{position:absolute;top:1px;right:1px;width:14px;height:14px;background:#ef4444cc;border-radius:50%;color:#fff;font-size:7px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:14px}
 .upload-box:hover .del{display:flex}
 
+/* 参考图选择弹出菜单 */
+.ref-picker-popup{display:none;position:absolute;z-index:9999;background:#1a1a20;border:1px solid #333;border-radius:8px;padding:4px;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.ref-picker-popup.show{display:block}
+.ref-picker-item{display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;border-radius:4px;color:#ccc;font-size:12px;white-space:nowrap}
+.ref-picker-item:hover{background:#667eea22;color:#fff}
+
+/* 资源库 - 卡片内网格 */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:3px;margin-top:4px}
+.asset-item{aspect-ratio:1;background:#25252d;border:1px solid #333;border-radius:4px;overflow:hidden;cursor:pointer;position:relative;transition:border-color .15s}
+.asset-item:hover{border-color:#667eea}
+.asset-item img{width:100%;height:100%;object-fit:cover}
+.asset-item .asset-del{position:absolute;top:1px;right:1px;width:16px;height:16px;background:#ef4444cc;border-radius:50%;color:#fff;font-size:8px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:16px}
+.asset-item:hover .asset-del{display:flex}
+.asset-upload-btn{display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:#25252d;border:1px dashed #444;border-radius:4px;cursor:pointer;color:#555;font-size:20px;transition:all .2s}
+.asset-upload-btn:hover{border-color:#667eea66;color:#667eea}
+
+/* 资源选择器 Modal */
+.asset-picker-modal .modal-box{width:520px;max-height:80vh;overflow-y:auto}
+
 /* 人物资产结构 - 紧凑 */
 .layout-strip{display:flex;gap:6px;overflow-x:auto}
 .layout-card{flex:0 0 auto;width:80px;background:#25252d;border:1px solid #333;border-radius:6px;padding:5px 4px;cursor:pointer;transition:all .2s;text-align:center}
@@ -75,7 +94,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast.err{border-color:#ef4444;color:#ef4444}
 .toast.ok{border-color:#22c55e;color:#22c55e}
 @keyframes s{to{transform:rotate(360deg)}} @keyframes spin{to{transform:rotate(360deg)}}.update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-align:center;padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:center;gap:12px;animation:slideDown .3s ease}.update-bar.show{display:flex}.update-bar .update-btn{padding:3px 14px;background:#ffffff33;border:1px solid #ffffff55;border-radius:4px;color:#fff;font-size:12px;cursor:pointer;white-space:nowrap}.update-bar .update-btn:hover{background:#ffffff55}.update-bar .update-close{position:absolute;right:12px;cursor:pointer;font-size:16px;opacity:.7}.update-bar .update-close:hover{opacity:1}@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-.edit-preset-btn{position:absolute;top:1px;right:22px;min-width:16px;height:16px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;line-height:1}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn{display:flex}.edit-preset-btn:hover{color:#667eea;background:#667eea15}.custom-item:hover .del-custom{display:flex}
+.free-mode-toggle:hover .tooltip-text{display:block!important}.edit-preset-btn{position:absolute;top:1px;right:22px;min-width:16px;height:16px;background:transparent;border:1px solid #555;border-radius:3px;color:#aaa;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;line-height:1}.style-card:hover .edit-preset-btn,.layout-card:hover .edit-preset-btn,.custom-item:hover .edit-preset-btn{display:flex}.edit-preset-btn:hover{color:#667eea;background:#667eea15}.custom-item:hover .del-custom{display:flex}
 /* 登录 */
 .login-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:4px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;transition:opacity .2s}
 .login-btn:hover{opacity:.85}
@@ -163,12 +182,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="card">
         <div class="card-t"><i data-lucide="image"></i> 参考图</div>
         <div class="upload-row" id="uploadRow"></div>
+        <!-- 参考图选择弹出菜单 -->
+        <div class="ref-picker-popup" id="refPicker" onclick="event.stopPropagation()">
+          <div class="ref-picker-item" onclick="document.getElementById('fileInput').click();refPickerHide()">📁 从本地上传</div>
+          <div class="ref-picker-item" onclick="openAssetPicker();refPickerHide()">🏛️ 从资源库选择</div>
+        </div>
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+        <input type="file" id="assetFileInput" accept="image/*" style="display:none">
+      </div>
+      <!-- 资源库 -->
+      <div class="card" id="assetLibraryCard" style="display:none">
+        <div class="card-t"><i data-lucide="folder-open"></i> 资源库 <button id="assetUploadBtn" onclick="document.getElementById('assetFileInput').click()" style="margin-left:auto;background:#667eea22;border:1px solid #667eea44;border-radius:4px;color:#667eea;font-size:10px;padding:2px 8px;cursor:pointer">上传</button></div>
+        <div class="asset-grid" id="assetGrid">
+          <div class="asset-upload-btn" onclick="document.getElementById('assetFileInput').click()">+</div>
+        </div>
       </div>
       <div class="card">
-        <div class="card-t">✎ 提示词</div>
+        <div class="card-t" style="margin-bottom:6px"><i data-lucide="pen-tool"></i> 提示词<label class="free-mode-toggle" style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:#999;cursor:pointer;position:relative"><input type="checkbox" id="freeModeToggle" onchange="up()"> 自由模式 <span style="position:relative;display:inline-flex;align-items:center"><i data-lucide="info" style="width:12px;height:12px;opacity:.6"></i><span class="tooltip-text" style="display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#333;color:#eee;padding:4px 8px;border-radius:4px;font-size:10px;white-space:nowrap;z-index:100;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.3)">开启后仅使用输入框内容，跳过所有预设</span></span></label></div>
         <textarea id="promptInput" rows="14" placeholder="描述你想要生成的画面内容..." style="width:100%;background:#25252d;border:1px solid #333;border-radius:6px;padding:6px 9px;color:#e8e8ed;font-size:12px;font-family:inherit;resize:none"></textarea>
-        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;cursor:pointer;margin-top:4px"><input type="checkbox" id="freeModeToggle"> 🔓 自由模式</label>
       </div>
       <div class="card">
         <div class="card-t"><i data-lucide="cpu"></i> 模型</div>
@@ -440,8 +471,32 @@ function downloadPrompt(){
 function renderUploads(){
   let h='';
   for(let i=0;i<6;i++)
-    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="document.getElementById('fileInput').click()"><img src="${uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="document.getElementById('fileInput').click()">${i===0?'+':''}</div>`;
+    h+=uploadedFiles[i]?`<div class="upload-box has" onclick="openViewer(uploadedFiles[${i}].data,'参考图','','')"><img src="${uploadedFiles[i].data}"><button class="del" onclick="event.stopPropagation();uploadedFiles.splice(${i},1);renderUploads()">×</button></div>`:`<div class="upload-box" onclick="${i===0?'handleRefPicker(event)':''}">${i===0?'+':''}</div>`;
   document.getElementById('uploadRow').innerHTML=h;
+}
+
+function handleRefPicker(e){
+  e.stopPropagation();
+  if(AUTH_TOKEN){
+    var p=document.getElementById('refPicker');
+    var b=e.currentTarget;
+    var rect=b.getBoundingClientRect();
+    p.style.top=(rect.bottom+4)+'px';
+    p.style.left=rect.left+'px';
+    p.classList.add('show');
+    // 点击外部关闭
+    setTimeout(function(){
+      document.addEventListener('click',function c2(ev){
+        if(!p.contains(ev.target)&&ev.target!==b){p.classList.remove('show');document.removeEventListener('click',c2);}
+      });
+    },10);
+  }else{
+    document.getElementById('fileInput').click();
+  }
+}
+
+function refPickerHide(){
+  document.getElementById('refPicker').classList.remove('show');
 }
 
 document.getElementById('fileInput').onchange=function(e){
@@ -572,6 +627,114 @@ function renderHistory(){
     if(di!==null&&_historyData[di]){_historyData[di].broken=true;}
   };}
 }
+
+// ========== 资源库 ==========
+var _userAssets=[];
+
+async function loadAssets(){
+  if(!AUTH_TOKEN) return;
+  try{
+    var r=await authFetch('/api/assets.php');
+    var d=await r.json();
+    if(d.ok) _userAssets=d.data||[];
+  } catch(e){ _userAssets=[]; }
+  renderAssetLibrary();
+}
+
+function renderAssetLibrary(){
+  var card=document.getElementById('assetLibraryCard');
+  if(!AUTH_TOKEN){ card.style.display='none'; return; }
+  card.style.display='';
+  var grid=document.getElementById('assetGrid');
+  if(!_userAssets.length){
+    grid.innerHTML='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<_userAssets.length;i++){
+    var a=_userAssets[i];
+    h+='<div class="asset-item" onclick="addAssetToRef(\''+escapeHtml(a.file_path)+'\')"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"><button class="asset-del" onclick="event.stopPropagation();deleteAsset('+a.id+')">×</button></div>';
+  }
+  h+='<div class="asset-upload-btn" onclick="document.getElementById(\'assetFileInput\').click()">+</div>';
+  grid.innerHTML=h;
+}
+
+function openAssetPicker(){
+  document.getElementById('assetPickerModal').classList.add('show');
+  renderAssetPicker();
+}
+
+function closeAssetPicker(){
+  document.getElementById('assetPickerModal').classList.remove('show');
+}
+
+async function renderAssetPicker(){
+  var grid=document.getElementById('assetPickerGrid');
+  if(!_userAssets.length){
+    try{
+      var r=await authFetch('/api/assets.php');
+      var d=await r.json();
+      if(d.ok) _userAssets=d.data||[];
+    } catch(e){}
+    renderAssetLibrary();
+  }
+  if(!_userAssets.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">暂无资源，请先在资源库中上传</div>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<_userAssets.length;i++){
+    var a=_userAssets[i];
+    h+='<div class="asset-item" onclick="selectAssetForRef(\''+escapeHtml(a.file_path)+'\');closeAssetPicker()"><img src="'+escapeHtml(a.thumb_path||a.file_path)+'" loading="lazy"></div>';
+  }
+  grid.innerHTML=h;
+}
+
+function addAssetToRef(url){
+  var remaining=6-uploadedFiles.length;
+  if(remaining<=0){ t('最多6张参考图','err'); return; }
+  // 将 URL 转为 base64 或直接使用 URL
+  uploadedFiles.push({data:url});
+  renderUploads();
+  t('已添加参考图','ok');
+}
+
+function selectAssetForRef(url){
+  addAssetToRef(url);
+}
+
+async function uploadAsset(file){
+  var form=new FormData();
+  form.append('file',file);
+  try{
+    var r=await authFetch('/api/assets.php',{method:'POST',body:form});
+    var d=await r.json();
+    if(d.ok){ t('✅ 上传成功','ok'); loadAssets(); }
+    else{ t('❌ '+(d.error||'上传失败'),'err'); }
+  } catch(e){ t('❌ 上传失败','err'); }
+}
+
+async function deleteAsset(id){
+  if(!confirm('确认删除该资源？')) return;
+  try{
+    var r=await authFetch('/api/assets.php?id='+id,{method:'DELETE'});
+    var d=await r.json();
+    if(d.ok) loadAssets();
+    else t('❌ 删除失败','err');
+  } catch(e){ t('❌ 删除失败','err'); }
+}
+
+// 挂钩资源文件上传
+setTimeout(function(){
+  var afi=document.getElementById('assetFileInput');
+  if(afi) afi.onchange=function(e){
+    if(e.target.files&&e.target.files[0]) uploadAsset(e.target.files[0]);
+    this.value='';
+  };
+},100);
+
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// ========== 资源库 END ==========
 
 var selMode=false;
 function toggleSelect(){
@@ -934,6 +1097,8 @@ function doLogout(){
   authRemove('sanshitu_id_token');
   authRemove('sanshitu_refresh');
   customPresets=[];
+  _userAssets=[];
+  document.getElementById('assetLibraryCard').style.display='none';
   if (idToken) {
     location.href = 'https://auth.aiwuuw.com/oidc/session/end?id_token_hint=' +
       encodeURIComponent(idToken) +
@@ -1113,6 +1278,7 @@ function updateAuthUI(){
     }
     loadHistory();
     loadCustomPresets();
+    loadAssets();
     scheduleTokenRefresh();
   } else {
     _historyData=[];
@@ -1169,6 +1335,17 @@ updateAuthUI();
 <div class="toggle-link"><span id="authToggleText">没有账号？</span> <a id="authToggleLink" onclick="toggleAuthMode()">立即注册</a></div>
 </div></div></div>
 
+
+<!-- 资源选择器弹窗 -->
+<div class="modal-overlay asset-picker-modal" id="assetPickerModal">
+<div style="position:relative">
+<div class="modal-box">
+<button class="modal-close" onclick="closeAssetPicker()"><i data-lucide="x"></i></button>
+<h2>🏛️ 选择资源</h2>
+<div class="asset-grid" id="assetPickerGrid" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
+  <div style="grid-column:1/-1;text-align:center;color:#555;padding:20px;font-size:12px">⏳ 加载中...</div>
+</div>
+</div></div></div>
 
 <!-- 自定义预设弹窗 -->
 <div class="modal-overlay" id="customModal">
