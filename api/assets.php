@@ -34,6 +34,7 @@ $pdo->exec(
         user_id VARCHAR(64) NOT NULL,
         file_path VARCHAR(255) NOT NULL,
         thumb_path VARCHAR(255) NOT NULL,
+        preview_path VARCHAR(255) DEFAULT NULL,
         width INT DEFAULT 0,
         height INT DEFAULT 0,
         file_size INT DEFAULT 0,
@@ -43,10 +44,17 @@ $pdo->exec(
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
 );
 
+// 兼容旧表：加 preview_path 列
+try {
+    $pdo->exec('ALTER TABLE ' . tableName('assets') . ' ADD COLUMN preview_path VARCHAR(255) DEFAULT NULL AFTER thumb_path');
+} catch (\PDOException $e) {
+    // 列已存在，忽略
+}
+
 // ========== GET ==========
 if ($method === 'GET') {
     $stmt = $pdo->prepare(
-        'SELECT id, user_id, file_path, thumb_path, width, height, file_size, created_at FROM ' . tableName('assets') . ' WHERE user_id = ? ORDER BY created_at DESC LIMIT 100'
+        'SELECT id, user_id, file_path, thumb_path, preview_path, width, height, file_size, created_at FROM ' . tableName('assets') . ' WHERE user_id = ? ORDER BY created_at DESC LIMIT 100'
     );
     $stmt->execute([$userId]);
     $rows = $stmt->fetchAll();
@@ -64,7 +72,6 @@ if ($method === 'POST') {
             UPLOAD_ERR_PARTIAL => '文件上传不完整',
             UPLOAD_ERR_NO_FILE => '未选择文件',
         ];
-        error_log('[ASSETS_DEBUG] upload error: code=' . $err . ' size=' . ($_FILES['file']['size'] ?? 'N/A') . ' name=' . ($_FILES['file']['name'] ?? 'N/A') . ' type=' . ($_FILES['file']['type'] ?? 'N/A'));
         http_response_code(400);
         echo json_encode(['ok' => false, 'error' => $messages[$err] ?? '上传失败 (code ' . $err . ')']);
         exit;
@@ -101,6 +108,8 @@ if ($method === 'POST') {
     $filePath = $userDir . '/' . $filename;
     $thumbName = pathinfo($filename, PATHINFO_FILENAME) . '_thumb.' . $ext;
     $thumbPath = $userDir . '/' . $thumbName;
+    $previewName = pathinfo($filename, PATHINFO_FILENAME) . '_preview.' . $ext;
+    $previewPath = $userDir . '/' . $previewName;
 
     // 移动上传文件
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
@@ -115,7 +124,8 @@ if ($method === 'POST') {
     $height = $imgInfo ? $imgInfo[1] : 0;
     $fileSize = filesize($filePath);
 
-    // 生成缩略图
+    // 生成预览图 + 缩略图
+    $previewCreated = false;
     $thumbCreated = false;
     $img = null;
     switch ($mimeType) {
@@ -128,18 +138,43 @@ if ($method === 'POST') {
     if ($img) {
         $ow = imagesx($img);
         $oh = imagesy($img);
+
+        // 1. 生成预览图（最长边 1200px）
+        $pw = $ow; $ph = $oh;
+        $maxDim = 1200;
+        if ($pw > $maxDim || $ph > $maxDim) {
+            if ($pw >= $ph) {
+                $ph = (int)($ph * ($maxDim / $pw));
+                $pw = $maxDim;
+            } else {
+                $pw = (int)($pw * ($maxDim / $ph));
+                $ph = $maxDim;
+            }
+        }
+        $preview = imagecreatetruecolor($pw, $ph);
+        if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
+            imagealphablending($preview, false);
+            imagesavealpha($preview, true);
+        }
+        imagecopyresampled($preview, $img, 0, 0, 0, 0, $pw, $ph, $ow, $oh);
+        switch ($mimeType) {
+            case 'image/jpeg': imagejpeg($preview, $previewPath, 75); break;
+            case 'image/png':  imagepng($preview, $previewPath, 6); break;
+            case 'image/gif':  imagegif($preview, $previewPath); break;
+            case 'image/webp': imagewebp($preview, $previewPath, 75); break;
+        }
+        imagedestroy($preview);
+        $previewCreated = true;
+
+        // 2. 生成缩略图（200px 宽）
         $tw = min($ow, 200);
         $th = (int)($oh * ($tw / $ow));
         $thumb = imagecreatetruecolor($tw, $th);
-
-        // 保留透明通道
         if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
             imagealphablending($thumb, false);
             imagesavealpha($thumb, true);
         }
-
         imagecopyresampled($thumb, $img, 0, 0, 0, 0, $tw, $th, $ow, $oh);
-
         switch ($mimeType) {
             case 'image/jpeg': imagejpeg($thumb, $thumbPath, 75); break;
             case 'image/png':  imagepng($thumb, $thumbPath, 6); break;
@@ -152,8 +187,10 @@ if ($method === 'POST') {
     }
 
     if (!$thumbCreated) {
-        // fallback: 复制原图作为缩略图
         copy($filePath, $thumbPath);
+    }
+    if (!$previewCreated) {
+        copy($filePath, $previewPath);
     }
 
     // 构建 URL
@@ -161,18 +198,20 @@ if ($method === 'POST') {
     $host = $_SERVER['HTTP_HOST'];
     $fileUrl = "$scheme://$host/data/assets/$userId/$filename";
     $thumbUrl = "$scheme://$host/data/assets/$userId/$thumbName";
+    $previewUrl = "$scheme://$host/data/assets/$userId/$previewName";
 
     // 记数据库
     $stmt = $pdo->prepare(
-        'INSERT INTO ' . tableName('assets') . ' (user_id, file_path, thumb_path, width, height, file_size) VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO ' . tableName('assets') . ' (user_id, file_path, thumb_path, preview_path, width, height, file_size) VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
-    $stmt->execute([$userId, $fileUrl, $thumbUrl, $width, $height, $fileSize]);
+    $stmt->execute([$userId, $fileUrl, $thumbUrl, $previewUrl, $width, $height, $fileSize]);
 
     echo json_encode([
         'ok' => true,
         'id' => (int)$pdo->lastInsertId(),
         'file_path' => $fileUrl,
         'thumb_path' => $thumbUrl,
+        'preview_path' => $previewUrl,
         'width' => $width,
         'height' => $height,
         'file_size' => $fileSize
@@ -189,7 +228,7 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    $stmt = $pdo->prepare('SELECT file_path, thumb_path, user_id FROM ' . tableName('assets') . ' WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT file_path, thumb_path, preview_path, user_id FROM ' . tableName('assets') . ' WHERE id = ?');
     $stmt->execute([$id]);
     $row = $stmt->fetch();
 
@@ -218,9 +257,11 @@ if ($method === 'DELETE') {
 
     $localFile = $toLocal($row['file_path']);
     $localThumb = $toLocal($row['thumb_path']);
+    $localPreview = $toLocal($row['preview_path']);
 
     if ($localFile) @unlink($localFile);
     if ($localThumb) @unlink($localThumb);
+    if ($localPreview) @unlink($localPreview);
 
     $stmt = $pdo->prepare('DELETE FROM ' . tableName('assets') . ' WHERE id = ?');
     $stmt->execute([$id]);

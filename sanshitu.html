@@ -688,7 +688,7 @@ function renderHistory(){
 }
 
 // ========== 资源库 ==========
-var _userAssets=[],_browserSelIdx=-1,_browserSelMode=false,_browserChecked={};
+var _userAssets=[],_browserSelIdx=-1,_browserSelMode=false,_browserChecked={},_blobCache={};
 
 async function loadAssets(){
   if(!AUTH_TOKEN) return;
@@ -739,6 +739,9 @@ function closeAssetBrowser(){
   _browserSelIdx=-1;
   _browserSelMode=false;
   _browserChecked={};
+  // 清理 blob 缓存
+  Object.keys(_blobCache).forEach(function(k){ URL.revokeObjectURL(_blobCache[k]); });
+  _blobCache={};
 }
 
 function openAssetPicker(){
@@ -829,11 +832,29 @@ function selectBrowserAsset(idx){
     document.getElementById('assetPreviewActions').style.display='none';
     return;
   }
-  document.getElementById('assetPreviewImg').innerHTML='<img src="'+escapeHtml(a.file_path)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+  var previewUrl=a.preview_path||a.file_path;
   var info='📄 '+(a.file_path.split('/').pop()||a.file_path)+(a.width?' | '+a.width+'×'+a.height:'')+(a.file_size?' | '+formatFileSize(a.file_size):'')+(a.created_at?' | '+a.created_at.substring(0,10):'');
   document.getElementById('assetPreviewInfo').textContent=info;
   document.getElementById('assetPreviewInfo').style.display='';
   document.getElementById('assetPreviewActions').style.display='';
+  // blob 缓存：同一 URL 只下载一次
+  if(_blobCache[previewUrl]){
+    document.getElementById('assetPreviewImg').innerHTML='<img src="'+_blobCache[previewUrl]+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+    return;
+  }
+  document.getElementById('assetPreviewImg').innerHTML='<div class="asset-preview-placeholder">⏳ 加载预览...</div>';
+  var _si=idx;
+  fetch(previewUrl).then(function(r){ return r.blob(); }).then(function(b){
+    var objUrl=URL.createObjectURL(b);
+    _blobCache[previewUrl]=objUrl;
+    if(_browserSelIdx===_si){
+      document.getElementById('assetPreviewImg').innerHTML='<img src="'+objUrl+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+    }
+  }).catch(function(){
+    if(_browserSelIdx===_si){
+      document.getElementById('assetPreviewImg').innerHTML='<img src="'+escapeHtml(previewUrl)+'" onerror="this.parentElement.innerHTML=\'<div class=asset-preview-placeholder>加载失败</div>\'">';
+    }
+  });
 }
 
 function addBrowserAssetToRef(){
