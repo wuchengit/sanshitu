@@ -1200,7 +1200,7 @@ function bindViewerEvents(){
   document.addEventListener('mouseup',function(){if(isD){isD=false;overlay.style.cursor='grab';}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindViewerEvents);else bindViewerEvents();
-function copyViewerPrompt(){var t=viewerPrompt;if(!t)return;var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);t('提示词已复制','ok');}
+function copyViewerPrompt(){var txt=viewerPrompt;if(!txt)return;var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);t('提示词已复制','ok');}
 function downloadViewerPrompt(){if(!viewerPrompt)return;var b=new Blob([viewerPrompt],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prompt_'+Date.now()+'.txt';a.click();}
 var _viewerOrigPrompt='';
 function translateViewerPrompt(btn){
