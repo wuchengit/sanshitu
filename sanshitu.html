@@ -452,8 +452,8 @@ function translatePrompt(btn){
     el.textContent=el.dataset.orig;
     document.getElementById('promptLen').textContent=el.dataset.orig.length;
     var rb=document.getElementById('restoreBtn');if(rb)rb.remove();
-    btn.textContent='💡 原文';btn.style.color='#22c55e';
-    setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
+    btn.innerHTML='<i data-lucide="undo" style="width:12px;height:12px"></i> 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';if(window.lucide)lucide.createIcons();btn.style.color='';},1500);
     return;
   }
   btn.innerHTML='⏳';
@@ -470,7 +470,7 @@ function translatePrompt(btn){
     if(!rb){
       var btns=btn.parentElement;
       rb=document.createElement('button');
-      rb.id='restoreBtn';rb.className='preview-btn';rb.textContent='<i data-lucide="undo" style="width:12px;height:12px"></i> 原文';
+      rb.id='restoreBtn';rb.className='preview-btn';rb.innerHTML='<i data-lucide="undo" style="width:12px;height:12px"></i> 原文';
       rb.onclick=function(){
         el.textContent=el.dataset.orig;
         document.getElementById('promptLen').textContent=el.dataset.orig.length;
@@ -1137,8 +1137,8 @@ function translateViewerPrompt(btn){
   if(lang==='英文'){
     document.getElementById('viewerPromptText').textContent=_viewerOrigPrompt;
     document.getElementById('viewerRestoreBtn').style.display='none';
-    btn.textContent='💡 原文';btn.style.color='#22c55e';
-    setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
+    btn.innerHTML='<i data-lucide="undo" style="width:12px;height:12px"></i> 原文';btn.style.color='#22c55e';
+    setTimeout(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';if(window.lucide)lucide.createIcons();btn.style.color='';},1500);
     return;
   }
   btn.innerHTML='⏳';btn.disabled=true;
@@ -1150,8 +1150,8 @@ function translateViewerPrompt(btn){
       var same=d.translation.trim()===_viewerOrigPrompt.trim();
       document.getElementById('viewerPromptText').textContent=d.translation;
       document.getElementById('viewerRestoreBtn').style.display=same?'none':'inline-block';
-      btn.textContent=same?'💡 原文':'✓ 已翻译';btn.style.color='#22c55e';
-      setTimeout(function(){btn.textContent='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';btn.style.color='';},1500);
+      btn.innerHTML=same?'<i data-lucide="undo" style="width:12px;height:12px"></i> 原文':'<i data-lucide="check" style="width:12px;height:12px"></i> 已翻译';btn.style.color='#22c55e';
+      setTimeout(function(){btn.innerHTML='<i data-lucide="languages" style="width:12px;height:12px"></i> 翻译';if(window.lucide)lucide.createIcons();btn.style.color='';},1500);
     }else{t('⚠️ '+(d.error||'翻译失败'),'err');}
   }).catch(function(e){t('⚠️ 翻译出错: '+e.message,'err');})
   .finally(function(){btn.disabled=false;});
