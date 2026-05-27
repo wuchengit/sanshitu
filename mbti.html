@@ -255,9 +255,9 @@ function calcDimensions(){
   var r={};
   ['EI','SN','TF','JP'].forEach(function(d){
     var dims={EI:['E','I'],SN:['S','N'],TF:['T','F'],JP:['J','P']}[d];
-    var a=state.scores[dim[0]],b=state.scores[dim[1]];
+    var a=state.scores[dims[0]],b=state.scores[dims[1]];
     var total=a+b||1;
-    r[d]={pole:a>=b?dim[0]:dim[1],pct:Math.round(Math.max(a,b)/total*100),a:a,b:b};
+    r[d]={pole:a>=b?dims[0]:dims[1],pct:Math.round(Math.max(a,b)/total*100),a:a,b:b};
   });
   return r;
 }
