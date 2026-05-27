@@ -555,6 +555,10 @@ document.getElementById('genBtn').onclick=async function(){
   var loadId='L'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   _historyData.push({u:'',id:loadId,info:'⏳ 生成中...',model:m,loading:true,t:Date.now(),prompt:prompt});
   renderHistory();
+  var _dbId=0;
+  if(AUTH_TOKEN){
+    authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,status:'pending'})}).then(function(r){return r.json()}).then(function(d3){if(d3.ok)_dbId=d3.id;}).catch(function(){});
+  }
   var body={model:m,prompt:prompt,aspectRatio:av,replyType:'json'};
   if(apiKey)body._key=apiKey;
   if(uploadedFiles.length)body.images=uploadedFiles.map(function(f){return f.data;});
@@ -572,88 +576,45 @@ document.getElementById('genBtn').onclick=async function(){
       // 更新loading记录（内存，先显示远程URL）
       var _found=false;for(var _i=0;_i<_historyData.length;_i++){if(_historyData[_i].id===loadId){_historyData[_i]={u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av};_found=true;break;}}if(!_found){_historyData.push({u:url,id:loadId,info:m+' '+av,model:m,t:Date.now(),prompt:prompt,resolution:document.getElementById('resolution').value,aspect:av});}
       renderHistory();
-      var _loadId=loadId;
-      // 先存CDN地址到数据库，再异步下载到本地后更新
-      var _saveChain;
-      if(AUTH_TOKEN){
-        fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_start',error:url.substring(0,80)})}).catch(function(){});
-        _saveChain = authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:url,thumb_url:url,width:0,height:0,file_size:0})}).then(function(r){
-          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_resp',error:'http='+r.status})}).catch(function(){});
-          return r.json();
-        }).then(function(d3){
-          var _sid=d3.ok&&d3.id?d3.id:0;
-          // CDN已存，开始下载到本地
-          fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
-            if(d2.original&&d2.thumb&&_sid){
-              // 更新数据库：本地URL替换CDN
-              authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_sid,prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).then(function(){
-                for(var _hi=0;_hi<_historyData.length;_hi++){
-                  if(_historyData[_hi].id===_loadId){
-                    _historyData[_hi].image_url=d2.original;
-                    _historyData[_hi].thumb_url=d2.thumb;
-                    _historyData[_hi].u=d2.original;
-                    _historyData[_hi].thumb=d2.thumb;
-                    break;
-                  }
-                }
-                renderHistory();
-              }).catch(function(){});
-            }else if(d2.original&&d2.thumb){
-              // save_image成功但CDN存失败了，单独Insert
-              authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).catch(function(){});
-              for(var _hj=0;_hj<_historyData.length;_hj++){
-                if(_historyData[_hj].id===_loadId){
-                  _historyData[_hj].image_url=d2.original;
-                  _historyData[_hj].thumb_url=d2.thumb;
-                  _historyData[_hj].u=d2.original;
-                  _historyData[_hj].thumb=d2.thumb;
-                  break;
-                }
-              }
-              renderHistory();
-            }
-          }).catch(function(){});
-        }).catch(function(e){
-          fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cdn_save_fail',error:e&&e.message||'unknown'})}).catch(function(){});
-          // 兜底：服务端存失败时存到localStorage，防止刷新丢失
-          try{
-            var _fb=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
-            _fb.push({image_url:url,thumb_url:url,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:0,height:0,file_size:0,prompt:prompt,created_at:new Date().toISOString()});
-            if(_fb.length>50)_fb.shift();
-            localStorage.setItem('ds_h_temp',JSON.stringify(_fb));
-          }catch(e){}
-        });
-      }else{
-        // 游客: 先存CDN到localStorage
-        var _th0=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
-        _th0.push({image_url:url,thumb_url:url,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:0,height:0,file_size:0,prompt:prompt,created_at:new Date().toISOString()});
-        if(_th0.length>50)_th0.shift();
-        localStorage.setItem('ds_h_temp',JSON.stringify(_th0));
-        // 异步下载到本地后更新localStorage
-        fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
-          if(d2.original&&d2.thumb){
-            var _thx=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
-            for(var _tx=_thx.length-1;_tx>=0;_tx--){
-              if(_thx[_tx].image_url===url){
-                _thx[_tx].image_url=d2.original;
-                _thx[_tx].thumb_url=d2.thumb;
-                break;
-              }
-            }
-            localStorage.setItem('ds_h_temp',JSON.stringify(_thx));
-            for(var _hx=0;_hx<_historyData.length;_hx++){
-              if(_historyData[_hx].id===_loadId){
-                _historyData[_hx].image_url=d2.original;
-                _historyData[_hx].thumb_url=d2.thumb;
-                _historyData[_hx].u=d2.original;
-                _historyData[_hx].thumb=d2.thumb;
-                break;
-              }
-            }
-            renderHistory();
-          }
-        }).catch(function(){});
+      // 入库：UPDATE pending→success，填CDN URL
+      if(AUTH_TOKEN&&_dbId){
+        authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_dbId,image_url:url,thumb_url:url,status:'success'})}).catch(function(){});
+      }else if(!AUTH_TOKEN){
+        var _th=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+        _th.push({image_url:url,thumb_url:url,model:m,info:m+' '+av,resolution:document.getElementById('resolution').value,aspect:av,width:0,height:0,file_size:0,prompt:prompt,created_at:new Date().toISOString()});
+        if(_th.length>50)_th.shift();
+        localStorage.setItem('ds_h_temp',JSON.stringify(_th));
       }
+      // 异步下载到本地后更新数据库/存储
+      fetch('/save_image.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(function(r2){return r2.json()}).then(function(d2){
+        if(d2.original&&d2.thumb){
+          // 更新内存
+          for(var _hi=0;_hi<_historyData.length;_hi++){
+            if(_historyData[_hi].id===loadId){
+              _historyData[_hi].image_url=d2.original;
+              _historyData[_hi].thumb_url=d2.thumb;
+              _historyData[_hi].u=d2.original;
+              _historyData[_hi].thumb=d2.thumb;
+              break;
+            }
+          }
+          renderHistory();
+          // 更新数据库/存储
+          if(AUTH_TOKEN&&_dbId){
+            authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_dbId,image_url:d2.original,thumb_url:d2.thumb,width:d2.width||0,height:d2.height||0,file_size:d2.file_size||0})}).catch(function(){});
+          }else{
+            var _tl=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
+            for(var _tx=_tl.length-1;_tx>=0;_tx--){
+              if(_tl[_tx].image_url===url||_tl[_tx].image_url===d2.original){
+                _tl[_tx].image_url=d2.original;
+                _tl[_tx].thumb_url=d2.thumb;
+                break;
+              }
+            }
+            localStorage.setItem('ds_h_temp',JSON.stringify(_tl));
+          }
+        }
+      }).catch(function(){});
       t('✅ 成功','ok');
       fetch('/log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,ratio:av,prompt:prompt.substring(0,100),status:'success',cost:(Date.now()-_start)+'ms'})}).catch(function(){});
     }else{
@@ -666,7 +627,7 @@ document.getElementById('genBtn').onclick=async function(){
       t('❌ '+(d.error||d.message||'失败').substring(0,100),'err');
       // 异步持久化失败记录到服务端，刷新后也能看到
       if(AUTH_TOKEN){
-        authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({failed:1,prompt:prompt,model:m,info:'生成失败',resolution:document.getElementById('resolution').value,aspect:av})}).catch(function(){});
+        if(AUTH_TOKEN&&_dbId){authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_dbId,status:'failed'})}).catch(function(){});}
       }else{
         var _th=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
         _th.push({image_url:'',thumb_url:'',model:m,info:'生成失败',aspect:av,prompt:prompt,created_at:new Date().toISOString(),_failed:true});
@@ -684,9 +645,7 @@ document.getElementById('genBtn').onclick=async function(){
     var _errMsg=e.name==='AbortError'?'⏰ 生成超时，请重试':'❌ 生成失败';
     t(_errMsg,'err');
     // 异步持久化失败记录
-    if(AUTH_TOKEN){
-      authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({failed:1,prompt:prompt,model:m,info:'生成失败',resolution:document.getElementById('resolution').value,aspect:av})}).catch(function(){});
-    }else{
+    if(AUTH_TOKEN&&_dbId){authFetch('/api/generations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_dbId,status:'failed'})}).catch(function(){});}else{
       var _th2=JSON.parse(localStorage.getItem('ds_h_temp')||'[]');
       _th2.push({image_url:'',thumb_url:'',model:m,info:'生成失败',aspect:av,prompt:prompt,created_at:new Date().toISOString(),_failed:true});
       if(_th2.length>50)_th2.shift();
@@ -710,8 +669,7 @@ async function loadHistory(){
       var _serverData = (d.data || []).map(function(x){
         x.u = x.image_url || '';
         x.thumb = x.thumb_url || '';
-        // 没有图的服务端记录视为失败
-        if(!x.image_url)x.failed=true;
+        if(x.status==='pending'){x.loading=true;}else if(x.status==='failed'||(!x.image_url&&x.status!=='success')){x.failed=true;}
         return x;
       });
       // 保留进行中的记录（loading 或刚成功但还没持久化的），避免被 loadHistory 清掉

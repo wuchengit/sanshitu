@@ -1,7 +1,7 @@
 <?php
 // api/generations.php — 生成历史服务端存储
 // GET: 查当前用户历史（最近50条）
-// POST: 保存记录
+// POST: 新建记录 / 更新已有记录（通过body.id区分）
 // DELETE ?id=xx: 删除记录（需本人）
 
 header('Content-Type: application/json; charset=utf-8');
@@ -22,7 +22,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     $userId = requireLogtoAuth();
 } catch (Exception $e) {
-    // authError already sends response
     exit;
 }
 
@@ -30,7 +29,7 @@ $pdo = db();
 
 if ($method === 'GET') {
     $stmt = $pdo->prepare(
-        'SELECT id, user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url, created_at FROM ' . tableName('generations') . ' WHERE user_id = ? ORDER BY created_at ASC LIMIT 50'
+        'SELECT id, user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url, status, created_at FROM ' . tableName('generations') . ' WHERE user_id = ? ORDER BY created_at ASC LIMIT 50'
     );
     $stmt->execute([$userId]);
     $rows = $stmt->fetchAll();
@@ -40,31 +39,41 @@ if ($method === 'GET') {
 
 if ($method === 'POST' || $method === 'PUT') {
     $body = json_decode(file_get_contents('php://input'), true);
-    $isFailed = !empty($body['failed']);
-    if (!$body || (!$isFailed && empty($body['image_url']))) {
+    if (!$body) {
         http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => $isFailed ? '缺少必要字段' : '缺少 image_url']);
+        echo json_encode(['ok' => false, 'error' => '无效请求']);
         exit;
     }
 
     $updateId = !empty($body['id']) ? (int)$body['id'] : 0;
+
     if ($updateId > 0) {
-        // UPDATE: 更新已有记录 (save_image 下载后用本地URL替换CDN)
-        $stmt = $pdo->prepare('UPDATE ' . tableName('generations') . ' SET image_url=?, thumb_url=?, width=?, height=?, file_size=? WHERE id=? AND user_id=?');
-        $stmt->execute([
-            $body['image_url'],
-            $body['thumb_url'] ?? '',
-            (int)($body['width'] ?? 0),
-            (int)($body['height'] ?? 0),
-            (int)($body['file_size'] ?? 0),
-            $updateId,
-            $userId
-        ]);
+        // UPDATE: 更新已有记录（更新提供的字段）
+        $sets = [];
+        $params = [];
+        foreach (['image_url', 'thumb_url', 'status', 'info', 'prompt', 'model', 'resolution', 'aspect'] as $f) {
+            if (isset($body[$f])) {
+                $sets[] = "`$f`=?";
+                $params[] = $body[$f];
+            }
+        }
+        foreach (['width', 'height', 'file_size'] as $f) {
+            if (isset($body[$f])) {
+                $sets[] = "`$f`=?";
+                $params[] = (int)$body[$f];
+            }
+        }
+        if (!empty($sets)) {
+            $params[] = $updateId;
+            $params[] = $userId;
+            $stmt = $pdo->prepare('UPDATE ' . tableName('generations') . ' SET ' . implode(',', $sets) . ' WHERE id=? AND user_id=?');
+            $stmt->execute($params);
+        }
         echo json_encode(['ok' => true, 'id' => $updateId]);
     } else {
-        // INSERT: 新建记录
+        // INSERT: 新建记录（status默认pending）
         $stmt = $pdo->prepare(
-            'INSERT INTO ' . tableName('generations') . ' (user_id, prompt, model, info, resolution, aspect, width, height, file_size, image_url, thumb_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO ' . tableName('generations') . ' (user_id, prompt, model, info, resolution, aspect, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $userId,
@@ -73,11 +82,7 @@ if ($method === 'POST' || $method === 'PUT') {
             $body['info'] ?? '',
             $body['resolution'] ?? '',
             $body['aspect'] ?? '',
-            (int)($body['width'] ?? 0),
-            (int)($body['height'] ?? 0),
-            (int)($body['file_size'] ?? 0),
-            $isFailed ? '' : ($body['image_url'] ?? ''),
-            $isFailed ? '' : ($body['thumb_url'] ?? '')
+            $body['status'] ?? 'pending'
         ]);
         echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
@@ -92,7 +97,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // 确认记录属于当前用户
     $stmt = $pdo->prepare('SELECT image_url, thumb_url FROM ' . tableName('generations') . ' WHERE id = ? AND user_id = ?');
     $stmt->execute([$id, $userId]);
     $row = $stmt->fetch();
@@ -103,13 +107,10 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // 删除文件（尝试删除，不存在的忽略）
     $docRoot = '/usr/local/lighthouse/softwares/wordpress';
-    // image_url 是完整 URL，转成文件路径
     $parsed = parse_url($row['image_url']);
     if (!empty($parsed['path'])) {
-        $imgPath = $docRoot . $parsed['path'];
-        @unlink($imgPath);
+        @unlink($docRoot . $parsed['path']);
     }
     if (!empty($row['thumb_url'])) {
         $parsedT = parse_url($row['thumb_url']);
