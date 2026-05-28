@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260528 · 最后更新 2026-05-28</p>
+  <p class="subtitle">版本 20260528 · 最后更新 2026-05-29</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -796,8 +796,8 @@ const DOCS = [
 </table>`,
 
 // Tab 2: 提交记录
-<h1>📋 提交记录</h1>
-<h2>2026-05-27（58 个提交）（58 个提交）</h2>
+`<h1>📋 提交记录</h1>
+<h2>2026-05-27（58 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>06d3a6b</code></td><td>10:33</td><td>fix: cURL 超时从 120 秒改为 600 秒（10 分钟）</td></tr>
@@ -859,7 +859,7 @@ const DOCS = [
 <tr><td><code>4b11791</code></td><td>01:16</td><td>fix: MBTI calcDimensions 中 dims 变量名 typo</td></tr>
 <tr><td><code>a231fee</code></td><td>01:16</td><td>Merge PR #47: fix: MBTI calcDimensions dims typo</td></tr>
 </table>
-<h2>2026-05-26（18 个提交）（18 个提交）</h2>
+<h2>2026-05-26（18 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>8970211</code></td><td>21:51</td><td>feat: 生成图片 600 秒超时 + 错误日志</td></tr>
@@ -881,7 +881,7 @@ const DOCS = [
 <tr><td><code>50c6a8c</code></td><td>11:29</td><td>feat: 职业和年代选项并排放</td></tr>
 <tr><td><code>3c901b1</code></td><td>11:16</td><td>docs: 添加项目 README</td></tr>
 </table>
-<h2>2026-05-25（86 个提交）（86 个提交）</h2>
+<h2>2026-05-25（86 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>906690d</code></td><td>19:15</td><td>rollback: 回滚至v20260525.58(d48889f)，保留Auth token修复</td></tr>
@@ -971,17 +971,17 @@ const DOCS = [
 <tr><td><code>104e806</code></td><td>14:06</td><td>feat: 人物资产结构调整</td></tr>
 <tr><td><code>66f7909</code></td><td>13:56</td><td>fix: sync version.txt</td></tr>
 </table>
-<h2>2026-05-24（1 个提交）（1 个提交）</h2>
+<h2>2026-05-24（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>dd86072</code></td><td>04:01</td><td>docs: 同步更新项目文档（+5/23 1条提交/无新Bug修复）</td></tr>
 </table>
-<h2>2026-05-23（1 个提交）（1 个提交）</h2>
+<h2>2026-05-23（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>a58ecf1</code></td><td>04:02</td><td>docs: 同步更新项目文档（+5/22 11条提交/3个Bug修复/测试环境产品文档更新）</td></tr>
 </table>
-<h2>2026-05-22（11 个提交）（11 个提交）</h2>
+<h2>2026-05-22（11 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>b7a4fd3</code></td><td>18:58</td><td>chore: 清理无用文件（备份/调试/旧版server&public目录）</td></tr>
@@ -996,7 +996,7 @@ const DOCS = [
 <tr><td><code>cc650e2</code></td><td>10:28</td><td>merge: 合并远程 gitee/master，解决 .gitignore 冲突</td></tr>
 <tr><td><code>164ba5d</code></td><td>04:05</td><td>docs: 同步更新项目文档（+5/21 8条提交/自定义预设修复/OIDC登录产品文档更新）</td></tr>
 </table>
-<h2>2026-05-21（8 个提交）（8 个提交）</h2>
+<h2>2026-05-21（8 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>7ce5bef</code></td><td>18:05</td><td>fix: 补上 PUT handler for custom.php</td></tr>
@@ -1008,21 +1008,22 @@ const DOCS = [
 <tr><td><code>d70a3ef</code></td><td>17:42</td><td>feat: 每个维度item增加编辑按钮 - 预设→新建自定义, 自定义→原地更新</td></tr>
 <tr><td><code>0d63967</code></td><td>15:31</td><td>feat: Logto OIDC 登录集成 + callback处理页</td></tr>
 </table>
-<h2>2026-05-20（28 个提交）（3 个提交）</h2>
+<h2>2026-05-20（28 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>2441bd0</code></td><td>16:17</td><td>security: 提示词模板移至后端templates.json，前端源码不再暴露</td></tr>
 <tr><td><code>a3e6a08</code></td><td>16:00</td><td>fix: customPresets声明移到初始化前，修复风格卡片不渲染</td></tr>
 <tr><td><code>20bf764</code></td><td>15:53</td><td>feat: 多维度自定义预设系统</td></tr>
 </table>
-<h2>2026-05-19（49 个提交）（1 个提交）</h2>
+<h2>2026-05-19（49 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>2619309</code></td><td>21:55</td><td>feat: 导演风格加入名开关，可追加导演名字加强风格</td></tr>
 </table>
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 377</li>
+<li><strong>总提交数</strong>: 378</li>
+<li><strong>2026-05-28</strong>: 1 个提交（文档同步·格式修正）</li>
 <li><strong>2026-05-27</strong>: 58 个提交（资源库/MBTI/自由模式/多项Bug修复）</li>
 <li><strong>2026-05-26</strong>: 18 个提交（用户系统/生成历史服务端存储/画质等级/超时保护）</li>
 <li><strong>2026-05-25</strong>: 86 个提交（全链路自动化/UI统一化/版本刷新/按钮迭代）</li>
