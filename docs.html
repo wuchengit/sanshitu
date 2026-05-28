@@ -54,7 +54,7 @@ h1 span{color:#667eea}
 
 <div class="container" id="mainContent" style="display:none">
   <h1>🎬 三视图生成器 <span>项目文档</span></h1>
-  <p class="subtitle">版本 20260525 · 最后更新 2026-05-27</p>
+  <p class="subtitle">版本 20260528 · 最后更新 2026-05-28</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(0)">📖 产品文档</div>
@@ -260,6 +260,37 @@ const DOCS = [
 <h3>未登录临时保存</h3>
 <p>未登录用户生成的图片记录临时保存到 localStorage，登录后自动合并到服务端历史。</p>
 
+<h3>2.13 5月27日-28日新增功能</h3>
+
+<h3>自由模式开关</h3>
+<p>新增自由模式（free mode）开关，开启后用户可以自由编辑和组合所有维度的提示词，不受结构/风格模板约束，适用于高级用户自定义创作场景。</p>
+
+<h3>用户资源库（Assets）</h3>
+<ul>
+<li><strong>资源浏览器</strong>: 独立的资源管理界面，左右布局紧凑卡片展示</li>
+<li><strong>上传功能</strong>: 支持图片上传（上限 30MB），上传时显示 loading 旋转占位</li>
+<li><strong>预览功能</strong>: 点击资源实时预览，可添加到参考图；补生旧资源预览图（genpreview API + 前端自动触发）</li>
+<li><strong>选择模式</strong>: 资源浏览器支持选择模式，可批量操作；单张资源下载</li>
+<li><strong>UI 重构</strong>: 紧凑卡片 + 左右布局浏览器 + 预览图 blob 内存缓存</li>
+<li><strong>性能优化</strong>: 预览图 800px quality 60 + 4K 标识</li>
+</ul>
+
+<h3>点击生成即入库（pending 机制）</h3>
+<ul>
+<li>点击生成按钮后立即在服务端数据库创建 pending 记录，API 成功时 UPDATE 为成功，失败时 UPDATE 为 failed</li>
+<li>先存 CDN 链接到数据库再异步下载本地备份，防止刷新后 CDN 记录丢失</li>
+<li>DB 存 CDN 失败时自动 fallback 到 localStorage</li>
+<li>日志增强：cdn_save 日志用 error 字段携带 HTTP 状态码</li>
+</ul>
+
+<h3>MBTI 性格测试工具</h3>
+<ul>
+<li><strong>独立工具</strong>: <a href="/mbti.html" style="color:#667eea">mbti.html</a> 独立的 MBTI 性格测试页面</li>
+<li><strong>93 题完整版</strong>: 国际标准 93 题版本，覆盖 EI/SN/TF/JP 四个维度</li>
+<li><strong>自动计分</strong>: 前端自动计算各维度分值并输出四字母性格类型，配有类型描述说明</li>
+<li><strong>简洁 UI</strong>: 采用和三视图生成器一致的暗黑风格 UI</li>
+</ul>
+
 <h2>四、设计原则</h2>
 <ol>
 <li><strong>单文件架构</strong>: 所有代码在一个 HTML 文件内，零依赖</li>
@@ -279,7 +310,95 @@ const DOCS = [
 </ol>`,
 
 // Tab 1: Bug修复列表
-`<h2>2026-05-26 修复</h2>
+`<h2>2026-05-27 修复</h2>
+
+<h3>cURL 超时 120s → 600s</h3>
+<table>
+<tr><th>问题</th><td>大图生成时 cURL 请求超时（120 秒），导致生成失败</td></tr>
+<tr><th>修复</th><td>cURL 超时从 120 秒改为 600 秒（10 分钟）</td></tr>
+<tr><th>提交</th><td><code>06d3a6b</code></td></tr>
+</table>
+
+<h3>日志权限修复（root 创建的文件 web 用户写不进去）</h3>
+<table>
+<tr><th>问题</th><td>root 创建的日志文件 www 用户无写入权限，error_log 失败；open_basedir 限制日志路径</td></tr>
+<tr><th>修复</th><td>改用 error_log() type 3 + 日志移出 web 目录 + 绝对路径绕过 open_basedir</td></tr>
+<tr><th>提交</th><td><code>b28bfc3</code>, <code>78dc92c</code>, <code>12134ea</code>, <code>22e4ca7</code></td></tr>
+</table>
+
+<h3>PHP Warning 污染 JSON 响应</h3>
+<table>
+<tr><th>问题</th><td>PHP 8.3 Warning 混入 JSON 响应，前端 parse 失败</td></tr>
+<tr><th>修复</th><td>抑制 PHP warning，关闭 display_errors</td></tr>
+<tr><th>提交</th><td><code>620af0b</code></td></tr>
+</table>
+
+<h3>超时后 loading 被清理导致失败 item 消失</h3>
+<table>
+<tr><th>问题</th><td>生成超时后 loading 记录被提前清理，用户在历史列表中看不到失败记录</td></tr>
+<tr><th>修复</th><td>保留失败记录不复用删除 + loading 清理超时改为 600s + 成功回调 fallback</td></tr>
+<tr><th>提交</th><td><code>fd18537</code>, <code>f829b4b</code>, <code>60d7228</code></td></tr>
+</table>
+
+<h3>资源库上传限制 10MB → 30MB</h3>
+<table>
+<tr><th>问题</th><td>参考图资源库上传限制 10MB，大图上传被拒</td></tr>
+<tr><th>修复</th><td>上传限制改为 30MB</td></tr>
+<tr><th>提交</th><td><code>dd02a84</code></td></tr>
+</table>
+
+<h3>预览图尺寸过大</h3>
+<table>
+<tr><th>问题</th><td>资源库预览图 1200px quality 75，加载慢</td></tr>
+<tr><th>修复</th><td>预览图缩小至 800px quality 60 + 4K 标识</td></tr>
+<tr><th>提交</th><td><code>73425cf</code></td></tr>
+</table>
+
+<h3>翻译/原文按钮 Lucide 图标不渲染</h3>
+<table>
+<tr><th>问题</th><td>翻译/原文按钮用 innerHTML/textContent 插入 Lucide 图标，部分场景图标不渲染</td></tr>
+<tr><th>修复</th><td>textContent→innerHTML + .finally 补调 lucide.createIcons() + 行为修复</td></tr>
+<tr><th>提交</th><td><code>f6ac527</code>, <code>3b5dc23</code>, <code>52a758e</code>, <code>e921342</code></td></tr>
+</table>
+
+<h3>参考图空格子不显示 + 添加后弹窗关闭</h3>
+<table>
+<tr><th>问题</th><td>参考图未选择时空格子 UI 不显示；从资源库添加参考图后弹窗自动关闭</td></tr>
+<tr><th>修复</th><td>空格子始终显示占位 + 添加后弹窗不关闭</td></tr>
+<tr><th>提交</th><td><code>b7dad76</code>, <code>335fd13</code></td></tr>
+</table>
+
+<h3>VIP 模型生成失败虚假展示 + toast 堆叠</h3>
+<table>
+<tr><th>问题</th><td>VIP 模型生成失败后仍显示成功状态；多条 toast 同时弹出堆叠</td></tr>
+<tr><th>修复</th><td>正确展示失败状态 + 失败记录持久化 + toast 堆叠控制</td></tr>
+<tr><th>提交</th><td><code>d120ad6</code></td></tr>
+</table>
+
+<h3>版本轮询移除 + save_image 下载超时</h3>
+<table>
+<tr><th>问题</th><td>30s 版本轮询消耗资源；save_image 下载大图超时</td></tr>
+<tr><th>修复</th><td>移除版本轮询 + save_image 下载超时设为 120s</td></tr>
+<tr><th>提交</th><td><code>f80620d</code></td></tr>
+</table>
+
+<h3>CDN 存储与数据库入库系列修复（5 项）</h3>
+<ul>
+<li><strong>先存 CDN 再异步下载</strong>: 先写入数据库再异步下载本地备份，防止刷新丢失 CDN 记录 <code>77e41dc</code></li>
+<li><strong>DB fallback</strong>: DB 存 CDN 失败时回退到 localStorage <code>7215ac1</code></li>
+<li><strong>变量冲突</strong>: copyViewerPrompt 中变量 t 与 toast 函数 t() 冲突导致 JS 崩溃 <code>6d8a869</code></li>
+<li><strong>日志增强</strong>: cdn_save 日志携带 HTTP 状态码 <code>fb58aed</code></li>
+<li><strong>CDN 入库日志</strong>: 前后加日志方便排查 <code>0f19f39</code></li>
+</ul>
+
+<h3>MBTI calcDimensions dims typo</h3>
+<table>
+<tr><th>问题</th><td>MBTI 性格测试计算函数中 dims 变量名拼写错误，计算结果不准确</td></tr>
+<tr><th>修复</th><td>修正 dims 变量名拼写</td></tr>
+<tr><th>提交</th><td><code>4b11791</code></td></tr>
+</table>
+
+<h2>2026-05-26 修复</h2>
 
 <h3>API 返回顺序改为 ASC，配合渲染反转</h3>
 <table>
@@ -677,7 +796,70 @@ const DOCS = [
 </table>`,
 
 // Tab 2: 提交记录
-`<h2>2026-05-26（18 个提交）</h2>
+<h1>📋 提交记录</h1>
+<h2>2026-05-27（58 个提交）（58 个提交）</h2>
+<table>
+<tr><th>提交</th><th>时间</th><th>说明</th></tr>
+<tr><td><code>06d3a6b</code></td><td>10:33</td><td>fix: cURL 超时从 120 秒改为 600 秒（10 分钟）</td></tr>
+<tr><td><code>fd18537</code></td><td>10:55</td><td>feat: 日志条件放宽 + 生成失败保留记录不复用删除</td></tr>
+<tr><td><code>b28bfc3</code></td><td>11:21</td><td>fix: 日志改用 error_log() type 3，修复 root 创建的日志文件 web 用户写不进去的问题</td></tr>
+<tr><td><code>78dc92c</code></td><td>11:24</td><td>fix: error_log + 日志移出 web 目录</td></tr>
+<tr><td><code>049c82e</code></td><td>11:45</td><td>debug: 临时加成功/失败全量日志，排查响应格式</td></tr>
+<tr><td><code>f829b4b</code></td><td>12:09</td><td>fix: 超时后 loading 被清理导致失败 item 消失</td></tr>
+<tr><td><code>8998c14</code></td><td>13:48</td><td>feat: 自由模式开关</td></tr>
+<tr><td><code>9512ef9</code></td><td>13:53</td><td>Merge PR #24: feat: 自由模式开关</td></tr>
+<tr><td><code>54f88bf</code></td><td>14:43</td><td>feat: 用户资源库 (Assets)</td></tr>
+<tr><td><code>dd02a84</code></td><td>15:19</td><td>fix: 资源库上传限制 10MB → 30MB</td></tr>
+<tr><td><code>52155d9</code></td><td>15:35</td><td>perf: 参考图缩略图优化 (#27)</td></tr>
+<tr><td><code>22e4ca7</code></td><td>15:49</td><td>fix: 日志路径改为 /var/www/sanshitu-data/logs 绕过 open_basedir</td></tr>
+<tr><td><code>12134ea</code></td><td>15:49</td><td>fix: 日志路径改为绝对路径绕过 open_basedir</td></tr>
+<tr><td><code>620af0b</code></td><td>15:56</td><td>fix: 抑制 PHP warning 避免污染 JSON 响应</td></tr>
+<tr><td><code>3c6784a</code></td><td>16:26</td><td>feat: 资源库上传显示 loading 旋转占位</td></tr>
+<tr><td><code>4ed803c</code></td><td>16:27</td><td>Merge PR #30: feat: 资源库上传显示 loading 旋转占位</td></tr>
+<tr><td><code>cdd9835</code></td><td>16:29</td><td>Revert "Merge PR #30"</td></tr>
+<tr><td><code>c476739</code></td><td>16:30</td><td>feat: 资源库上传显示 loading 旋转占位 (#30)</td></tr>
+<tr><td><code>8512ddb</code></td><td>16:37</td><td>feat: 资源库点击预览 + 添加到参考图按钮</td></tr>
+<tr><td><code>128306a</code></td><td>16:39</td><td>feat: 资源库点击预览 + 添加到参考图按钮 (#31)</td></tr>
+<tr><td><code>bf1f08a</code></td><td>16:54</td><td>refactor: 资源库 UI 重构 — 紧凑卡片 + 左右布局浏览器</td></tr>
+<tr><td><code>9340120</code></td><td>16:59</td><td>Merge PR #32: refactor: 资源库 UI 重构</td></tr>
+<tr><td><code>f044e16</code></td><td>17:11</td><td>feat: 资源浏览器加选择模式 + 批量操作 + 单张下载</td></tr>
+<tr><td><code>569e53b</code></td><td>17:15</td><td>Merge PR #33: feat: 资源浏览器选择模式 + 批量操作 + 下载</td></tr>
+<tr><td><code>24b0151</code></td><td>17:31</td><td>perf: 资源预览图 + blob 内存缓存</td></tr>
+<tr><td><code>7f6d55f</code></td><td>17:39</td><td>Merge PR #34: perf: 资源预览图 + blob 内存缓存</td></tr>
+<tr><td><code>0ea6f80</code></td><td>17:48</td><td>feat: 补生旧资源预览图 (genpreview API + 前端自动触发)</td></tr>
+<tr><td><code>3a9590e</code></td><td>17:51</td><td>Merge PR #35: feat: 补生旧资源预览图</td></tr>
+<tr><td><code>73425cf</code></td><td>18:14</td><td>fix: 预览图 1200→800px quality 75→60 + 4K 标识</td></tr>
+<tr><td><code>470e0fb</code></td><td>18:18</td><td>Merge PR #36: fix: 预览图缩小至 800px + 4K 标识</td></tr>
+<tr><td><code>fd0f7d3</code></td><td>18:46</td><td>style: 统一页面所有图标为 lucide SVG 图标</td></tr>
+<tr><td><code>db6ce23</code></td><td>18:47</td><td>Merge PR #37: style: 统一图标为 lucide SVG</td></tr>
+<tr><td><code>f6ac527</code></td><td>18:49</td><td>fix: 翻译/原文按钮 textContent→innerHTML 渲染图标</td></tr>
+<tr><td><code>3b5dc23</code></td><td>18:50</td><td>Merge PR #38: fix: 翻译/原文按钮 textContent 改为 innerHTML</td></tr>
+<tr><td><code>0e335d9</code></td><td>18:55</td><td>fix: 翻译/原文按钮行为修复</td></tr>
+<tr><td><code>52a758e</code></td><td>18:56</td><td>fix: 翻译/原文按钮行为修复 (#39)</td></tr>
+<tr><td><code>e921342</code></td><td>19:01</td><td>fix: .finally 中补调 lucide.createIcons()</td></tr>
+<tr><td><code>d49af35</code></td><td>19:01</td><td>Merge PR #40: fix: .finally 中补调 lucide.createIcons()</td></tr>
+<tr><td><code>335fd13</code></td><td>20:27</td><td>fix: 所有参考图空格子显示 + 添加后不关闭弹窗</td></tr>
+<tr><td><code>b7dad76</code></td><td>20:29</td><td>fix: 所有参考图空格子显示 + 添加后不关闭弹窗 (#41)</td></tr>
+<tr><td><code>60d7228</code></td><td>20:48</td><td>fix: loading 清理超时改为 600s + 成功回调 fallback</td></tr>
+<tr><td><code>20f214b</code></td><td>20:49</td><td>Merge PR #42: fix: loading 清理超时 600s + 成功回调 fallback</td></tr>
+<tr><td><code>d120ad6</code></td><td>22:24</td><td>fix: VIP模型生成失败虚假展示 + 失败记录持久化 + toast堆叠</td></tr>
+<tr><td><code>26a47c0</code></td><td>22:28</td><td>Merge PR #43: fix: VIP模型生成失败虚假展示 + 失败记录持久化 + toast堆叠</td></tr>
+<tr><td><code>c7a488c</code></td><td>22:33</td><td>chore: 失败路径加服务端日志方便排查</td></tr>
+<tr><td><code>f80620d</code></td><td>22:52</td><td>fix: 移除版本轮询 + save_image下载超时120s</td></tr>
+<tr><td><code>06499de</code></td><td>22:55</td><td>Merge PR #44: fix: 移除版本轮询 + save_image下载超时120s</td></tr>
+<tr><td><code>77e41dc</code></td><td>22:57</td><td>fix: 先存CDN到数据库再异步下载，防止刷新丢失</td></tr>
+<tr><td><code>7215ac1</code></td><td>23:12</td><td>fix: DB存CDN失败时fallback到localStorage</td></tr>
+<tr><td><code>0f19f39</code></td><td>23:26</td><td>chore: CDN入库前后加日志</td></tr>
+<tr><td><code>6d8a869</code></td><td>23:30</td><td>fix: copyViewerPrompt 变量t与toast函数冲突</td></tr>
+<tr><td><code>fb58aed</code></td><td>23:38</td><td>fix: cdn_save日志用error字段携带http状态码</td></tr>
+<tr><td><code>8ed118d</code></td><td>23:53</td><td>feat: 点击生成即入库(pending)，API成功UPDATE，失败UPDATE failed</td></tr>
+<tr><td><code>13348dd</code></td><td>00:13</td><td>Merge PR #45: feat: 点击生成即入库(pending)</td></tr>
+<tr><td><code>4e9bebc</code></td><td>01:04</td><td>feat: MBTI 性格测试工具 — 93 题完整版</td></tr>
+<tr><td><code>f11ea11</code></td><td>01:10</td><td>Merge PR #46: feat: MBTI 性格测试工具</td></tr>
+<tr><td><code>4b11791</code></td><td>01:16</td><td>fix: MBTI calcDimensions 中 dims 变量名 typo</td></tr>
+<tr><td><code>a231fee</code></td><td>01:16</td><td>Merge PR #47: fix: MBTI calcDimensions dims typo</td></tr>
+</table>
+<h2>2026-05-26（18 个提交）（18 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>8970211</code></td><td>21:51</td><td>feat: 生成图片 600 秒超时 + 错误日志</td></tr>
@@ -699,13 +881,12 @@ const DOCS = [
 <tr><td><code>50c6a8c</code></td><td>11:29</td><td>feat: 职业和年代选项并排放</td></tr>
 <tr><td><code>3c901b1</code></td><td>11:16</td><td>docs: 添加项目 README</td></tr>
 </table>
-
-<h2>2026-05-25（86 个提交）</h2>
+<h2>2026-05-25（86 个提交）（86 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>906690d</code></td><td>19:15</td><td>rollback: 回滚至v20260525.58(d48889f)，保留Auth token修复</td></tr>
-<tr><td><code>f25e27b</code></td><td>19:12</td><td>fix: token验证Authorization header用错('***'→'Bearer ')</td></tr>
-<tr><td><code>b474793</code></td><td>19:08</td><td>feat: 恢复历史区Lucide图标+操作按钮移至标题右侧</td></tr>
+<tr><td><code>f25e27b</code></td><td>19:12</td><td>fix: token验证Authorization header用错('***'→'Bearer ')，导致登录后立刻被登出</td></tr>
+<tr><td><code>b474793</code></td><td>19:08</td><td>feat: 恢复历史区Lucide图标 + 操作按钮移至标题右侧</td></tr>
 <tr><td><code>69d2870</code></td><td>18:57</td><td>fix: 版本号不一致导致页面无限刷新</td></tr>
 <tr><td><code>2ef83e3</code></td><td>18:49</td><td>fix: 编辑删除居中并排, 无边框+新增privacy/terms</td></tr>
 <tr><td><code>181a339</code></td><td>18:47</td><td>fix: 恢复body标签, 页面修复</td></tr>
@@ -790,20 +971,17 @@ const DOCS = [
 <tr><td><code>104e806</code></td><td>14:06</td><td>feat: 人物资产结构调整</td></tr>
 <tr><td><code>66f7909</code></td><td>13:56</td><td>fix: sync version.txt</td></tr>
 </table>
-
-<h2>2026-05-24（1 个提交）</h2>
+<h2>2026-05-24（1 个提交）（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>dd86072</code></td><td>04:01</td><td>docs: 同步更新项目文档（+5/23 1条提交/无新Bug修复）</td></tr>
 </table>
-
-<h2>2026-05-23（1 个提交）</h2>
+<h2>2026-05-23（1 个提交）（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>a58ecf1</code></td><td>04:02</td><td>docs: 同步更新项目文档（+5/22 11条提交/3个Bug修复/测试环境产品文档更新）</td></tr>
 </table>
-
-<h2>2026-05-22（11 个提交）</h2>
+<h2>2026-05-22（11 个提交）（11 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>b7a4fd3</code></td><td>18:58</td><td>chore: 清理无用文件（备份/调试/旧版server&public目录）</td></tr>
@@ -818,8 +996,7 @@ const DOCS = [
 <tr><td><code>cc650e2</code></td><td>10:28</td><td>merge: 合并远程 gitee/master，解决 .gitignore 冲突</td></tr>
 <tr><td><code>164ba5d</code></td><td>04:05</td><td>docs: 同步更新项目文档（+5/21 8条提交/自定义预设修复/OIDC登录产品文档更新）</td></tr>
 </table>
-
-<h2>2026-05-21（8 个提交）</h2>
+<h2>2026-05-21（8 个提交）（8 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>7ce5bef</code></td><td>18:05</td><td>fix: 补上 PUT handler for custom.php</td></tr>
@@ -831,151 +1008,31 @@ const DOCS = [
 <tr><td><code>d70a3ef</code></td><td>17:42</td><td>feat: 每个维度item增加编辑按钮 - 预设→新建自定义, 自定义→原地更新</td></tr>
 <tr><td><code>0d63967</code></td><td>15:31</td><td>feat: Logto OIDC 登录集成 + callback处理页</td></tr>
 </table>
-
-<h2>2026-05-20（28 个提交）</h2>
+<h2>2026-05-20（28 个提交）（3 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>2441bd0</code></td><td>16:17</td><td>security: 提示词模板移至后端templates.json，前端源码不再暴露</td></tr>
 <tr><td><code>a3e6a08</code></td><td>16:00</td><td>fix: customPresets声明移到初始化前，修复风格卡片不渲染</td></tr>
 <tr><td><code>20bf764</code></td><td>15:53</td><td>feat: 多维度自定义预设系统</td></tr>
-<tr><td><code>7382876</code></td><td>15:43</td><td>fix: 翻译原文改用元素dataset存储，选英文直接显示原文不走API</td></tr>
-<tr><td><code>d0909d6</code></td><td>15:35</td><td>fix: 页面加载清origPrompt；预览翻英文直接显示原文不调API</td></tr>
-<tr><td><code>7dbeacc</code></td><td>15:20</td><td>fix: 翻译原文改用localStorage存储，防止window变量被意外清除</td></tr>
-<tr><td><code>d968c68</code></td><td>15:15</td><td>fix: 重写translatePrompt，翻译结果=原文时自动隐藏恢复按钮</td></tr>
-<tr><td><code>a6d26cc</code></td><td>15:09</td><td>fix: up()刷新提示词时重置_origPrompt和恢复按钮，清理旧翻译缓存</td></tr>
-<tr><td><code>930fd79</code></td><td>15:03</td><td>fix: 主页翻译始终以原文为母本，修复二次翻译走样</td></tr>
-<tr><td><code>a296dfd</code></td><td>14:57</td><td>fix: 翻译回原文语言时直接显示原文，不显示↩按钮</td></tr>
-<tr><td><code>ec22502</code></td><td>14:51</td><td>fix: _viewerOrigPrompt在openViewer中初始化，修复翻译按钮无响应</td></tr>
-<tr><td><code>74c7397</code></td><td>14:47</td><td>fix: 翻译按钮无反应——toast→t()，finally不覆盖成功状态</td></tr>
-<tr><td><code>bc80486</code></td><td>14:43</td><td>fix: 翻译始终以原始提示词为母本，修复二次翻译走错缓存</td></tr>
-<tr><td><code>a285529</code></td><td>14:39</td><td>perf: 翻译结果缓存到本地文件，相同prompt+语言不再重复调API</td></tr>
-<tr><td><code>5c9e645</code></td><td>14:34</td><td>ux: 语言选择器移到翻译按钮后面</td></tr>
-<tr><td><code>7661abf</code></td><td>14:31</td><td>ux: 复制/翻译状态在按钮上展示，翻译支持选择目标语言</td></tr>
-<tr><td><code>3151173</code></td><td>14:13</td><td>feat: 预览浮层提示词面板增加翻译和恢复原文功能</td></tr>
-<tr><td><code>dd3f9d4</code></td><td>14:02</td><td>ux: 预览浮层改为左右布局，提示词完整展示在图片右侧</td></tr>
-<tr><td><code>40a3a48</code></td><td>12:42</td><td>feat: 图片预览浮层显示提示词，支持复制和下载</td></tr>
-<tr><td><code>37ae280</code></td><td>12:29</td><td>ux: 💾📥按钮始终可见，未登录点击弹出登录弹窗</td></tr>
-<tr><td><code>be2e69a</code></td><td>12:11</td><td>security: 用户敏感数据AES-256-CBC加密存储</td></tr>
-<tr><td><code>2c0d2a9</code></td><td>11:46</td><td>feat: 用户登录系统（邮箱+密码→JWT，配置云端存储）</td></tr>
-<tr><td><code>d93e3f5</code></td><td>11:03</td><td>docs: 补全Bug修复列表网页版（+5/20修复 + 5/18遗漏11项）</td></tr>
-<tr><td><code>960a994</code></td><td>10:53</td><td>fix: 面部三视图修正为面部特写三视角（正面/侧面/后脑），描述和预览图同步更新</td></tr>
-<tr><td><code>7b68546</code></td><td>10:44</td><td>feat: 新增3种资产结构预览图（真人示例），替换SVG占位符</td></tr>
-<tr><td><code>6f739cf</code></td><td>10:32</td><td>feat: 三视图结构→人物资产结构，新增全身定妆照/面部三视图/半身三视图</td></tr>
-<tr><td><code>dcb6dac</code></td><td>10:23</td><td>feat: 导演风格改为导演代表作维度，提示词引用电影名而非导演名</td></tr>
-<tr><td><code>c90aba2</code></td><td>04:12</td><td>docs: 同步更新网页版项目文档（产品文档/Bug修复/提交记录三个tab）</td></tr>
 </table>
-
-<h2>2026-05-19（49 个提交）</h2>
+<h2>2026-05-19（49 个提交）（1 个提交）</h2>
 <table>
 <tr><th>提交</th><th>时间</th><th>说明</th></tr>
 <tr><td><code>2619309</code></td><td>21:55</td><td>feat: 导演风格加入名开关，可追加导演名字加强风格</td></tr>
-<tr><td><code>327800f</code></td><td>21:50</td><td>feat: 每个类别加重置按钮，年龄增加小孩和老者</td></tr>
-<tr><td><code>7e2ab5c</code></td><td>21:26</td><td>feat: 恢复翻译功能</td></tr>
-<tr><td><code>b22464d</code></td><td>21:13</td><td>feat: 新增20种影视年代选项</td></tr>
-<tr><td><code>b36e947</code></td><td>18:25</td><td>feat: 新增30种职业选项</td></tr>
-<tr><td><code>0f81aae</code></td><td>18:21</td><td>feat: 人物属性新增人种选项</td></tr>
-<tr><td><code>63744c1</code></td><td>18:17</td><td>feat: 新增导演风格维度(11位导演)</td></tr>
-<tr><td><code>c651bcb</code></td><td>18:11</td><td>feat: 艺术风格新增水墨</td></tr>
-<tr><td><code>b31efa3</code></td><td>18:08</td><td>feat: 新增5种人物风格（废土/哥特/校园/维多利亚/极简）</td></tr>
-<tr><td><code>ba67316</code></td><td>18:02</td><td>refactor: 人物属性独立成卡片</td></tr>
-<tr><td><code>46ab7ca</code></td><td>17:59</td><td>style: 艺术风格卡片高度缩减为30%</td></tr>
-<tr><td><code>ca27d2e</code></td><td>17:55</td><td>feat: 艺术风格添加材质示意图</td></tr>
-<tr><td><code>9b94184</code></td><td>17:46</td><td>feat: 新增艺术风格维度(10种)</td></tr>
-<tr><td><code>ede9079</code></td><td>16:00</td><td>feat: 三视图结构联动比例</td></tr>
-<tr><td><code>4149411</code></td><td>15:52</td><td>fix: 无→通用，生成新风格形象图</td></tr>
-<tr><td><code>65b9b84</code></td><td>15:33</td><td>fix: 全选支持切换全选/全不选</td></tr>
-<tr><td><code>eb99d1d</code></td><td>15:29</td><td>feat: 历史多选添加全选按钮</td></tr>
-<tr><td><code>28a10dd</code></td><td>15:13</td><td>fix: 保留loadId不被API的id覆盖</td></tr>
-<tr><td><code>1e3d0ac</code></td><td>15:09</td><td>fix: save_image去掉代理依赖</td></tr>
-<tr><td><code>e3a1127</code></td><td>15:06</td><td>perf: 缩略图改用JPG，体积减小80%</td></tr>
-<tr><td><code>fb0b954</code></td><td>14:59</td><td>fix: 生成按钮3秒防连点</td></tr>
-<tr><td><code>828c234</code></td><td>14:56</td><td>fix: save_image回调也用loadId精确匹配</td></tr>
-<tr><td><code>a6469db</code></td><td>14:51</td><td>fix: 页面加载时清理超时loading记录</td></tr>
-<tr><td><code>3604afc</code></td><td>14:49</td><td>fix: 连续生成loading用loadId精确匹配</td></tr>
-<tr><td><code>7374289</code></td><td>14:40</td><td>fix: 单张下载走代理避免跨域</td></tr>
-<tr><td><code>f281053</code></td><td>14:39</td><td>fix: 单张图片直链下载不打包zip</td></tr>
-<tr><td><code>6376215</code></td><td>14:38</td><td>fix: 批量下载改用服务端生成zip</td></tr>
-<tr><td><code>dc744e6</code></td><td>14:38</td><td>chore: 添加gitignore</td></tr>
-<tr><td><code>c792fad</code></td><td>14:33</td><td>fix: 批量下载改用form提交</td></tr>
-<tr><td><code>110366a</code></td><td>14:07</td><td>feat: 批量下载打包为zip</td></tr>
-<tr><td><code>b0e58e2</code></td><td>14:01</td><td>feat: 生成历史多选（批量删除/下载）</td></tr>
-<tr><td><code>ca84454</code></td><td>13:36</td><td>fix: 风格名去性别化</td></tr>
-<tr><td><code>620a7a6</code></td><td>13:18</td><td>fix: 自动清理残留旧默认Key</td></tr>
-<tr><td><code>5341b08</code></td><td>13:14</td><td>feat: API Key服务端化</td></tr>
-<tr><td><code>e2c7cc6</code></td><td>13:08</td><td>fix: 风格图标加_v2绕过飞书缓存</td></tr>
-<tr><td><code>4d799db</code></td><td>12:52</td><td>feat: 自动版本检测+硬刷新</td></tr>
-<tr><td><code>abce4e9</code></td><td>12:35</td><td>bump: APP_VERSION 20260519.1</td></tr>
-<tr><td><code>5a1534b</code></td><td>12:22</td><td>feat: 风格图标改为人物肖像</td></tr>
-<tr><td><code>161666a</code></td><td>11:49</td><td>feat: 12种人物风格图标改用AI缩略图</td></tr>
-<tr><td><code>65a7b60</code></td><td>11:39</td><td>chore: 隐藏翻译语言下拉框</td></tr>
-<tr><td><code>e5206e3</code></td><td>11:38</td><td>chore: 暂时隐藏翻译功能</td></tr>
-<tr><td><code>e49b921</code></td><td>11:37</td><td>chore: 更新API Key</td></tr>
-<tr><td><code>3a287d2</code></td><td>11:30</td><td>fix: 补全5月18日62个提交记录</td></tr>
-<tr><td><code>d66a595</code></td><td>11:27</td><td>fix: 登录改为明文比对</td></tr>
-<tr><td><code>dd2abb7</code></td><td>11:24</td><td>feat: 项目文档页面</td></tr>
-<tr><td><code>2630e85</code></td><td>10:59</td><td>feat: 版本更新检测弹窗</td></tr>
-<tr><td><code>f784c9d</code></td><td>10:48</td><td>perf: 预览图改用压缩缩略图</td></tr>
-<tr><td><code>8b6a36e</code></td><td>10:43</td><td>fix: 重新生成纯三视图预览图+防缓存</td></tr>
-<tr><td><code>2e8856a</code></td><td>10:38</td><td>fix: 重新生成纯三视图预览图，本地化</td></tr>
 </table>
-
-<h2>2026-05-18（62 个提交）</h2>
-<table>
-<tr><th>提交</th><th>时间</th><th>说明</th></tr>
-<tr><td><code>a4ff7e4</code></td><td>23:54</td><td>右侧分成两列：左结构/风格，右生成历史</td></tr>
-<tr><td><code>daaec08</code></td><td>23:51</td><td>删除左侧重复的旧历史卡片</td></tr>
-<tr><td><code>79c09f3</code></td><td>23:51</td><td>参考图下方插入生成历史卡片</td></tr>
-<tr><td><code>b3ab974</code></td><td>23:50</td><td>生成历史移回右侧</td></tr>
-<tr><td><code>b0a6d6d</code></td><td>23:45</td><td>修复genBtn：loading+resultArea清理</td></tr>
-<tr><td><code>e6da445</code></td><td>23:43</td><td>生成历史替代结果区，支持连续生成+loading</td></tr>
-<tr><td><code>fe9c278</code></td><td>23:35</td><td>页面加载初始化分辨率选项</td></tr>
-<tr><td><code>20b7a6a</code></td><td>23:33</td><td>简化非VIP分辨率</td></tr>
-<tr><td><code>d38d0ec</code></td><td>23:19</td><td>VIP/非VIP分辨率分开控制</td></tr>
-<tr><td><code>28ea488</code></td><td>23:14</td><td>补全15种比例+RES_MAP</td></tr>
-<tr><td><code>f4267b2</code></td><td>22:56</td><td>fix: 风格名去性别化</td></tr>
-<tr><td><code>9fe2af0</code></td><td>22:55</td><td>人物风格加性别/年龄/身高</td></tr>
-<tr><td><code>6b7d1e8</code></td><td>22:27</td><td>兜底图：绑定onerror</td></tr>
-<tr><td><code>9b5ba02</code></td><td>22:21</td><td>兜底图+图片失效自动禁用点击</td></tr>
-<tr><td><code>07b1af6</code></td><td>22:01</td><td>图片加载失败显示占位图</td></tr>
-<tr><td><code>47970d5</code></td><td>21:40</td><td>save_image回调更新URL为本地地址</td></tr>
-<tr><td><code>8844bf9</code></td><td>21:26</td><td>历史缩略图优先使用thumb</td></tr>
-<tr><td><code>f552560</code></td><td>21:23</td><td>清理旧样式，瀑布流生效</td></tr>
-<tr><td><code>f9535c5</code></td><td>21:22</td><td>历史区域改为瀑布流布局</td></tr>
-<tr><td><code>da97d4e</code></td><td>21:20</td><td>生成成功后自动保存图片到本地</td></tr>
-<tr><td><code>e3837a1</code></td><td>21:13</td><td>fix: 加回遗漏else失败处理分支</td></tr>
-<tr><td><code>d725ca5</code></td><td>21:05</td><td>统一图片信息格式</td></tr>
-<tr><td><code>30d0533</code></td><td>20:29</td><td>修复下载按钮统一使用dlImg</td></tr>
-<tr><td><code>c367fd4</code></td><td>20:20</td><td>恢复经典三视图关键描述</td></tr>
-<tr><td><code>5ebd48f</code></td><td>20:13</td><td>图片加载后显示分辨率+大小</td></tr>
-<tr><td><code>ffcb98f</code></td><td>20:03</td><td>修复生成结果信息/下载/浮层undefined</td></tr>
-<tr><td><code>ae3d565</code></td><td>19:53</td><td>生成结果区信息顶栏+下载+预览</td></tr>
-<tr><td><code>c5e577a</code></td><td>19:41</td><td>加强三视图提示词</td></tr>
-<tr><td><code>50add62</code></td><td>19:36</td><td>提示框高度+50%，增加字体大小选项</td></tr>
-<tr><td><code>66ea6fb</code></td><td>19:11</td><td>人物风格增加「无」选项</td></tr>
-<tr><td><code>57eee8f</code></td><td>18:58</td><td>新增运行日志记录+查看</td></tr>
-<tr><td><code>27752cc</code></td><td>18:52</td><td>生成失败显示完整错误+重试按钮</td></tr>
-<tr><td><code>7c7231e</code></td><td>18:41</td><td>翻译结果只显示预览区</td></tr>
-<tr><td><code>9ec23d0</code></td><td>18:37</td><td>翻译缓存原文+恢复原文按钮</td></tr>
-<tr><td><code>dccb2df</code></td><td>18:06</td><td>翻译增加多语言选择</td></tr>
-<tr><td><code>bf16a7c</code></td><td>18:02</td><td>翻译改为PHP代理中转</td></tr>
-<tr><td><code>bc83081</code></td><td>17:51</td><td>复制+下载+翻译功能完善</td></tr>
-<tr><td><code>1161157</code></td><td>17:48</td><td>viewH信息改为完整中文词</td></tr>
-<tr><td><code>666a39f</code></td><td>17:42</td><td>浮层实时读取比例+分辨率+大小</td></tr>
-<tr><td><code>38d02d5</code></td><td>17:34</td><td>v1 三视图生成器初始版本</td></tr>
-</table>
-
 <h2>统计</h2>
 <ul>
-<li><strong>总提交数</strong>: 291</li>
-<li><strong>2026-05-26</strong>: 18 个提交（全天）</li>
-<li><strong>2026-05-25</strong>: 86 个提交（全天）</li>
+<li><strong>总提交数</strong>: 377</li>
+<li><strong>2026-05-27</strong>: 58 个提交（资源库/MBTI/自由模式/多项Bug修复）</li>
+<li><strong>2026-05-26</strong>: 18 个提交（用户系统/生成历史服务端存储/画质等级/超时保护）</li>
+<li><strong>2026-05-25</strong>: 86 个提交（全链路自动化/UI统一化/版本刷新/按钮迭代）</li>
 <li><strong>2026-05-24</strong>: 1 个提交（文档同步）</li>
 <li><strong>2026-05-23</strong>: 1 个提交（文档同步）</li>
-<li><strong>2026-05-22</strong>: 11 个提交（全天）</li>
-<li><strong>2026-05-21</strong>: 8 个提交（下午）</li>
-<li><strong>2026-05-20</strong>: 28 个提交（全天）</li>
-<li><strong>2026-05-19</strong>: 49 个提交（全天）</li>
-<li><strong>2026-05-18</strong>: 62 个提交</li>
+<li><strong>2026-05-22</strong>: 11 个提交（测试环境/OIDC直连/架构整理）</li>
+<li><strong>2026-05-21</strong>: 8 个提交（自定义预设完善/OIDC登录）</li>
+<li><strong>2026-05-20</strong>: 28 个提交（自定义预设/翻译系统/资产结构/密码保护）</li>
+<li><strong>2026-05-19</strong>: 49 个提交（艺术风格/导演维度/批量操作/API Key服务端化）</li>
+<li><strong>2026-05-18</strong>: 62 个提交（初始版本开发/三视图生成器基础功能）</li>
 </ul>`];
 
 function checkPwd(){
